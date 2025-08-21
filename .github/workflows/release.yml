@@ -1,0 +1,61 @@
+# .github/workflows/release.yml
+
+name: Praxis CI/CD
+
+# 触发工作流的事件
+on:
+  # 1. 当有代码推送到 main 或任何以 feat/、fix/、dev/ 开头的分支时
+  push:
+    branches:
+      - 'main'
+      - 'feat/**'
+      - 'fix/**'
+      - 'dev/**'
+  # 2. 当有 Pull Request 提交到 main 分支时
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  # 定义一个名为 build-and-publish 的作业
+  build-and-publish:
+    # 在最新的 Ubuntu 虚拟机上运行
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤 1: 检出您的代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步骤 2: 设置 Node.js 环境
+      # registry-url 会自动配置 .npmrc 文件，为发布做准备
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 使用 Node.js 20
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'npm'
+
+      # 步骤 3: 安装依赖
+      # 使用 npm ci 更快、更可靠
+      - name: Install dependencies
+        run: npm ci
+
+      # 步骤 4: 运行测试 (对所有触发事件都执行)
+      - name: Run tests
+        run: npm test
+
+      # 步骤 5: 构建项目 (对所有触发事件都执行)
+      - name: Build project
+        run: npm run build
+
+      # 步骤 6: 发布到 NPM (核心条件判断)
+      # 仅在满足以下所有条件时才执行此步骤：
+      # 1. 事件是 `push` (而不是 `pull_request`)
+      # 2. 当前分支是 `main`
+      - name: Publish to NPM
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm publish --access public
+        env:
+          # 从 GitHub Secrets 中读取我们之前设置的令牌
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
