@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    // ... 其他配置
+    "target": "es6",
+    "module": "es2015",
+    "strict": true,
+    // 添加或修改这行
+    "moduleResolution": "bundler",
+    "types": [
+      "vitest/globals",
+      "node"
+    ]
+  },
+  // 确保你的测试文件被包含进来
+  "include": [
+    "src",
+    "tests"
+  ]
+}
