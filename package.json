@@ -1,0 +1,60 @@
+{
+  "name": "@indredk/praxis",
+  "version": "0.1.0",
+  "description": "An AI-augmented TypeScript/JavaScript utility library, focusing on robust, highly-tested, and educational implementations.",
+  "author": "indredk <zys233333@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indredk/praxis.git"
+  },
+  "homepage": "https://github.com/indredk/praxis#readme",
+  "bugs": {
+    "url": "https://github.com/indredk/praxis/issues"
+  },
+  "keywords": [
+    "praxis",
+    "utils",
+    "typescript",
+    "helpers",
+    "p-limit",
+    "curry",
+    "flatten"
+  ],
+  "scripts": {
+    "dev": "vitest",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "build": "tsup",
+    "docs": "typedoc --out docs src/index.ts",
+    "prepare": "npm run build",
+    "release": "npm run test && npm run build && npm publish --access public"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@vitest/ui": "^1.6.0",
+    "tsup": "^8.1.0",
+    "typedoc": "^0.25.13",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
