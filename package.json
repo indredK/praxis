@@ -1,6 +1,6 @@
 {
   "name": "@indredk/praxis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An AI-augmented TypeScript/JavaScript utility library, focusing on robust, highly-tested, and educational implementations.",
   "author": "indredk <zys233333@gmail.com>",
   "license": "MIT",
