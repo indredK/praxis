@@ -36,7 +36,8 @@
   ],
   "scripts": {
     "start": "tsx ./start.ts",
-    "server": "tsx watch ./src/mock_server/server.ts --tsconfig ./src/mock_server/tsconfig.json",
+    "mock:server": "tsx watch ./src/mock_server/server.ts --tsconfig ./src/mock_server/tsconfig.json",
+    "mock:build": "tsc --project ./src/mock_server/tsconfig.json",
     "dev": "vitest",
     "test": "vitest run",
     "test:ui": "vitest --ui",

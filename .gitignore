@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 .DS_Store
 output/
+
+# 忽略 Mock 服务器的编译产物
+/src/mock_server/dist
