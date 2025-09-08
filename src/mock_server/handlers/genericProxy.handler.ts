@@ -1,5 +1,5 @@
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { REAL_DEVICE_IP } from '../config';
+import { REAL_DEVICE_IP } from '../config.js';
 import { Response } from 'express'; // 导入 Response 类型
 
 const genericProxyHandler = createProxyMiddleware({

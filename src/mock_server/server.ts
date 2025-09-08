@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { MOCK_SERVER_PORT } from './config';
+import { MOCK_SERVER_PORT } from './config.js';
 // 关键：直接导入我们组装好的责任链
-import { requestHandlers } from './handlers';
+import { requestHandlers } from './handlers/index.js';
 
 const app = express();
 

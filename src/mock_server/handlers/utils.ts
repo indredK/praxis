@@ -1,7 +1,6 @@
-import isMatch from "lodash/isMatch";
-import { mockRegistryType } from "../mock_registries/type";
+import _ from 'lodash';
+import { mockRegistryType, MockRule } from "../mock_registries/type.d.js";
 import { Request, Response } from "express";
-import { MockRule } from '../mock_registries/type';
 
 /**
  * 检查请求是否命中 Mock 规则，如果命中则处理并返回 true。
@@ -16,7 +15,7 @@ export function dispatchMock(req: Request, res: Response, mockRegistry: mockRegi
 
   // 遍历我们定义的所有规则
   for (const rule of mockRegistry) {
-    if (isMatch(payload, rule.requestMatch)) {
+    if (_.isMatch(payload, rule.requestMatch)) {
       console.log("[Mock Handler] 命中 Lodash 匹配规则, 匹配条件:", rule.requestMatch);
       // 如果匹配成功，发送对应的响应数据
       res.json(rule.responseData);
@@ -48,7 +47,7 @@ export function apiDispatchMock(req: Request, res: Response, registry: MockRule[
       continue;
     }
     // 如果需要，检查 body 是否匹配 (使用 lodash)
-    if (bodyMatch && !isMatch(req.body, bodyMatch)) {
+    if (bodyMatch && !_.isMatch(req.body, bodyMatch)) {
       continue;
     }
 

@@ -1,4 +1,4 @@
-import { mockRegistryType } from "./type";
+import { mockRegistryType } from "./type.d.js";
 
 export const mockRegistry: mockRegistryType = [
   // 规则1：完全匹配您 curl 命令中的请求

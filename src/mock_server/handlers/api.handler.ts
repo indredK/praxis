@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { REAL_DEVICE_IP } from '../config';
+import { REAL_DEVICE_IP } from '../config.js';
 import http from 'http'; // 关键：导入 Node.js 原生 http 模块
 import { URL } from 'url'; // 关键：导入 URL 模块用于解析地址
-import { apiDispatchMock } from './utils';
-import { apiMockRegistry } from '../mock_registries/api.mockRegistry';
+import { apiDispatchMock } from './utils.js';
+import { apiMockRegistry } from '../mock_registries/api.mockRegistry.js';
 import chalk from 'chalk';
 
 

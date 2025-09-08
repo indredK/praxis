@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction, Router } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { MOCK_CGI_DATA, REAL_DEVICE_IP } from '../config';
-import { mockRegistry } from '../mock_registries/cgi.mockRegistry';
-import { dispatchMock } from './utils'; // 我们将 dispatchMock 也抽离
+import { MOCK_CGI_DATA, REAL_DEVICE_IP } from '../config.js';
+import { mockRegistry } from '../mock_registries/cgi.mockRegistry.js';
+import { dispatchMock } from './utils.js'; // 我们将 dispatchMock 也抽离
 
 const cgiHandler = Router();
 const cgiBodyParser = express.text({ type: 'application/x-www-form-urlencoded' });
