@@ -10,6 +10,8 @@ export const apiMockRegistry: MockRule[] = [
       path: '/msactility'
       // GET 请求没有 bodyMatch
     },
+    // delay: 1000,
+    // statusCode: 200,
     modifier: (realDeviceResponse, originalRequest) => {
       console.log('[Modifier] 接收到的真实设备响应:', realDeviceResponse);
       realDeviceResponse.icsTokenExists = false

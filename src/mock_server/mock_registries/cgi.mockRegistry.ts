@@ -12,6 +12,8 @@ export const mockRegistry: MockRule[] = [
         { base: 'summary' }
       ]
     },
+    statusCode: 201,
+    delay: 500, // 延迟 500ms 再响应
     modifier: (realDeviceResponse, originalRequest) => {
       console.log('[Modifier] 接收到的真实设备响应:', realDeviceResponse);
       // 返回修改后的版本
