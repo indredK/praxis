@@ -4,7 +4,7 @@ import _ from "lodash";
 import { MOCK_CGI_DATA, REAL_DEVICE_IP } from "../config.js";
 import { mockRegistry } from "../mock_registries/cgi.mockRegistry.js";
 import { findMatchingRule } from "./utils.js";
-import { MockRule } from "../mock_registries/type.js";
+import { MockRule } from "../type.js";
 
 const cgiHandler = Router();
 const cgiBodyParser = express.text({ type: "application/x-www-form-urlencoded" });

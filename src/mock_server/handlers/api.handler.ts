@@ -5,7 +5,7 @@ import { URL } from "url";
 import { apiMockRegistry } from "../mock_registries/api.mockRegistry.js";
 import { findApiRule } from "./utils.js"; // 确保导入的是正确的查找函数
 import _ from "lodash";
-import { MockRule } from "../mock_registries/type.js";
+import { MockRule } from "../type.js";
 
 const apiHandler = Router();
 

@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { MockRule } from "./type.d.js";
+import { MockRule } from "../type.js";
 
 export const mockRegistry: MockRule[] = [
   // 规则1：完全匹配您 curl 命令中的请求

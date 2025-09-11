@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { MockRule } from "../mock_registries/type.d.js";
+import { MockRule } from "../type.js";
 import { Request } from "express";
 
 /**

@@ -1,4 +1,4 @@
-import { MockRule } from "./type.d.js"; // 我们将把类型定义也抽离出来
+import { MockRule } from "../type.js"; // 我们将把类型定义也抽离出来
 
 // 这是为 /api 路径准备的 Mock 规则
 export const apiMockRegistry: MockRule[] = [
