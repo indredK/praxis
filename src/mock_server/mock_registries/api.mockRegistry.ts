@@ -10,15 +10,21 @@ export const apiMockRegistry: MockRule[] = [
       path: '/msactility'
       // GET 请求没有 bodyMatch
     },
+    modifier: (realDeviceResponse, originalRequest) => {
+      console.log('[Modifier] 接收到的真实设备响应:', realDeviceResponse);
+      realDeviceResponse.icsTokenExists = false
+      // 返回修改后的版本
+      return realDeviceResponse;
+    },
     // 响应数据
-    responseData: {
-      success: true,
-      message: "msactility status is OK (mocked)",
-      data: {
-        active_sessions: 5,
-        cpu_usage: "22%"
-      }
-    }
+    // responseData: {
+    //   success: true,
+    //   message: "msactility status is OK (mocked)",
+    //   data: {
+    //     active_sessions: 5,
+    //     cpu_usage: "22%"
+    //   }
+    // }
   },
 
   // 规则2：一个 POST 请求的 Mock 示例，用来演示扩展性
