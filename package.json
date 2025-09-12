@@ -35,6 +35,10 @@
     "flatten"
   ],
   "scripts": {
+    "start": "tsx ./start.ts",
+    "mock:server": "tsx watch ./src/mock_server/server.ts --tsconfig ./src/mock_server/tsconfig.json",
+    "mock:build": "tsc --project ./src/mock_server/tsconfig.json",
+    "test:mock-server": "cross-env NODE_ENV=test vitest run ./tests/mock_server/server.test.ts",
     "dev": "vitest",
     "test": "vitest run",
     "test:ui": "vitest --ui",
@@ -45,13 +49,34 @@
     "release": "npm run test && npm run build && npm publish --access public"
   },
   "dependencies": {
+    "immer": "^10.1.3",
+    "inquirer": "^12.9.4",
+    "lodash": "^4.17.21",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/node": "^20.14.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/inquirer": "^9.0.9",
+    "@types/lodash": "^4.17.20",
+    "@types/multer": "^2.0.0",
+    "@types/nock": "^10.0.3",
+    "@types/node": "^20.19.13",
+    "@types/supertest": "^6.0.3",
     "@vitest/ui": "^3.2.0",
+    "chalk": "^5.6.0",
+    "cors": "^2.8.5",
+    "cross-env": "^10.0.0",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
+    "multer": "^2.0.2",
+    "nock": "^14.0.10",
+    "supertest": "^7.1.4",
+    "ts-node-dev": "^2.0.0",
     "tsup": "^8.1.0",
-    "typedoc": "^0.25.13",
+    "tsx": "^4.20.5",
+    "typedoc": "^0.28.12",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.0"
   },
   "engines": {
