@@ -1,85 +1,42 @@
 {
-  "name": "@indredk/praxis",
+  "name": "praxis-monorepo",
   "version": "0.1.1",
+  "private": true,
   "description": "An AI-augmented TypeScript/JavaScript utility library, focusing on robust, highly-tested, and educational implementations.",
   "author": "indredk <zys233333@gmail.com>",
-  "license": "MIT",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/indredk/praxis.git"
   },
-  "homepage": "https://github.com/indredk/praxis#readme",
-  "bugs": {
-    "url": "https://github.com/indredk/praxis/issues"
-  },
-  "keywords": [
-    "praxis",
-    "utils",
-    "typescript",
-    "helpers",
-    "p-limit",
-    "curry",
-    "flatten"
-  ],
   "scripts": {
-    "start": "tsx ./start.ts",
-    "mock:server": "tsx watch ./src/mock_server/server.ts --tsconfig ./src/mock_server/tsconfig.json",
-    "mock:build": "tsc --project ./src/mock_server/tsconfig.json",
-    "test:mock-server": "cross-env NODE_ENV=test vitest run ./tests/mock_server/server.test.ts",
-    "dev": "vitest",
-    "test": "vitest run",
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:server": "turbo dev --filter=@praxis/mock-server",
+    "test": "turbo test",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage",
-    "build": "tsup",
-    "docs": "typedoc --out docs src/index.ts",
-    "prepare": "npm run build",
-    "release": "npm run test && npm run build && npm publish --access public"
-  },
-  "dependencies": {
-    "immer": "^10.1.3",
-    "inquirer": "^12.9.4",
-    "lodash": "^4.17.21",
-    "xlsx": "^0.18.5"
+    "test:ui:server": "vitest --ui packages/mock_server/",
+    "test:coverage": "vitest run --coverage",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "docs": "typedoc",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo build --filter=@indredk/praxis && changeset publish"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/inquirer": "^9.0.9",
-    "@types/lodash": "^4.17.20",
-    "@types/multer": "^2.0.0",
-    "@types/nock": "^10.0.3",
+    "@changesets/cli": "^2.27.7",
     "@types/node": "^20.19.13",
-    "@types/supertest": "^6.0.3",
-    "@vitest/ui": "^3.2.0",
-    "chalk": "^5.6.0",
-    "cors": "^2.8.5",
+    "@vitest/ui": "^3.2.4",
+    "chalk": "^5.6.2",
     "cross-env": "^10.0.0",
-    "express": "^5.1.0",
-    "http-proxy-middleware": "^3.0.5",
-    "multer": "^2.0.2",
-    "nock": "^14.0.10",
-    "supertest": "^7.1.4",
-    "ts-node-dev": "^2.0.0",
-    "tsup": "^8.1.0",
-    "tsx": "^4.20.5",
+    "jsdom": "^27.0.0",
+    "tsup": "^8.5.0",
+    "turbo": "^2.5.6",
     "typedoc": "^0.28.12",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.4"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "packageManager": "pnpm@10.15.1",
+  "license": "ISC"
 }

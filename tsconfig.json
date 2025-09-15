@@ -1,19 +1,12 @@
+// tsconfig.json (根目录)
 {
   "compilerOptions": {
-    // ... 其他配置
-    "target": "es6",
-    "module": "es2015",
+    "target": "ES2020",
+    "module": "ESNext",
     "strict": true,
-    // 添加或修改这行
-    "moduleResolution": "bundler",
-    "types": [
-      "vitest/globals",
-      "node"
-    ]
-  },
-  // 确保你的测试文件被包含进来
-  "include": [
-    "src",
-    "tests"
-  ]
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node"
+  }
 }
