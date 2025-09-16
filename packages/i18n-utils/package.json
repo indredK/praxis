@@ -28,8 +28,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "pnpm build --watch",
     "lint": "eslint . --ext .ts",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run"
   },
   "dependencies": {
     "xlsx": "^0.18.5"

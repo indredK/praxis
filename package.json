@@ -21,6 +21,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "turbo lint",
     "clean": "turbo clean",
+    "typecheck": "turbo typecheck",
     "docs": "typedoc",
     "changeset": "changeset",
     "version-packages": "changeset version",
