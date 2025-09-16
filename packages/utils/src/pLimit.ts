@@ -107,8 +107,7 @@ export default function pLimit(concurrency: number): LimitFunction {
     // This wrapper ensures `next()` is called regardless of success or failure.
     try {
       await result;
-    } catch {
-    } finally {
+    } catch { /* empty */ } finally {
       next();
     }
   };
@@ -122,9 +121,9 @@ export default function pLimit(concurrency: number): LimitFunction {
   ) => {
     // Queue the internal resolve function instead of the run function
     // to preserve the asynchronous execution context.
-    new Promise<unknown>(internalResolve => { // eslint-disable-line promise/param-names
+    new Promise<unknown>(internalResolve => { 
       queue.enqueue(internalResolve as Resolver);
-    }).then(run.bind(undefined, function_ as any, resolve as any, arguments_)); // eslint-disable-line promise/prefer-await-to-then
+    }).then(run.bind(undefined, function_ as any, resolve as any, arguments_)); 
 
     // Start processing immediately if we haven't reached the concurrency limit
     if (activeCount < concurrency) {

@@ -1,7 +1,7 @@
 // tests/curry.test.ts
 
 import { describe, it, expect } from 'vitest';
-import { curry } from '../../function-utils/curry';
+import { curry } from '../src/curry';
 
 describe('curry (柯里化函数)', () => {
 
@@ -76,7 +76,6 @@ describe('curry (柯里化函数)', () => {
       const curriedAdd = curry(addTwo);
 
       // JavaScript 函数默认会忽略多余的参数
-      // @ts-ignore - a b c
       expect(curriedAdd(10, 2, 99, 100)).toBe(12);
     });
   });

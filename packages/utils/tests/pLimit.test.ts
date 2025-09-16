@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 // 假设 pLimit 函数位于上一级目录的 index.ts (或 .js) 文件中
-import pLimit, { limitFunction } from '../../function-utils/pLimit';
+import pLimit, { limitFunction } from '../src/pLimit';
 
 
 // ----------------- 轻量替代实现（零依赖） -----------------
@@ -116,7 +116,7 @@ describe('pLimit', () => {
 
     try {
       await Promise.all(promises);
-    } catch { }
+    } catch { /* empty */ }
     expect(ran).toBe(true);
   });
 
@@ -219,7 +219,6 @@ describe('pLimit', () => {
     const limit = pLimit(3);
     const inputs = [10, 10, 10, 10, 10];
 
-    // eslint-disable-next-line unicorn/no-array-method-this-argument
     const results = await (limit as any).map?.(inputs, async (value: number, index: number) => {
       // 模拟不同耗时以打乱完成顺序
       await delay((inputs.length - index) * 5);

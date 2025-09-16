@@ -1,6 +1,6 @@
 // queue.test.ts
 import { test, expect } from 'vitest';
-import Queue from '../../function-utils/queue';
+import Queue from '../src/queue';
 
 test('.enqueue()', () => {
   const queue = new Queue();

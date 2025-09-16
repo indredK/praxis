@@ -8,7 +8,6 @@
     "dev": "tsup src/index.ts --format cjs --watch --onSuccess \"node dist/index.js\"",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:ui": "vitest --ui",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
@@ -24,6 +23,7 @@
     "@types/lodash": "^4.17.20",
     "@types/nock": "^11.1.0",
     "@types/supertest": "^6.0.3",
+    "eslint": "^9.35.0",
     "nock": "^14.0.10",
     "supertest": "^7.1.4",
     "tsup": "^8.1.0",

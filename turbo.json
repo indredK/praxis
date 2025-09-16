@@ -26,6 +26,26 @@
     },
     "clean": {
       "cache": false
+    },
+    "start": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "preview": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true
     }
   }
 }

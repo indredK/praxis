@@ -1,7 +1,7 @@
 // tests/mergeObjects.test.ts
 
 import { describe, it, expect } from 'vitest';
-import { mergeObjects, MergeConfig } from '../../function-utils/mergeObjects';
+import { mergeObjects, MergeConfig } from '../src/mergeObjects';
 
 describe('mergeObjects', () => {
 

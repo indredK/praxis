@@ -1,7 +1,7 @@
 // tests/asyncDebounce.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { asyncDebounce } from '../../function-utils/asyncDebounce';
+import { asyncDebounce } from '../src/asyncDebounce';
 
 // 主测试套件
 describe('asyncDebounce (异步防抖函数)', () => {

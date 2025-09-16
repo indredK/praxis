@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // 确保从您的工具函数文件中正确导入
-import { onceAsyncWithReset } from '../../function-utils/onceAsyncWithReset';
+import { onceAsyncWithReset } from '../src/onceAsyncWithReset';
 
 describe('onceAsyncWithReset (带重置功能的异步单例函数)', () => {
 

@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 // 确保从您的 TypeScript 工具函数文件中正确导入
-import { flatten, unflatten } from '../../function-utils/flat';
+import { flatten, unflatten } from '../src/flat';
 
 describe('flatten / unflatten', () => {
 
@@ -221,8 +221,7 @@ describe('flatten / unflatten', () => {
 
       unflatten(flattened);
 
-      // @ts-ignore
-      const isPolluted = ({}).polluted === 'hello';
+      const isPolluted = (({} as { [key: string]: any })['polluted'] === 'hello');
 
       expect(isPolluted).toBe(false);
     });

@@ -1,0 +1,15 @@
+// /packages/utils/tsconfig.build.json
+{
+  // 继承我们已经验证过是正确的 tsconfig.json
+  "extends": "./tsconfig.json", 
+  "compilerOptions": {
+    // 覆盖 extends 的设置：我们就是要生成文件
+    "noEmit": false, 
+    // 只生成类型声明文件 (.d.ts)
+    "emitDeclarationOnly": true,
+    // 开启 declaration 功能
+    "declaration": true,
+    // (可选) 生成 .d.ts.map 文件，方便调试
+    "declarationMap": true
+  }
+}

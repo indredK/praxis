@@ -11,18 +11,18 @@
  */
 
 // --- 异步与流程控制 (Async & Control Flow) ---
-export * from './function-utils/asyncDebounce';
-export * from './function-utils/onceAsyncWithReset';
-export * from './function-utils/pLimit';
-export * from './function-utils/promisify';
-export * from './function-utils/timeout';
+export * from './src/asyncDebounce';
+export * from './src/onceAsyncWithReset';
+export * from './src/pLimit';
+export * from './src/promisify';
+export * from './src/timeout';
 
 // --- 数据处理 (Data Manipulation) ---
-export * from './function-utils/flat';
-export * from './function-utils/mergeObjects';
+export * from './src/flat';
+export * from './src/mergeObjects';
 
 // --- 函数式编程 (Functional Programming) ---
-export * from './function-utils/curry';
+export * from './src/curry';
 
 // --- i18n 相关工具 (i18n Utilities) ---
 // 注意: 导出 .js 文件需要您 tsconfig.json 中的 `allowJs` 选项为 true

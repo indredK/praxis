@@ -1,0 +1,14 @@
+// /packages/utils/tsconfig.json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "composite": true
+  },
+  // 关键修正：明确告诉 tsc 包含入口文件和 src 目录下的所有 ts 文件
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ],
+  "references": []
+}

@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // 确保从您的工具函数文件中正确导入
-import { withTimeout, TimeoutError } from '../../function-utils/timeout';
+import { withTimeout, TimeoutError } from '../src/timeout';
 
 describe('withTimeout 高阶函数', () => {
 
@@ -96,7 +96,6 @@ describe('withTimeout 高阶函数', () => {
     });
 
     // withTimeout 应该能处理非 Promise 的函数，并捕获其同步错误
-    // @ts-ignore - a b c
     const timedOperation = withTimeout(syncThrowOperation, 100);
 
     // 断言 Promise 会立即 reject，无需快进时间

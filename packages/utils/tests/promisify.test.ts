@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 // 方案二需要显式导入 promisify.custom
 // import { promisify } from 'util';
-import { promisify } from '../../function-utils/promisify';
+import { promisify } from '../src/promisify';
 
 /**
  * 测试用例覆盖以下情况：
@@ -91,7 +91,7 @@ describe('promisify this 绑定', () => {
 
 describe('promisify 异常与非法输入', () => {
   it('应当在函数内部同步抛错时 reject', async () => {
-    function badSync(cb: (err: any, result?: number) => void) {
+    function badSync(_cb: (err: any, result?: number) => void) {
       throw new Error('同步异常');
     }
 
