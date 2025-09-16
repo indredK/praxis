@@ -1,6 +1,6 @@
-const fs = require('fs');
-const xlsx = require('xlsx');
-const path = require('path');
+import fs from 'fs';
+import xlsx from 'xlsx';
+import path from 'path';
 
 // --- 配置 ---
 const inputExcel = path.join(__dirname, 'output', 'language_aligned.xlsx'); // 你的Excel
@@ -42,7 +42,7 @@ function tryParseJSON(value) {
   try {
     const parsed = JSON.parse(value);
     if (typeof parsed === 'object') return parsed;
-  } catch (_) {}
+  } catch (_) { /* empty */ }
   return value;
 }
 

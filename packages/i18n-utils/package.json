@@ -13,12 +13,10 @@
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
@@ -26,8 +24,7 @@
   ],
   "scripts": {
     "dev": "pnpm build --watch",
-    "lint": "eslint . --ext .ts",
-    "test": "vitest run"
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "xlsx": "^0.18.5"

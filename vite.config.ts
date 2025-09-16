@@ -11,10 +11,10 @@ export default defineConfig({
   // --- Vitest 的配置 (唯一的测试配置来源) ---
   test: {
     // 明确指定项目的根目录
-    root: '.',
+    // root: '.',
 
-    // 查找所有 packages 目录下的测试文件
-    include: ['packages/**/*.{test,spec}.{ts,tsx}'],
+   // 这个是 Vitest 官方推荐的最全面的匹配模式
+    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     
     // 排除无需测试的目录
     exclude: [
@@ -26,6 +26,6 @@ export default defineConfig({
     globals: true,
     
     // 为 UI 测试设置 jsdom 环境
-    environment: 'jsdom',
+    // environment: 'jsdom',
   },
 });
