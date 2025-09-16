@@ -25,7 +25,6 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "pnpm build --watch",
     "lint": "eslint . --ext .ts",
     "test": "vitest run"
