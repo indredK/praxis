@@ -1,17 +1,31 @@
-// vite.config.ts
+// /praxis/vite.config.ts
 
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  // ... 你的其他 Vite 配置
+  // --- Vite 的配置 (用于 webapp) ---
+  plugins: [react()],
 
+  // --- Vitest 的配置 (唯一的测试配置来源) ---
   test: {
-    // 启用类似 jest 的全局 API
+    // 明确指定项目的根目录
+    root: '.',
+
+    // 查找所有 packages 目录下的测试文件
+    include: ['packages/**/*.{test,spec}.{ts,tsx}'],
+    
+    // 排除无需测试的目录
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+    ],
+
+    // 启用全局 API (describe, it, etc.)
     globals: true,
-    // 你还可以包含或排除特定的测试文件
-    include: ['tests/**/*.test.ts'],
-    // 如果你的代码依赖于 DOM API (例如 window, document)
-    // environment: 'jsdom', 
+    
+    // 为 UI 测试设置 jsdom 环境
+    environment: 'jsdom',
   },
 });
