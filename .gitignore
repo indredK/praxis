@@ -1,24 +1,77 @@
-# Dependencies
-/node_modules
+# ===================================================================
+# Monorepo .gitignore (综合优化版)
+# ===================================================================
 
-# Build files
-/dist
-/docs
+# 1. 依赖
+# -------------------------------------------------------------------
+# 必须忽略，这是本地安装的所有依赖包
+node_modules/
 
-# Log files
+# pnpm-lock.yaml 强烈建议提交到 Git，以保证团队和 CI 环境的依赖一致性。
+# 如果您有特殊原因要忽略它，可以取消下面的注释。
+# pnpm-lock.yaml
+
+
+# 2. 构建产物与缓存
+# -------------------------------------------------------------------
+# 忽略所有包的编译输出目录 (不带斜杠开头，匹配任意层级)
+dist/
+build/
+out/
+output/ # 您自定义的输出目录
+
+# 忽略文档生成目录
+docs/
+
+# 忽略 Turborepo 的本地缓存
+.turbo/
+
+
+# 3. 日志文件
+# -------------------------------------------------------------------
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
-# Editor directories and files
-.vscode
-.idea
+
+# 4. 本地环境变量
+# -------------------------------------------------------------------
+# 包含敏感信息或本地配置，绝不应提交到仓库
+.env
+.env.local
+.env.*.local
+! .env.example # 如果有示例文件，不要忽略它
+
+
+# 5. 测试与覆盖率报告
+# -------------------------------------------------------------------
+coverage/
+.vitest-cache/
+
+
+# 6. IDE、编辑器和操作系统生成的文件
+# -------------------------------------------------------------------
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
+
+# 其他
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
+# macOS
 .DS_Store
-output/
+
+# Windows
+Thumbs.db

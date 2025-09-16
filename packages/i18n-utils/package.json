@@ -1,0 +1,42 @@
+{
+  "name": "@indredk/i18n-utils",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Internationalization (i18n) utilities, such as Excel parsers and formatters.",
+  "author": "indredk <zys233333@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indredk/praxis.git",
+    "directory": "packages/i18n-utils"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "pnpm build --watch",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "eslint": "^9.35.0",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

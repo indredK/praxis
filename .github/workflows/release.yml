@@ -1,52 +1,84 @@
-# .github/workflows/release.yml
+# /.github/workflows/release.yml
 
 name: Praxis CI/CD
 
-# 触发工作流的事件
 on:
-  # *** 新增 ***
-  # 允许您在 GitHub Actions 页面手动触发此工作流
-  workflow_dispatch:
-
-  # 当有代码推送到指定分支时 (保持不变)
+  # 1. 当有代码推送到任何分支时，都会触发此工作流
   push:
     branches:
-      - "main"
-      - "feat/**"
-      - "fix/**"
-      - "dev/**"
+      - '**' # '**' 是一个通配符，匹配所有分支，包括 main, feat/xxx, fix/xxx 等
 
-  # 当有 Pull Request 提交到 main 分支时 (保持不变)
+  # 2. 当有 Pull Request 指向 main 分支时，也会触发
   pull_request:
     branches:
-      - "main"
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-publish:
+  # --- Job 1: CI 验证 (构建和测试) ---
+  # 这个任务会在上面 on 定义的所有事件中运行
+  ci:
+    name: Build and Test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repo
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # with:
+        #   version: 10
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
+          cache: "pnpm"
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Run Checks (Lint, Types, Tests, Build)
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+  # --- Job 2: 发布 (只在 main 分支上运行) ---
+  release:
+    name: Release to NPM
+    runs-on: ubuntu-latest
+    # 关键：这个 if 条件确保了只有在 main 分支的 push 事件时才运行
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: ci # 依赖 CI Job 成功完成
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # with:
+        #   version: 10
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
           registry-url: "https://registry.npmjs.org/"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build project
-        run: npm run build
-
-      - name: Publish to NPM
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npm publish --access public
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Create Release
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: pnpm release
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
