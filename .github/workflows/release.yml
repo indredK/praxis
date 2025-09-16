@@ -3,9 +3,12 @@
 name: Praxis CI/CD
 
 on:
+  # 1. 当有代码推送到任何分支时，都会触发此工作流
   push:
     branches:
-      - main
+      - '**' # '**' 是一个通配符，匹配所有分支，包括 main, feat/xxx, fix/xxx 等
+
+  # 2. 当有 Pull Request 指向 main 分支时，也会触发
   pull_request:
     branches:
       - main
@@ -20,7 +23,7 @@ concurrency:
 
 jobs:
   # --- Job 1: CI 验证 (构建和测试) ---
-  # 这个 Job 保持不变，在所有 push 和 PR 时运行
+  # 这个任务会在上面 on 定义的所有事件中运行
   ci:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -40,49 +43,41 @@ jobs:
           cache: "pnpm"
       - name: Install Dependencies
         run: pnpm install
-      - name: Lint, Typecheck, Test, Build
+      - name: Run Checks (Lint, Types, Tests, Build)
         run: |
           pnpm lint
           pnpm typecheck
           pnpm test
           pnpm build
 
-  # --- Job 2: 发布 (只在 main 分支且有版本更新时发布) ---
+  # --- Job 2: 发布 (只在 main 分支上运行) ---
   release:
     name: Release to NPM
     runs-on: ubuntu-latest
+    # 关键：这个 if 条件确保了只有在 main 分支的 push 事件时才运行
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: ci
+    needs: ci # 依赖 CI Job 成功完成
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          # 需要获取完整历史记录，以便 Changesets 能正确对比版本
           fetch-depth: 0
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10
-          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org/"
-
       - name: Install Dependencies
         run: pnpm install
-
-      # 关键：使用 Changesets Action 来自动化版本和发布流程
       - name: Create Release
         id: changesets
         uses: changesets/action@v1
         with:
-          # 这个命令会检查是否存在 changeset 文件。
-          # 如果存在，它会自动执行版本提升、更新日志、推送 commit，然后执行发布。
-          # 如果不存在，它会安静地跳过这些步骤。
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
