@@ -1,0 +1,17 @@
+// /praxis/tsconfig.scripts.json
+{
+  // 继承我们的基础配置
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // 关键：使用为 Node.js ESM 环境优化的模块系统
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    // 允许导入 JSON 文件
+    "resolveJsonModule": true,
+    // 因为我们只是直接运行脚本，而不是构建，所以关闭这两个选项
+    "noEmit": true,
+    "isolatedModules": false
+  },
+  // 关键：将此配置的范围限定在 scripts 目录
+  "include": ["scripts/**/*.ts"]
+}

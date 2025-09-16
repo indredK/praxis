@@ -13,27 +13,24 @@
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "pnpm build --watch",
-    "lint": "eslint . --ext .ts",
-    "test": "vitest run"
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "eslint": "^9.35.0",
     "typescript": "^5.9.2"
   },
   "engines": {

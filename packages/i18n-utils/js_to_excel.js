@@ -1,7 +1,7 @@
 // 引入 Node.js 的文件系统模块和 xlsx 库
-const fs = require('fs');
-const xlsx = require('xlsx');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import xlsx from 'xlsx';
 
 // --- 配置 ---
 const files = ['../lang/zh-cn.js', '../lang/en.js'];
