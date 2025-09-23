@@ -6,12 +6,12 @@ import { glob } from "glob";
 import inquirer from "inquirer";
 import chalk from "chalk";
 import { execa } from "execa";
-import YAML from "yaml"; // 1. 导入 YAML 解析器
+import { parse } from "yaml"; // 1. 导入 YAML 解析器
 import { a } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 
 // --- 工具函数 ---
 
-async function getScripts(pkgPath) {
+async function getScripts(pkgPath: string) {
   try {
     const content = await readFile(path.join(pkgPath, "package.json"), "utf-8");
     const pkgJson = JSON.parse(content);
@@ -22,7 +22,7 @@ async function getScripts(pkgPath) {
 }
 
 // 2. 重写 getPackages 函数，使其优先读取 pnpm-workspace.yaml
-async function getPackages(rootPath) {
+async function getPackages(rootPath: string) {
   const pnpmWorkspacePath = path.join(rootPath, "pnpm-workspace.yaml");
   let patterns = [];
 
@@ -30,7 +30,7 @@ async function getPackages(rootPath) {
     // 优先尝试 pnpm-workspace.yaml
     await access(pnpmWorkspacePath); // 检查文件是否存在
     const content = await readFile(pnpmWorkspacePath, "utf-8");
-    const workspaceConfig = YAML.parse(content);
+    const workspaceConfig = parse(content);
     patterns = workspaceConfig.packages || [];
   } catch {
     // 如果失败，则回退到 package.json 的 workspaces 字段
@@ -58,7 +58,7 @@ async function getPackages(rootPath) {
   return packages;
 }
 
-async function runCommand(command) {
+async function runCommand(command: string) {
   console.log(chalk.cyan(`\n> ${command}\n`));
   try {
     await execa(command, { shell: true, stdio: "inherit" });

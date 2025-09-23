@@ -75,3 +75,5 @@ coverage/
 
 # Windows
 Thumbs.db
+*storybook.log
+storybook-static

@@ -1,13 +1,27 @@
 {
+  "extends": "../../tsconfig.base.json", // 继承位于根目录的基础配置
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext", // 从 "CommonJS" 修改为此
-    "moduleResolution": "NodeNext", // 从 "node" 修改为此
+    // --- Overrides (覆盖基础配置) ---
+    /**
+     * 对于现代 Node.js 包，"NodeNext" 是最佳选择。
+     * 它会根据 package.json 中的 "type" 字段 (module 或 commonjs) 自动决定模块系统。
+     */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    // --- Additions (新增的、本包特有的配置) ---
+    /**
+     * 指定编译后的 JavaScript 文件输出到哪个目录。
+     */
     "outDir": "./dist",
+    /**
+     * 指定 TypeScript 编译的根目录。
+     * '.' 表示当前目录 (packages/my-node-lib)。
+     */
     "rootDir": "./",
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
+    /**
+     * 告诉 TypeScript 加载 Node.js 的全局类型定义 (如 process, Buffer 等)。
+     * 基础配置中通常不包含这个，因为它不是所有包都需要的。
+     */
     "types": [
       "node"
     ]
