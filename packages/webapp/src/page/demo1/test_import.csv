@@ -1,0 +1,4 @@
+channelName,linkType,serverId,instructionType,dataType,byteOrder,registerAddress,registerValue
+测试通道1,serial,1,writeSingleHoldingRegister,INT16,AB,40010,100
+测试通道2,serial,1,readHoldingRegisters,INT16,AB,40011,
+测试通道3,tcp,2,writeMultipleHoldingRegisters,INT32,AB,CD,40012,200 300
