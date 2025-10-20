@@ -119,6 +119,46 @@ my_flutter_app/
 └── pubspec.yaml           # 依赖配置
 ```
 
+## 常用命令速查
+
+```bash
+# 环境与依赖
+flutter doctor                # 检查环境
+flutter upgrade               # 升级 Flutter SDK
+flutter pub get               # 安装依赖
+flutter pub upgrade           # 升级依赖
+flutter clean                 # 清理构建产物
+
+# 设备与模拟器
+flutter devices               # 列出可用设备
+open -a Simulator             # 启动 iOS 模拟器（macOS）
+adb devices                   # 列出 Android 设备（需安装 adb）
+
+# 运行与调试
+flutter run                   # 运行到默认设备
+flutter run -d chrome         # 运行到 Web（Chrome）
+flutter run -d macos          # 运行到 macOS 桌面
+flutter run -d ios            # 运行到 iOS 模拟器/真机
+flutter run -d android        # 运行到 Android 模拟器/真机
+
+# 构建产物
+flutter build apk             # 构建 Android APK（调试/发布需额外参数）
+flutter build appbundle       # 构建 Android AAB（上架推荐）
+flutter build ios             # 构建 iOS（需 Xcode 配置签名）
+flutter build macos           # 构建 macOS 桌面
+flutter build web             # 构建 Web（输出到 build/web）
+
+# 代码质量
+dart format .                 # 格式化代码
+dart analyze                  # 静态分析
+flutter test                  # 运行单元测试
+
+# 其他常用
+flutter pub outdated          # 查看可升级依赖
+flutter channel               # 查看/切换渠道（stable/beta/dev）
+flutter precache --web        # 预拉取 Web 相关依赖
+```
+
 ## 学习目标
 - [ ] 掌握 Dart 语言基础
 - [ ] 理解 Flutter Widget 体系
