@@ -20,7 +20,7 @@
     "test:ui": "vitest --ui --project unit",
     "test:ui:server": "vitest --ui packages/mock_server/",
     "test:ui:utils": "vitest --ui packages/utils/",
-    "test:ui:webapp": "vitest --ui packages/webapp/",
+    "test:ui:react-web": "vitest --ui packages/react-web/",
     "test:coverage": "vitest run --coverage",
     "lint": "turbo lint",
     "clean": "turbo clean",

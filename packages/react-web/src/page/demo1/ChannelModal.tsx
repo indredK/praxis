@@ -21,7 +21,7 @@ import {
   writeInstructionTypes,
   coilInstructionTypes,
   registerInstructionTypes,
-} from "./channelConfig";
+} from "./channelConfig.js";
 
 const { TextArea } = Input;
 

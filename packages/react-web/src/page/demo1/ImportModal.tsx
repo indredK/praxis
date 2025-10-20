@@ -15,8 +15,8 @@ import {
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import { type Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
-import { exportTemplateToExcel } from './exportUtils';
-import { IMPORT_CONFIG } from './importConfig';
+import { exportTemplateToExcel } from './exportUtils.js';
+import { IMPORT_CONFIG } from './importConfig.js';
 
 const { Text } = Typography;
 
