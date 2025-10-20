@@ -188,7 +188,7 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
 
-  packages/webapp:
+  packages/react-web:
     dependencies:
       '@ant-design/icons':
         specifier: ^6.1.0

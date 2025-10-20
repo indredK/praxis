@@ -1,5 +1,5 @@
 {
-  "name": "@praxis/praxis-webapp",
+  "name": "@praxis/praxis-react-web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
