@@ -196,9 +196,15 @@ importers:
       '@ant-design/v5-patch-for-react-19':
         specifier: ^1.0.3
         version: 1.0.3(antd@5.27.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@types/lodash':
+        specifier: ^4.17.20
+        version: 4.17.20
       antd:
         specifier: ^5.27.4
         version: 5.27.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       react:
         specifier: ^19.1.1
         version: 19.1.1

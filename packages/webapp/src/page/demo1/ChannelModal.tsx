@@ -11,7 +11,7 @@ import {
   Divider
 } from "antd";
 import { PlayCircleOutlined } from "@ant-design/icons";
-import type { ChannelData } from "./mockData";
+import type { Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
 import {
   linkTypeOptions,
   instructionTypeOptions,
@@ -28,8 +28,8 @@ const { TextArea } = Input;
 interface ChannelModalProps {
   visible: boolean;
   onCancel: () => void;
-  onSubmit: (values: ChannelData) => void;
-  initialValues?: ChannelData | null;
+  onSubmit: (values: Channel) => void;
+  initialValues?: Channel | null;
 }
 
 const ChannelModal: React.FC<ChannelModalProps> = ({

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import _ from "lodash";
 import {
     Table,
     Button,
@@ -22,21 +23,133 @@ import {
     ImportOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { type ChannelData, mockChannelData } from "./mockData";
 import ChannelModal from "./ChannelModal";
 import ImportModal from "./ImportModal";
 import { exportChannelsToExcel } from "./exportUtils";
 
+// 定义Channel接口
+interface Channel {
+    id: string;
+    channelName: string;
+    linkType: 'Serial' | 'TCP';
+    serialPortType?: 'RS232' | 'RS485';
+    channelType: 'write' | 'read';
+    serverId: string;
+    ipAddress?: string;
+    port?: number;
+    instructionType:
+    | 'readCoil'
+    | 'readDiscreteInput'
+    | 'readHoldingRegister'
+    | 'readInputRegister'
+    | 'writeSingleCoil'
+    | 'writeSingleHoldingRegister'
+    | 'writeMultipleCoils'
+    | 'writeMultipleHoldingRegister';
+    modbusFunctionCode?: number;
+    dataType:
+    | 'INT16'
+    | 'INT32'
+    | 'INT64'
+    | 'Float32'
+    | 'Float64'
+    | 'ASCII'
+    | 'HEX';
+    signed?: boolean;
+    byteOrder?: string;
+    registerAddress: number;
+    registerValue?: string;
+    registerCount?: number;
+    decimal?: number;
+    editable?: boolean;
+    isApplied?: boolean;
+}
+
 const { Title } = Typography;
 
 const ChannelTable: React.FC = () => {
-    const [data, setData] = useState<ChannelData[]>(mockChannelData);
+    const [data, setData] = useState<Channel[]>([]); // 当前页显示的数据
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
-    const [editingRecord, setEditingRecord] = useState<ChannelData | null>(null);
+    const [editingRecord, setEditingRecord] = useState<Channel | null>(null);
     const [importModalVisible, setImportModalVisible] = useState(false);
+
+    // 翻页状态
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0
+    });
+
+    // 工具函数：构建CGI请求参数
+    const buildCgiRequest = (base: string, limit: number, start: number) =>
+        _.merge(
+            { id: 47, execute: 1, core: "yruo_firewall_iorules", function: "get" },
+            { values: [{ base, limit, start }] }
+        );
+
+    // 工具函数：安全提取响应数据
+    const extractResponseData = (result: Record<string, unknown>) => ({
+        serverData: _.get(result, 'get[0].value.server', []) as Channel[],
+        serverCount: _.get(result, 'get[0].value.server_count', 0) as number
+    });
+
+    // 工具函数：验证响应数据
+    const isValidResponse = (serverData: Channel[], serverCount: number) =>
+        !_.isEmpty(serverData) || serverCount > 0;
+
+    // 从API获取通道数据 - 使用lodash优化
+    const fetchChannels = async (page: number = pagination.current, pageSize: number = pagination.pageSize) => {
+        setLoading(true);
+
+        try {
+            // 构建请求参数
+            const requestBody = JSON.stringify(
+                buildCgiRequest("yruo_firewall_channelSettings", pageSize, (page - 1) * pageSize)
+            );
+
+            const response = await fetch('/cgi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: requestBody
+            });
+
+            const result = await response.json();
+
+            // 提取和验证数据
+            const { serverData, serverCount } = extractResponseData(result);
+
+            if (!isValidResponse(serverData, serverCount)) {
+                message.error('获取通道数据失败：响应格式不正确');
+                return;
+            }
+
+            // 更新数据和翻页信息
+            setData(serverData);
+            setPagination(_.merge(pagination, {
+                current: page,
+                pageSize: pageSize,
+                total: serverCount,
+                totalPages: Math.ceil(serverCount / pageSize)
+            }));
+
+        } catch (error) {
+            console.error('获取通道数据失败:', error);
+            message.error('获取通道数据失败，请检查网络连接');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 组件挂载时获取数据
+    useEffect(() => {
+        fetchChannels();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 模拟API请求
     const simulateApiCall = async (action: string) => {
@@ -47,7 +160,7 @@ const ChannelTable: React.FC = () => {
     };
 
     // 编辑通道
-    const handleEdit = (record: ChannelData) => {
+    const handleEdit = (record: Channel) => {
         setEditingRecord(record);
         setModalVisible(true);
     };
@@ -60,7 +173,7 @@ const ChannelTable: React.FC = () => {
     };
 
     // 单个删除通道
-    const handleDelete = async (record: ChannelData) => {
+    const handleDelete = async (record: Channel) => {
         // 检查通道是否正在应用中
         if (record.isApplied) {
             Modal.warning({
@@ -144,33 +257,30 @@ const ChannelTable: React.FC = () => {
     };
 
     // 处理导入的通道数据
-    const handleImportChannels = (channels: ChannelData[]) => {
+    const handleImportChannels = (channels: Channel[]) => {
         setData([...data, ...channels]);
         message.success(`成功导入 ${channels.length} 个通道`);
     };
 
-    // 搜索
-    const filteredData = data.filter((item) =>
-        item.channelName.toLowerCase().includes(searchText.toLowerCase())
-    );
+    // 搜索功能 - 使用lodash debounce优化
+    const handleSearch = _.debounce(() => {
+        // 重置到第一页进行搜索
+        fetchChannels(1, pagination.pageSize);
+    }, 300);
 
-    // 全选/取消全选处理
+    // 全选/取消全选处理 - 使用lodash优化
     const handleSelectAll = (checked: boolean) => {
-        if (checked) {
-            // 全选当前页面的所有数据
-            const currentPageKeys = filteredData.map(item => item.id);
-            setSelectedRowKeys(currentPageKeys);
-        } else {
-            // 取消全选
-            setSelectedRowKeys([]);
-        }
+        const newSelectedKeys = checked
+            ? _.map(data, 'id')
+            : [];
+        setSelectedRowKeys(newSelectedKeys);
     };
 
-    // 检查是否全选
-    const isAllSelected = filteredData.length > 0 && filteredData.every(item => selectedRowKeys.includes(item.id));
+    // 检查是否全选 - 使用lodash优化
+    const isAllSelected = data.length > 0 && _.every(data, item => _.includes(selectedRowKeys, item.id));
     const isIndeterminate = selectedRowKeys.length > 0 && !isAllSelected;
 
-    const columns: ColumnsType<ChannelData> = [
+    const columns: ColumnsType<Channel> = [
         {
             title: (
                 <Checkbox
@@ -350,29 +460,45 @@ const ChannelTable: React.FC = () => {
                     </Space>
                 </Col>
                 <Col>
-                    <Input
-                        placeholder="通道名称"
-                        prefix={<SearchOutlined />}
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        style={{ width: 200 }}
-                    />
+                    <Space>
+                        <Input
+                            placeholder="通道名称"
+                            prefix={<SearchOutlined />}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            onPressEnter={handleSearch}
+                            style={{ width: 200 }}
+                        />
+                        <Button
+                            type="primary"
+                            icon={<SearchOutlined />}
+                            onClick={handleSearch}
+                        >
+                            搜索
+                        </Button>
+                    </Space>
                 </Col>
             </Row>
 
             <Table
                 columns={columns}
-                dataSource={filteredData}
+                dataSource={data}
                 rowKey="id"
                 loading={loading}
                 pagination={{
-                    current: 1,
-                    pageSize: 10,
-                    total: filteredData.length,
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
                     showSizeChanger: true,
                     showQuickJumper: true,
                     showTotal: (total, range) =>
                         `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+                    onChange: (page, pageSize) => {
+                        fetchChannels(page, pageSize);
+                    },
+                    onShowSizeChange: (_current, size) => {
+                        fetchChannels(1, size);
+                    }
                 }}
                 scroll={{ x: 1000 }}
                 size="small"
@@ -382,22 +508,8 @@ const ChannelTable: React.FC = () => {
             <ChannelModal
                 visible={modalVisible}
                 onCancel={() => setModalVisible(false)}
-                onSubmit={(values) => {
-                    if (editingRecord) {
-                        // 编辑
-                        setData(
-                            data.map((item) =>
-                                item.id === editingRecord.id ? { ...item, ...values } : item
-                            )
-                        );
-                    } else {
-                        // 新增
-                        const newRecord = {
-                            ...values,
-                            id: Date.now().toString(),
-                        };
-                        setData([...data, newRecord]);
-                    }
+                onSubmit={() => {
+
                     setModalVisible(false);
                 }}
                 initialValues={editingRecord}

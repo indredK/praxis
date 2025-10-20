@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { type ChannelData } from './mockData';
+import { type Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
 
 // 设备型号配置
 const DEVICE_MODEL = 'UR35';
@@ -18,7 +18,7 @@ export const generateExportFileName = (): string => {
 };
 
 // 转换通道数据为Excel格式
-const convertChannelDataToExcel = (channels: ChannelData[]) => {
+const convertChannelDataToExcel = (channels: Channel[]) => {
     return channels.map((channel, index) => ({
         '序号': index + 1,
         '通道名称': channel.channelName,
@@ -32,8 +32,8 @@ const convertChannelDataToExcel = (channels: ChannelData[]) => {
         '字节顺序': channel.byteOrder || '',
         '寄存器地址': channel.registerAddress,
         '寄存器数目/值': channel.registerValue || channel.registerCount || '',
-        '是否带符号': channel.isSigned ? '是' : '否',
-        '小数位数': channel.decimalPlaces || '',
+        '是否带符号': channel.signed ? '是' : '否',
+        '小数位数': channel.decimal || '',
         '应用状态': channel.isApplied ? '正在应用中' : '未在应用中',
     }));
 };
@@ -80,7 +80,7 @@ const getInstructionTypeDisplay = (instructionType: string): string => {
 };
 
 // 导出通道数据到Excel
-export const exportChannelsToExcel = (channels: ChannelData[]): void => {
+export const exportChannelsToExcel = (channels: Channel[]): void => {
     try {
         // 转换数据
         const excelData = convertChannelDataToExcel(channels);

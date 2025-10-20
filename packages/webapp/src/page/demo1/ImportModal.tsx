@@ -14,7 +14,7 @@ import {
     UploadOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
-import { type ChannelData } from './mockData';
+import { type Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
 import { exportTemplateToExcel } from './exportUtils';
 import { IMPORT_CONFIG } from './importConfig';
 
@@ -23,7 +23,7 @@ const { Text } = Typography;
 interface ImportModalProps {
     visible: boolean;
     onCancel: () => void;
-    onImport: (channels: ChannelData[]) => void;
+    onImport: (channels: Channel[]) => void;
     existingChannelCount: number;
 }
 
@@ -74,10 +74,10 @@ const ImportModal: React.FC<ImportModalProps> = ({
     const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const isSupported = IMPORT_CONFIG.SUPPORTED_FILE_TYPES.some(ext => 
+            const isSupported = IMPORT_CONFIG.SUPPORTED_FILE_TYPES.some(ext =>
                 file.name.toLowerCase().endsWith(ext.toLowerCase())
             );
-            
+
             if (!isSupported) {
                 message.error(`请选择支持的文件格式：${IMPORT_CONFIG.SUPPORTED_FILE_TYPES.join(', ')}`);
                 return;
@@ -161,7 +161,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
     // 校验通道数据
     const validateChannelData = (data: unknown[], rowOffset: number = 1): { isValid: boolean; errorRow?: number; errorMessage?: string } => {
         for (let i = 0; i < data.length; i++) {
-            const row = data[i] as unknown as ChannelData;
+            const row = data[i] as unknown as Channel;
             const rowNumber = i + rowOffset + 1; // +1 因为CSV有标题行，+1 因为从1开始计数
 
             // 必填字段校验
@@ -181,7 +181,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 return { isValid: false, errorRow: rowNumber, errorMessage: '指令类型不能为空' };
             }
 
-            if (!row.registerAddress?.trim()) {
+            if (!row.registerAddress.toString().trim()) {
                 return { isValid: false, errorRow: rowNumber, errorMessage: '寄存器地址不能为空' };
             }
 
@@ -216,7 +216,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             }
 
             // 寄存器地址校验
-            const registerAddress = parseInt(row.registerAddress);
+            const registerAddress = parseInt(row.registerAddress.toString());
             if (isNaN(registerAddress) || registerAddress < 0 || registerAddress > 65535) {
                 return { isValid: false, errorRow: rowNumber, errorMessage: '寄存器地址无效' };
             }
@@ -308,7 +308,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
             // 转换数据格式
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const channels: ChannelData[] = csvData.map((row: any, index) => ({
+            const channels: Channel[] = csvData.map((row: any, index) => ({
                 id: `import_${Date.now()}_${index}`,
                 channelName: row.channelName,
                 linkType: row.linkType,
@@ -320,8 +320,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 registerValue: row.registerValue,
                 registerCount: row.registerCount,
                 isSigned: row.isSigned === 'true',
-                decimalPlaces: row.decimalPlaces ? parseInt(row.decimalPlaces) : undefined,
+                decimal: row.decimal ? parseInt(row.decimal) : undefined,
                 isApplied: false,
+                channelType: row.channelType,
             }));
 
             message.success(`成功导入 ${channels.length} 个通道`);

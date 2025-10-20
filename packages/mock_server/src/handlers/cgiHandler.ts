@@ -86,7 +86,83 @@ export function createCgiHandler({ registry, proxyTarget }: CgiHandlerDependenci
     // 3. 使用传入的 registry 参数，而不是写死的 import
     const matchedRule = findMatchingRule(payload, registry);
 
-    // --- 分支1: 命中静态 Mock 规则 (应用简单延迟) ---
+    // --- 分支1: 命中动态 Mock 规则 (优先级最高) ---
+    if (matchedRule?.responseDataGenerator) {
+      console.log("[CGI Handler] 命中动态 Mock 规则:", matchedRule.requestMatch);
+      const responseAction = () => {
+        try {
+          const generatedData = matchedRule.responseDataGenerator!(req, payload);
+          const finalStatusCode = matchedRule.statusCode || 200;
+          console.log(`[CGI Handler] 返回动态 Mock, 状态码: ${finalStatusCode}, 延迟: ${matchedRule.delay || 0}ms`);
+          res.status(finalStatusCode).json(generatedData);
+        } catch (error) {
+          console.error("[CGI Handler] 动态数据生成失败:", error);
+          res.status(500).json({ error: "Dynamic data generation failed" });
+        }
+      };
+      const delay = matchedRule.delay || 0;
+      if (delay > 0) {
+        setTimeout(responseAction, delay);
+      } else {
+        responseAction();
+      }
+      return;
+    }
+
+    // --- 分支1: 命中修改器规则 (支持两种模式) ---
+    if (matchedRule?.modifier) {
+      console.log("[CGI Handler] 命中修改器规则:", matchedRule.requestMatch);
+      
+      // 检查修改器函数的参数数量来判断模式
+      const modifierParamCount = matchedRule.modifier.length;
+      
+      if (modifierParamCount === 3) {
+        // 新模式：modifier(realDeviceResponse, req, payload) - 支持直接生成mock数据
+        try {
+          const generatedData = matchedRule.modifier(null, req, payload);
+          const finalStatusCode = matchedRule.statusCode || 200;
+          console.log(`[CGI Handler] 返回修改器生成的Mock数据, 状态码: ${finalStatusCode}, 延迟: ${matchedRule.delay || 0}ms`);
+          
+          const responseAction = () => {
+            res.status(finalStatusCode).json(generatedData);
+          };
+          const delay = matchedRule.delay || 0;
+          if (delay > 0) {
+            setTimeout(responseAction, delay);
+          } else {
+            responseAction();
+          }
+          return;
+        } catch (error) {
+          console.error("[CGI Handler] 修改器生成数据失败:", error);
+          res.status(500).json({ error: "Modifier data generation failed" });
+          return;
+        }
+      } else if (modifierParamCount === 2) {
+        // 旧模式：modifier(realDeviceResponse, req) - 修改真实设备响应
+        console.log("[CGI Handler] 使用旧模式修改器，代理到真实设备");
+        const startTime = Date.now();
+        return createProxyMiddleware({
+          target: proxyTarget,
+          changeOrigin: true,
+          selfHandleResponse: true,
+          on: {
+            proxyReq: (proxyReq) => writeProxyBody(proxyReq, bodyString),
+            proxyRes: (proxyRes) => handleModifierResponse(proxyRes, res, matchedRule, req, startTime),
+            error: (err, req, res) => {
+              console.error("[CGI 代理错误]", err);
+              (res as Response).status(502).send("Proxy to CGI device failed");
+            },
+          },
+        })(req, res, next);
+      } else {
+        console.error("[CGI Handler] 修改器函数参数数量不正确:", modifierParamCount);
+        res.status(500).json({ error: "Invalid modifier function signature" });
+        return;
+      }
+    }
+
+    // --- 分支2: 命中静态 Mock 规则 (应用简单延迟) ---
     if (matchedRule?.responseData) {
       console.log("[CGI Handler] 命中静态 Mock 规则:", matchedRule.requestMatch);
       const responseAction = () => {
@@ -101,25 +177,6 @@ export function createCgiHandler({ registry, proxyTarget }: CgiHandlerDependenci
         responseAction();
       }
       return;
-    }
-
-    // --- 分支2: 命中修改器规则 (应用智能延迟) ---
-    if (matchedRule?.modifier) {
-      console.log("[CGI Handler] 命中“修改器”规则:", matchedRule.requestMatch);
-      const startTime = Date.now();
-      return createProxyMiddleware({
-        target: proxyTarget,
-        changeOrigin: true,
-        selfHandleResponse: true,
-        on: {
-          proxyReq: (proxyReq) => writeProxyBody(proxyReq, bodyString),
-          proxyRes: (proxyRes) => handleModifierResponse(proxyRes, res, matchedRule, req, startTime),
-          error: (err, req, res) => {
-            console.error("[CGI 代理错误]", err);
-            (res as Response).status(502).send("Proxy to CGI device failed");
-          },
-        },
-      })(req, res, next);
     }
 
     // --- 分支3: 未命中任何规则，交给下一个处理器 (通用代理) ---

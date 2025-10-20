@@ -20,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 // --- 组装和挂载路由处理器 ---
-// 3. 调用“总组装工厂”，一次性传入所有依赖
+// 3. 调用"总组装工厂"，一次性传入所有依赖
 const requestHandlers = createRequestHandlers({
   cgiRegistry: cgiMockRegistry,
   apiRegistry: apiMockRegistry,
