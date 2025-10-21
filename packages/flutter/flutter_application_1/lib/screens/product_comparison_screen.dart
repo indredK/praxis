@@ -22,6 +22,63 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   List<Product> _selectedProducts = [];
   bool _isLoading = true;
 
+  // 基准对比功能：第一个产品作为基准
+  int _baselineIndex = 0;
+
+  // 智能对比提示显示状态
+  bool _showSmartComparisonTip = false;
+
+  // 预加载的对比数据缓存
+  List<SpecComparison>? _cachedComparisons;
+
+  // 计算百分比差异
+  String? _calculatePercentage(dynamic baselineValue, dynamic currentValue) {
+    try {
+      double baseline = 0;
+      double current = 0;
+
+      if (baselineValue is num) {
+        baseline = baselineValue.toDouble();
+      } else if (baselineValue is String) {
+        baseline =
+            double.tryParse(baselineValue.replaceAll(RegExp(r'[^\d.]'), '')) ??
+            0;
+      }
+
+      if (currentValue is num) {
+        current = currentValue.toDouble();
+      } else if (currentValue is String) {
+        current =
+            double.tryParse(currentValue.replaceAll(RegExp(r'[^\d.]'), '')) ??
+            0;
+      }
+
+      if (baseline == 0) return null;
+
+      final percentage = ((current - baseline) / baseline * 100);
+      if (percentage > 0) {
+        return '+${percentage.toStringAsFixed(1)}%';
+      } else if (percentage < 0) {
+        return '${percentage.toStringAsFixed(1)}%';
+      } else {
+        return '0%';
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 根据百分比获取颜色
+  Color _getPercentageColor(String percentage) {
+    if (percentage.startsWith('+')) {
+      return Colors.red.withOpacity(0.1);
+    } else if (percentage.startsWith('-')) {
+      return Colors.blue.withOpacity(0.1);
+    } else {
+      return Colors.grey.withOpacity(0.1);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -36,8 +93,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   }
 
   Future<void> _loadSelectedProducts() async {
+    // 立即显示产品，无加载状态
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
     });
 
     try {
@@ -55,18 +113,62 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         _selectedProducts = products
             .where((product) => widget.selectedProductIds.contains(product.id))
             .toList();
-        _isLoading = false;
       });
+
+      // 异步预加载对比数据，不阻塞UI
+      _preloadComparisonData();
+
+      // 检查是否找到了选中的产品
+      if (_selectedProducts.isEmpty && widget.selectedProductIds.isNotEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('未找到选中的产品，请重新选择'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          // 返回上一页
+          Navigator.of(context).pop();
+        }
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('加载产品数据失败: $e'), backgroundColor: Colors.red),
         );
       }
     }
+  }
+
+  // 智能预加载对比数据
+  Future<void> _preloadComparisonData() async {
+    if (_selectedProducts.isEmpty || _cachedComparisons != null) return;
+
+    try {
+      final comparisons = await DataService.getProductComparison(
+        _selectedProducts.map((p) => p.id).toList(),
+      );
+
+      if (mounted) {
+        setState(() {
+          _cachedComparisons = comparisons;
+        });
+        print('✅ 预加载基础对比数据完成');
+      }
+    } catch (e) {
+      print('❌ 预加载基础对比数据失败: $e');
+    }
+  }
+
+  // 无缝切换基准
+  void _switchBaseline(int newBaselineIndex) {
+    if (newBaselineIndex == _baselineIndex) return;
+
+    setState(() {
+      _baselineIndex = newBaselineIndex;
+      // 对比数据相同，只是显示方式不同，无需重新加载
+      print('✅ 切换基准索引到 $newBaselineIndex');
+    });
   }
 
   @override
@@ -156,41 +258,109 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   }
 
   Widget _buildSpecComparisonTab() {
-    // 使用异步加载获取对比数据
-    return FutureBuilder<List<SpecComparison>>(
-      future: DataService.getProductComparison(widget.selectedProductIds),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // 使用缓存的数据，无加载状态
+    final comparisons = _cachedComparisons ?? [];
 
-        if (snapshot.hasError) {
-          return Center(child: Text('加载失败: ${snapshot.error}'));
-        }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 产品概览卡片
+          _buildProductOverviewCards(),
+          const SizedBox(height: 24),
 
-        final comparisons = snapshot.data ?? [];
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // 规格对比表格
+          Row(
             children: [
-              // 产品概览卡片
-              _buildProductOverviewCards(),
-              const SizedBox(height: 24),
-
-              // 规格对比表格
               Text('详细规格对比', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 16),
-
-              if (comparisons.isEmpty)
-                const Center(child: Text('暂无对比数据'))
-              else
-                _buildSpecComparisonTable(comparisons),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showSmartComparisonTip = !_showSmartComparisonTip;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '智能对比',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          if (_showSmartComparisonTip)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.blue.shade900.withOpacity(0.3)
+                    : Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '系统已智能筛选出共有参数和重要参数进行对比，确保对比结果更有意义',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+
+          if (comparisons.isEmpty)
+            const Center(child: Text('暂无对比数据'))
+          else
+            _buildSpecComparisonTable(comparisons),
+        ],
+      ),
     );
   }
 
@@ -267,6 +437,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
   // 构建单个产品卡片
   Widget _buildProductCard(Product product, double width, double height) {
+    final productIndex = _selectedProducts.indexOf(product);
+    final isBaseline = productIndex == _baselineIndex;
+
     return SizedBox(
       width: width,
       height: height,
@@ -274,7 +447,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         elevation: 8,
         shadowColor: Colors.black.withOpacity(0.1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
@@ -285,106 +460,159 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                 _getCompanyColor(product.company).withOpacity(0.05),
               ],
             ),
+            border: isBaseline
+                ? Border.all(color: Colors.green, width: 2)
+                : null,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 产品图片占位符
-                Container(
-                  height: height * 0.4,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        _getCompanyColor(product.company),
-                        _getCompanyColor(product.company).withOpacity(0.7),
-                      ],
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 产品图片占位符
+                    Container(
+                      height: height * 0.4,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            _getCompanyColor(product.company),
+                            _getCompanyColor(product.company).withOpacity(0.7),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getCompanyColor(
+                              product.company,
+                            ).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          product.company[0],
+                          style: TextStyle(
+                            color: Theme.of(context).cardColor,
+                            fontSize: height * 0.15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
+                    const SizedBox(height: 12),
+
+                    // 产品名称
+                    Text(
+                      product.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: height * 0.06,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    // 公司
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
                         color: _getCompanyColor(
                           product.company,
-                        ).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        ).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      product.company[0],
-                      style: TextStyle(
-                        color: Theme.of(context).cardColor,
-                        fontSize: height * 0.15,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        product.company,
+                        style: TextStyle(
+                          color: _getCompanyColor(product.company),
+                          fontSize: height * 0.05,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // 价格
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: SettingsService.showPrices
+                          ? Text(
+                              SettingsService.formatPrice(product.price),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                                fontSize: height * 0.07,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+              // 基准选择按钮 - 右下角
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () {
+                    _switchBaseline(productIndex);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isBaseline
+                          ? Colors.green
+                          : Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isBaseline
+                            ? Colors.green.shade700
+                            : Colors.grey.shade400,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        isBaseline ? Icons.check : Icons.radio_button_unchecked,
+                        key: ValueKey(isBaseline),
+                        color: isBaseline ? Colors.white : Colors.grey.shade600,
+                        size: 16,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-
-                // 产品名称
-                Text(
-                  product.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: height * 0.06,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                // 公司
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getCompanyColor(product.company).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    product.company,
-                    style: TextStyle(
-                      color: _getCompanyColor(product.company),
-                      fontSize: height * 0.05,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                const Spacer(),
-
-                // 价格
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SettingsService.showPrices
-                      ? Text(
-                          SettingsService.formatPrice(product.price),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                            fontSize: height * 0.07,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -431,21 +659,21 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   minWidth: constraints.maxWidth,
-                  minHeight: 200,
+                  minHeight: 400,
                 ),
                 child: DataTable(
-                  columnSpacing: 8,
-                  horizontalMargin: 16,
+                  columnSpacing: 4,
+                  horizontalMargin: 8,
                   headingRowColor: MaterialStateProperty.all(
                     Colors.blue.withOpacity(0.1),
                   ),
                   headingTextStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
                     color: Colors.black87,
                   ),
                   dataTextStyle: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: Colors.black87,
                   ),
                   columns: [
@@ -472,8 +700,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                         ),
                       ),
                     ),
-                    ..._selectedProducts.map(
-                      (product) => DataColumn(
+                    ..._selectedProducts.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final product = entry.value;
+                      final isBaseline = index == _baselineIndex;
+
+                      return DataColumn(
                         label: SizedBox(
                           width: columnWidth,
                           child: Container(
@@ -482,17 +714,24 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                               horizontal: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: _getCompanyColor(
-                                product.company,
-                              ).withOpacity(0.1),
+                              color: isBaseline
+                                  ? Colors.green.withOpacity(0.2)
+                                  : _getCompanyColor(
+                                      product.company,
+                                    ).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
+                              border: isBaseline
+                                  ? Border.all(color: Colors.green, width: 2)
+                                  : null,
                             ),
                             child: Text(
                               product.name,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: _getCompanyColor(product.company),
+                                fontSize: 14,
+                                color: isBaseline
+                                    ? Colors.green.shade700
+                                    : _getCompanyColor(product.company),
                               ),
                               textAlign: TextAlign.center,
                               maxLines: 2,
@@ -500,8 +739,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ],
                   rows: comparisons.asMap().entries.map((entry) {
                     final index = entry.key;
@@ -512,22 +751,26 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                       ),
                       cells: [
                         DataCell(
-                          SizedBox(
+                          Container(
                             width: columnWidth,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                            constraints: const BoxConstraints(
+                              minHeight: 60,
+                              maxHeight: 90,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
                               child: Text(
                                 comparison.name,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 12,
+                                  fontSize: 13,
                                 ),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
@@ -536,33 +779,81 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                             ),
                           ),
                         ),
-                        ...comparison.values.map(
-                          (value) => DataCell(
-                            SizedBox(
+                        ...comparison.values.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final value = entry.value;
+                          final isBaseline = index == _baselineIndex;
+
+                          // 计算相对于基准的百分比
+                          String displayValue =
+                              '${value.displayValue}${comparison.unit}';
+                          Color cellColor = _getCompanyColor(
+                            _selectedProducts
+                                .firstWhere((p) => p.id == value.productId)
+                                .company,
+                          ).withOpacity(0.05);
+
+                          if (!isBaseline &&
+                              _baselineIndex < comparison.values.length) {
+                            final baselineValue =
+                                comparison.values[_baselineIndex];
+                            if (baselineValue.value != null &&
+                                value.value != null) {
+                              final percentage = _calculatePercentage(
+                                baselineValue.value!,
+                                value.value!,
+                              );
+                              if (percentage != null) {
+                                displayValue =
+                                    '${value.displayValue}${comparison.unit}\n$percentage';
+                                cellColor = _getPercentageColor(percentage);
+                              }
+                            }
+                          }
+
+                          return DataCell(
+                            Container(
                               width: columnWidth,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getCompanyColor(
-                                    value.productName,
-                                  ).withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _getCompanyColor(
-                                      value.productName,
-                                    ).withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
+                              constraints: BoxConstraints(
+                                minHeight: 70,
+                                maxHeight: 100,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 6,
+                                horizontal: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: cellColor,
+                                borderRadius: BorderRadius.circular(8),
+                                border: isBaseline
+                                    ? Border.all(color: Colors.green, width: 1)
+                                    : Border.all(
+                                        color: _getCompanyColor(
+                                          _selectedProducts
+                                              .firstWhere(
+                                                (p) => p.id == value.productId,
+                                              )
+                                              .company,
+                                        ).withOpacity(0.2),
+                                        width: 1,
+                                      ),
+                              ),
+                              child: Center(
                                 child: Text(
-                                  '${value.displayValue}${comparison.unit}',
+                                  displayValue,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 11,
-                                    color: _getCompanyColor(value.productName),
+                                    fontSize: 12,
+                                    color: isBaseline
+                                        ? Colors.green.shade700
+                                        : _getCompanyColor(
+                                            _selectedProducts
+                                                .firstWhere(
+                                                  (p) =>
+                                                      p.id == value.productId,
+                                                )
+                                                .company,
+                                          ),
                                   ),
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
@@ -570,8 +861,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                                 ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
                       ],
                     );
                   }).toList(),
