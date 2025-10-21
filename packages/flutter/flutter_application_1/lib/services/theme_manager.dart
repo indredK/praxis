@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'settings_service.dart';
 
 class ThemeManager extends ChangeNotifier {
@@ -24,6 +25,19 @@ class ThemeManager extends ChangeNotifier {
     }
   }
 
+  // 获取平台适配的字体族
+  String get platformFontFamily {
+    if (kIsWeb) {
+      return 'Roboto'; // Web平台
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return 'SF Pro Display'; // iOS平台
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'Roboto'; // Android平台
+    } else {
+      return 'Roboto'; // 其他平台默认
+    }
+  }
+
   // 构建浅色主题
   ThemeData get lightTheme {
     return ThemeData(
@@ -32,6 +46,8 @@ class ThemeManager extends ChangeNotifier {
         brightness: Brightness.light,
       ),
       useMaterial3: true,
+      // 明确指定字体族，避免字体警告
+      fontFamily: platformFontFamily,
       appBarTheme: AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
@@ -61,6 +77,8 @@ class ThemeManager extends ChangeNotifier {
         brightness: Brightness.dark,
       ),
       useMaterial3: true,
+      // 明确指定字体族，避免字体警告
+      fontFamily: platformFontFamily,
       appBarTheme: AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
