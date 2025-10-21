@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/data_service.dart';
+import '../services/settings_service.dart';
 import '../config/app_config.dart';
 import '../widgets/advanced_charts.dart';
 
@@ -308,7 +309,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                     child: Text(
                       product.company[0],
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         fontSize: height * 0.15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -323,7 +324,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: height * 0.06,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -361,14 +362,16 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                     color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    '\$${product.price.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                      fontSize: height * 0.07,
-                    ),
-                  ),
+                  child: SettingsService.showPrices
+                      ? Text(
+                          SettingsService.formatPrice(product.price),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontSize: height * 0.07,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -572,6 +575,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   }
 
   Widget _buildPriceComparisonTab() {
+    if (!SettingsService.showCharts) {
+      return const Center(
+        child: Text('图表显示已关闭', style: TextStyle(fontSize: 16)),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -629,6 +638,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   }
 
   Widget _buildPerformanceTab() {
+    if (!SettingsService.showCharts) {
+      return const Center(
+        child: Text('图表显示已关闭', style: TextStyle(fontSize: 16)),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -687,6 +702,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
   // 散点分析页面
   Widget _buildScatterAnalysisTab() {
+    if (!SettingsService.showCharts) {
+      return const Center(
+        child: Text('图表显示已关闭', style: TextStyle(fontSize: 16)),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -742,6 +763,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
   // 市场份额页面
   Widget _buildMarketShareTab() {
+    if (!SettingsService.showCharts) {
+      return const Center(
+        child: Text('图表显示已关闭', style: TextStyle(fontSize: 16)),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -797,6 +824,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
   // 趋势分析页面
   Widget _buildTrendAnalysisTab() {
+    if (!SettingsService.showCharts) {
+      return const Center(
+        child: Text('图表显示已关闭', style: TextStyle(fontSize: 16)),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(

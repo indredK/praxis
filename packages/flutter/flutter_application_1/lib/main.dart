@@ -1,24 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/product_selection_screen.dart';
+import 'screens/settings_screen.dart';
+import 'services/settings_service.dart';
+import 'services/theme_manager.dart';
+import 'services/language_service.dart';
+import 'services/language_manager.dart';
+import 'l10n/app_localizations.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await SettingsService.init();
+    await LanguageService.init();
+    await LanguageManager().init();
+  } catch (e) {
+    print('服务初始化失败: $e');
+  }
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // 该部件是应用程序的根部件。
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final ThemeManager _themeManager = ThemeManager();
+  final LanguageManager _languageManager = LanguageManager();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '产品对比应用',
-      theme: ThemeData(
-        // 这是应用程序的主题配置。
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const MainNavigationPage(),
+    return AnimatedBuilder(
+      animation: Listenable.merge([_themeManager, _languageManager]),
+      builder: (context, child) {
+        return MaterialApp(
+          title: '产品对比应用',
+          theme: _themeManager.lightTheme,
+          darkTheme: _themeManager.darkTheme,
+          themeMode: _themeManager.themeMode,
+          locale: _languageManager.currentLocale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LanguageService.supportedLocales,
+          home: const MainNavigationPage(),
+        );
+      },
     );
   }
 }
@@ -36,7 +69,37 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final List<Widget> _pages = [
     const ProductSelectionScreen(),
     const CalculatorPage(title: '计算器'),
+    const SettingsScreen(),
   ];
+
+  // 获取本地化文本
+  String _getLocalizedText(BuildContext context, String key) {
+    try {
+      final l10n = AppLocalizations.of(context);
+      switch (key) {
+        case 'productComparison':
+          return l10n.productComparison;
+        case 'calculator':
+          return l10n.calculator;
+        case 'settings':
+          return l10n.settings;
+        default:
+          return key;
+      }
+    } catch (e) {
+      // 如果本地化失败，返回默认中文文本
+      switch (key) {
+        case 'productComparison':
+          return '产品对比';
+        case 'calculator':
+          return '计算器';
+        case 'settings':
+          return '设置';
+        default:
+          return key;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,46 +110,79 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.grey.shade50],
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [const Color(0xFF1E1E1E), const Color(0xFF121212)]
+                : [Colors.white, Colors.grey.shade50],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
           ],
+          border: Theme.of(context).brightness == Brightness.dark
+              ? Border(
+                  top: BorderSide(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 1,
+                  ),
+                )
+              : null,
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 12,
-          ),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.compare_arrows, size: 28),
-              label: '产品对比',
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: Colors.transparent,
+              selectedItemColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Theme.of(context).primaryColor,
+              unselectedItemColor:
+                  Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white54
+                  : Colors.grey,
+              selectedLabelStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Theme.of(context).primaryColor,
+              ),
+              unselectedLabelStyle: TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white54
+                    : Colors.grey,
+              ),
+              type: BottomNavigationBarType.fixed,
+              elevation: 0,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calculate, size: 28),
-              label: '计算器',
-            ),
-          ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.compare_arrows, size: 28),
+                label: _getLocalizedText(context, 'productComparison'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.calculate, size: 28),
+                label: _getLocalizedText(context, 'calculator'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.settings, size: 28),
+                label: _getLocalizedText(context, 'settings'),
+              ),
+            ],
+          ),
         ),
       ),
     );

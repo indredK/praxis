@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/data_service.dart';
+import '../services/settings_service.dart';
 import '../config/app_config.dart';
 import 'product_comparison_screen.dart';
 
@@ -124,7 +125,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 style: TextStyle(
                   color: _selectedProductIds.length >= 2
                       ? Colors.white
-                      : Colors.grey,
+                      : Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ),
@@ -249,8 +250,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         child: Center(
                           child: Text(
                             product.company[0],
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).cardColor,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -264,7 +265,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           fontSize: 18,
                           color: isSelected
                               ? _getCompanyColor(product.company)
-                              : Colors.black87,
+                              : Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                       ),
                       subtitle: Column(
@@ -295,7 +296,9 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           Text(
                             product.category,
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
                               fontSize: 12,
                             ),
                           ),
@@ -309,14 +312,16 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                               color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              '\$${product.price.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            child: SettingsService.showPrices
+                                ? Text(
+                                    SettingsService.formatPrice(product.price),
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
                         ],
                       ),
