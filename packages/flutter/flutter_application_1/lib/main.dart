@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/product_selection_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,95 +12,376 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '产品对比应用',
       theme: ThemeData(
         // 这是应用程序的主题配置。
-        //
-        // 试一试：使用 "flutter run" 运行应用。你会看到紫色工具栏。
-        // 不退出应用，将下面的 colorScheme 中的 seedColor 改为 Colors.green，
-        // 然后执行“热重载”（保存变更或在支持的 IDE 按热重载按钮，
-        // 或在命令行按 "r"）。
-        //
-        // 注意：计数器不会重置为 0；热重载不会丢失应用状态。
-        // 如需重置状态，请使用热重启（hot restart）。
-        //
-        // 这同样适用于代码的大多数改动：大多数代码更改都可以通过热重载验证。
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MainNavigationPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // 这是应用的首页组件。它是有状态的（Stateful），
-  // 也就是说它拥有一个 State 对象（见下方），其中的字段会影响界面显示。
-
-  // 该类用于描述状态的配置。它持有父级（这里是 App 组件）传入的值
-  //（本例是 title），这些值会被 State 的 build 方法使用。
-  // 在 Widget 子类中，字段通常声明为 "final"。
-
-  final String title;
+class MainNavigationPage extends StatefulWidget {
+  const MainNavigationPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainNavigationPage> createState() => _MainNavigationPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MainNavigationPageState extends State<MainNavigationPage> {
+  int _currentIndex = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // 调用 setState 告知 Flutter 框架：该 State 有变化，
-      // 从而触发重新执行下方的 build 方法，以便界面反映最新值。
-      // 如果不调用 setState() 就修改 _counter，build 将不会再次执行，
-      // 界面也就不会更新。
-      _counter++;
-    });
-  }
+  final List<Widget> _pages = [
+    const ProductSelectionScreen(),
+    const CalculatorPage(title: '计算器'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // 每次调用 setState（例如上面的 _incrementCounter）时，都会重新执行本方法。
-    //
-    // Flutter 对重新执行 build 进行了优化，因而可以只通过重建需要更新的部分，
-    // 而无需逐个修改部件实例。
     return Scaffold(
-      appBar: AppBar(
-        // 试一试：把这里的颜色改为特定颜色（比如 Colors.amber），
-        // 然后执行热重载，观察 AppBar 颜色变化而其他颜色保持不变。
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // 这里使用 MyHomePage（由 App.build 创建）中的 title 来设置 AppBar 标题。
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center 是布局部件，它接收单个子部件并将其居中显示。
-        child: Column(
-          // Column 也是布局部件。它接收一组子部件并按垂直方向排列。
-          // 默认情况下，它会在水平方向适配子部件宽度，并尽量在垂直方向填满父级高度。
-          //
-          // Column 提供多种属性来控制自身尺寸和子部件的摆放方式。
-          // 这里我们通过 mainAxisAlignment 在主轴（垂直方向）让子部件居中。
-          //
-          // 试一试：开启“调试绘制”（IDE 中选择“Toggle Debug Paint”，
-          // 或在控制台按 "p"）来查看每个部件的线框。
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: _pages[_currentIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.grey.shade50],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 12,
+          ),
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.compare_arrows, size: 28),
+              label: '产品对比',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calculate, size: 28),
+              label: '计算器',
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // 末尾的逗号可以让代码格式化后的结构更清晰。
+    );
+  }
+}
+
+class CalculatorPage extends StatefulWidget {
+  const CalculatorPage({super.key, required this.title});
+
+  // 简单四则运算计算器首页
+  final String title;
+
+  @override
+  State<CalculatorPage> createState() => _CalculatorPageState();
+}
+
+class _CalculatorPageState extends State<CalculatorPage> {
+  String _display = '0';
+  double? _previousValue;
+  String? _operator; // '+', '-', '×', '÷'
+  bool _shouldClearOnNextDigit = false; // 按下运算符或等号后，下一次输入应清空
+
+  void _onDigit(String digit) {
+    setState(() {
+      if (_shouldClearOnNextDigit) {
+        _display = '0';
+        _shouldClearOnNextDigit = false;
+      }
+      if (digit == '.') {
+        if (!_display.contains('.')) {
+          _display = _display + '.';
+        }
+        return;
+      }
+      if (_display == '0') {
+        _display = digit;
+      } else {
+        _display = _display + digit;
+      }
+    });
+  }
+
+  void _onClear() {
+    setState(() {
+      _display = '0';
+      _previousValue = null;
+      _operator = null;
+      _shouldClearOnNextDigit = false;
+    });
+  }
+
+  void _onDelete() {
+    setState(() {
+      if (_shouldClearOnNextDigit) {
+        _display = '0';
+        _shouldClearOnNextDigit = false;
+        return;
+      }
+      if (_display.length <= 1) {
+        _display = '0';
+      } else {
+        _display = _display.substring(0, _display.length - 1);
+      }
+    });
+  }
+
+  void _onOperator(String op) {
+    final current = double.tryParse(_display) ?? 0.0;
+    setState(() {
+      if (_previousValue != null &&
+          _operator != null &&
+          !_shouldClearOnNextDigit) {
+        // 连续运算：先结算上一个操作
+        _previousValue = _calculate(_previousValue!, current, _operator!);
+        _display = _trimNumber(_previousValue!);
+      } else {
+        _previousValue = current;
+      }
+      _operator = op;
+      _shouldClearOnNextDigit = true;
+    });
+  }
+
+  void _onEqual() {
+    final current = double.tryParse(_display) ?? 0.0;
+    setState(() {
+      if (_previousValue != null && _operator != null) {
+        final result = _calculate(_previousValue!, current, _operator!);
+        _display = _trimNumber(result);
+        _previousValue = null;
+        _operator = null;
+        _shouldClearOnNextDigit = true;
+      }
+    });
+  }
+
+  double _calculate(double a, double b, String op) {
+    switch (op) {
+      case '+':
+        return a + b;
+      case '-':
+        return a - b;
+      case '×':
+        return a * b;
+      case '÷':
+        if (b == 0) {
+          return double.nan;
+        }
+        return a / b;
+      default:
+        return b;
+    }
+  }
+
+  String _trimNumber(double value) {
+    if (value.isNaN) return '错误';
+    final str = value.toStringAsFixed(12);
+    // 去除多余的 0 和小数点
+    var trimmed = str;
+    while (trimmed.contains('.') &&
+        (trimmed.endsWith('0') || trimmed.endsWith('.'))) {
+      trimmed = trimmed.endsWith('.')
+          ? trimmed.substring(0, trimmed.length - 1)
+          : trimmed.substring(0, trimmed.length - 1);
+      if (trimmed.endsWith('.')) {
+        trimmed = trimmed.substring(0, trimmed.length - 1);
+        break;
+      }
+    }
+    return trimmed.isEmpty ? '0' : trimmed;
+  }
+
+  Widget _buildButton(String text, {Color? color, VoidCallback? onTap}) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 72,
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color ?? theme.colorScheme.primaryContainer,
+            foregroundColor: theme.colorScheme.onPrimaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final opColor = Theme.of(context).colorScheme.secondaryContainer;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.bottomRight,
+              child: FittedBox(
+                alignment: Alignment.bottomRight,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _display,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildButton(
+                        'AC',
+                        color: opColor,
+                        onTap: _onClear,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildButton(
+                        'DEL',
+                        color: opColor,
+                        onTap: _onDelete,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildButton(
+                        '÷',
+                        color: opColor,
+                        onTap: () => _onOperator('÷'),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildButton(
+                        '×',
+                        color: opColor,
+                        onTap: () => _onOperator('×'),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildButton('7', onTap: () => _onDigit('7')),
+                    ),
+                    Expanded(
+                      child: _buildButton('8', onTap: () => _onDigit('8')),
+                    ),
+                    Expanded(
+                      child: _buildButton('9', onTap: () => _onDigit('9')),
+                    ),
+                    Expanded(
+                      child: _buildButton(
+                        '-',
+                        color: opColor,
+                        onTap: () => _onOperator('-'),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildButton('4', onTap: () => _onDigit('4')),
+                    ),
+                    Expanded(
+                      child: _buildButton('5', onTap: () => _onDigit('5')),
+                    ),
+                    Expanded(
+                      child: _buildButton('6', onTap: () => _onDigit('6')),
+                    ),
+                    Expanded(
+                      child: _buildButton(
+                        '+',
+                        color: opColor,
+                        onTap: () => _onOperator('+'),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildButton('1', onTap: () => _onDigit('1')),
+                    ),
+                    Expanded(
+                      child: _buildButton('2', onTap: () => _onDigit('2')),
+                    ),
+                    Expanded(
+                      child: _buildButton('3', onTap: () => _onDigit('3')),
+                    ),
+                    Expanded(
+                      child: _buildButton('=', color: opColor, onTap: _onEqual),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: _buildButton('0', onTap: () => _onDigit('0')),
+                    ),
+                    Expanded(
+                      child: _buildButton('.', onTap: () => _onDigit('.')),
+                    ),
+                    Expanded(child: const SizedBox.shrink()),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
