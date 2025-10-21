@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/data_service.dart';
 import '../services/settings_service.dart';
+import '../services/global_data_cache.dart';
 import '../config/app_config.dart';
 import '../widgets/advanced_charts.dart';
 
@@ -40,7 +41,16 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     });
 
     try {
-      final products = await DataService.getAllProducts();
+      // 优先使用全局缓存，避免重复加载
+      List<Product> products;
+      if (GlobalDataCache.getProducts() != null) {
+        products = GlobalDataCache.getProducts()!;
+        print('✅ 使用全局缓存的产品数据');
+      } else {
+        products = await DataService.getAllProducts();
+        print('全局缓存为空，重新加载数据');
+      }
+
       setState(() {
         _selectedProducts = products
             .where((product) => widget.selectedProductIds.contains(product.id))

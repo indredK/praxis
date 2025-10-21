@@ -1,6 +1,9 @@
 import '../models/product.dart';
 
 class MockDataService {
+  // 模拟网络延迟 - 设置为0.1秒
+  static const Duration _networkDelay = Duration(milliseconds: 100);
+
   static final List<Product> _products = [
     // 手机产品
     Product(
@@ -161,19 +164,69 @@ class MockDataService {
     ),
   ];
 
-  // 获取所有产品
-  static List<Product> getAllProducts() {
-    return List.from(_products);
+  // 缓存产品列表，避免重复创建
+  static List<Product>? _cachedProducts;
+
+  // 获取所有产品（同步方法，无延迟）
+  static List<Product> getAllProductsSync() {
+    // 如果缓存存在，直接返回
+    if (_cachedProducts != null) {
+      return _cachedProducts!;
+    }
+
+    // 创建缓存
+    _cachedProducts = List.from(_products);
+    return _cachedProducts!;
   }
 
-  // 按类别获取产品
-  static List<Product> getProductsByCategory(String category) {
-    return _products.where((product) => product.category == category).toList();
+  // 获取所有产品（异步方法，带0.1秒延迟）
+  static Future<List<Product>> getAllProducts() async {
+    await Future.delayed(_networkDelay);
+
+    // 如果缓存存在，直接返回
+    if (_cachedProducts != null) {
+      return _cachedProducts!;
+    }
+
+    // 创建缓存
+    _cachedProducts = List.from(_products);
+    return _cachedProducts!;
   }
 
-  // 按公司获取产品
-  static List<Product> getProductsByCompany(String company) {
-    return _products.where((product) => product.company == company).toList();
+  // 缓存按类别过滤的结果
+  static final Map<String, List<Product>> _categoryCache = {};
+
+  // 按类别获取产品（带延迟）
+  static Future<List<Product>> getProductsByCategory(String category) async {
+    await Future.delayed(_networkDelay);
+
+    if (_categoryCache.containsKey(category)) {
+      return _categoryCache[category]!;
+    }
+
+    final result = _products
+        .where((product) => product.category == category)
+        .toList();
+    _categoryCache[category] = result;
+    return result;
+  }
+
+  // 缓存按公司过滤的结果
+  static final Map<String, List<Product>> _companyCache = {};
+
+  // 按公司获取产品（带延迟）
+  static Future<List<Product>> getProductsByCompany(String company) async {
+    await Future.delayed(_networkDelay);
+
+    if (_companyCache.containsKey(company)) {
+      return _companyCache[company]!;
+    }
+
+    final result = _products
+        .where((product) => product.company == company)
+        .toList();
+    _companyCache[company] = result;
+    return result;
   }
 
   // 获取所有类别
@@ -186,8 +239,11 @@ class MockDataService {
     return _products.map((product) => product.company).toSet().toList();
   }
 
-  // 获取产品对比数据
-  static List<SpecComparison> getSpecComparisons(List<String> productIds) {
+  // 获取产品对比数据（带延迟）
+  static Future<List<SpecComparison>> getSpecComparisons(
+    List<String> productIds,
+  ) async {
+    await Future.delayed(_networkDelay);
     final selectedProducts = _products
         .where((p) => productIds.contains(p.id))
         .toList();
