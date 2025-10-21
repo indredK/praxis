@@ -322,7 +322,12 @@ class MockBackendService {
 
   // API端点模拟
 
-  // 获取所有产品
+  // 获取所有产品（同步方法）
+  static List<Product> getAllProductsSync() {
+    return List.from(_products);
+  }
+
+  // 获取所有产品（异步方法，带0.1秒延迟）
   static Future<List<Product>> getAllProducts() async {
     await _simulateNetworkDelay();
     return List.from(_products);
@@ -544,8 +549,8 @@ class MockBackendService {
     return (score % 100).clamp(0, 100);
   }
 
-  // 模拟网络延迟
+  // 模拟网络延迟 - 优化为0.1秒
   static Future<void> _simulateNetworkDelay() async {
-    await Future.delayed(Duration(milliseconds: 500 + _random.nextInt(1000)));
+    await Future.delayed(Duration(milliseconds: 100));
   }
 }

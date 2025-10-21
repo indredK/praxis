@@ -6,16 +6,39 @@ import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
 import 'services/language_manager.dart';
+import 'services/data_service.dart';
+import 'services/global_data_cache.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
+    print('🚀 开始应用初始化...');
+
+    // 初始化基础服务
     await SettingsService.init();
     await LanguageService.init();
     await LanguageManager().init();
+    print('✅ 基础服务初始化完成');
+
+    // 预加载所有数据，避免首次加载延迟
+    print('⏳ 开始预加载数据...');
+    final startTime = DateTime.now();
+
+    // 预加载产品数据
+    final products = await DataService.getAllProducts();
+
+    // 预加载静态数据（同步方法）
+    DataService.getAllCategories();
+    DataService.getAllCompanies();
+
+    // 设置全局缓存
+    GlobalDataCache.setProducts(products);
+
+    final endTime = DateTime.now();
+    print('✅ 数据预加载完成，耗时: ${endTime.difference(startTime).inMilliseconds}ms');
   } catch (e) {
-    print('服务初始化失败: $e');
+    print('❌ 应用初始化失败: $e');
   }
   runApp(const MyApp());
 }

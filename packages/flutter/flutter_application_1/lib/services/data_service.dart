@@ -5,13 +5,13 @@ import 'mock_data_service.dart';
 
 // 数据服务 - 统一的数据访问层
 class DataService {
-  // 获取所有产品
+  // 获取所有产品 - 异步方法，带0.1秒延迟
   static Future<List<Product>> getAllProducts() async {
     try {
       return await ApiService.getAllProducts();
     } catch (e) {
       // API失败时使用模拟数据
-      return MockDataService.getAllProducts();
+      return await MockDataService.getAllProducts();
     }
   }
 
@@ -20,7 +20,7 @@ class DataService {
     try {
       return await ApiService.getProductsByCategory(category);
     } catch (e) {
-      return MockDataService.getProductsByCategory(category);
+      return await MockDataService.getProductsByCategory(category);
     }
   }
 
@@ -29,7 +29,7 @@ class DataService {
     try {
       return await ApiService.getProductsByCompany(company);
     } catch (e) {
-      return MockDataService.getProductsByCompany(company);
+      return await MockDataService.getProductsByCompany(company);
     }
   }
 
@@ -38,7 +38,7 @@ class DataService {
     try {
       return await ApiService.getProductById(id);
     } catch (e) {
-      final products = MockDataService.getAllProducts();
+      final products = await MockDataService.getAllProducts();
       return products.firstWhere((p) => p.id == id);
     }
   }
@@ -50,7 +50,7 @@ class DataService {
     try {
       return await ApiService.getProductComparison(productIds);
     } catch (e) {
-      return MockDataService.getSpecComparisons(productIds);
+      return await MockDataService.getSpecComparisons(productIds);
     }
   }
 
@@ -71,7 +71,7 @@ class DataService {
     try {
       return await ApiService.searchProducts(query);
     } catch (e) {
-      final products = MockDataService.getAllProducts();
+      final products = await MockDataService.getAllProducts();
       return products
           .where(
             (p) =>
@@ -82,22 +82,14 @@ class DataService {
     }
   }
 
-  // 获取所有公司列表
-  static Future<List<String>> getAllCompanies() async {
-    try {
-      return await ApiService.getAllCompanies();
-    } catch (e) {
-      return AppConfig.supportedCompanies;
-    }
+  // 获取所有公司列表 - 同步方法，直接返回静态配置
+  static List<String> getAllCompanies() {
+    return AppConfig.supportedCompanies;
   }
 
-  // 获取所有类别列表
-  static Future<List<String>> getAllCategories() async {
-    try {
-      return await ApiService.getAllCategories();
-    } catch (e) {
-      return AppConfig.productCategories;
-    }
+  // 获取所有类别列表 - 同步方法，直接返回静态配置
+  static List<String> getAllCategories() {
+    return AppConfig.productCategories;
   }
 
   // 获取模拟图表数据

@@ -12,7 +12,7 @@ class ApiService {
   // HTTP客户端
   static final http.Client _client = http.Client();
 
-  // 获取所有产品
+  // 获取所有产品（异步方法，带0.1秒延迟）
   static Future<List<Product>> getAllProducts() async {
     try {
       // 暂时使用模拟后端，后续可以切换到真实API
@@ -33,7 +33,7 @@ class ApiService {
       */
     } catch (e) {
       // 网络错误时返回模拟数据
-      return MockDataService.getAllProducts();
+      return await MockDataService.getAllProducts();
     }
   }
 
@@ -63,7 +63,7 @@ class ApiService {
       // 暂时使用模拟后端
       return await MockBackendService.getProductById(id);
     } catch (e) {
-      final products = MockDataService.getAllProducts();
+      final products = await MockDataService.getAllProducts();
       return products.firstWhere((p) => p.id == id);
     }
   }
@@ -99,7 +99,7 @@ class ApiService {
       // 暂时使用模拟后端
       return await MockBackendService.searchProducts(query);
     } catch (e) {
-      final products = MockDataService.getAllProducts();
+      final products = await MockDataService.getAllProducts();
       return products
           .where(
             (p) =>

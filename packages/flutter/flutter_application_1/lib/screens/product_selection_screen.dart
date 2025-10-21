@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/data_service.dart';
 import '../services/settings_service.dart';
+import '../services/global_data_cache.dart';
 import '../config/app_config.dart';
 import 'product_comparison_screen.dart';
 
@@ -34,32 +35,71 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   List<String> _productsForCategory = [];
   bool _isLoading = true;
 
+  // 缓存过滤结果，避免重复计算
+  List<Product>? _cachedFilteredProducts;
+  String? _lastFilterKey;
+
+  // 缓存产品列表，避免重复创建（现在使用全局缓存）
+  // List<Product>? _cachedProducts;
+
   @override
   void initState() {
     super.initState();
+    // 数据已在app启动时预加载，直接加载
     _loadData();
   }
 
+  @override
+  void dispose() {
+    // 清理缓存，避免内存泄漏
+    _cachedFilteredProducts = null;
+    _lastFilterKey = null;
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
+    print('🚀 开始加载数据');
+
+    // 立即设置静态数据，无需等待
+    _categories = ['全部', ...DataService.getAllCategories()];
+    _companies = ['全部', ...DataService.getAllCompanies()];
+    print('✅ 静态数据设置完成');
+
     setState(() {
       _isLoading = true;
     });
+    print('✅ 加载状态设置完成');
 
     try {
-      final products = await DataService.getAllProducts();
-      final categories = await DataService.getAllCategories();
-      final companies = await DataService.getAllCompanies();
+      print('⏳ 开始加载产品数据...');
+      final startTime = DateTime.now();
+
+      // 优先使用全局缓存，避免重复加载
+      List<Product> products;
+      if (GlobalDataCache.getProducts() != null) {
+        products = GlobalDataCache.getProducts()!;
+        print('✅ 使用全局缓存的产品数据');
+      } else {
+        products = await DataService.getAllProducts();
+        print('全局缓存为空，重新加载数据');
+      }
+
+      final endTime = DateTime.now();
+      print('✅ 产品数据加载完成，耗时: ${endTime.difference(startTime).inMilliseconds}ms');
+
+      // 产品数据已缓存到全局缓存中
 
       setState(() {
         _products = products;
-        _categories = ['全部', ...categories];
-        _companies = ['全部', ...companies];
         _isLoading = false;
       });
+      print('✅ 产品数据设置完成');
 
       // 初始化产品列表
       _updateProductLists();
+      print('✅ 产品列表更新完成');
     } catch (e) {
+      print('❌ 加载失败: $e');
       setState(() {
         _isLoading = false;
       });
@@ -179,174 +219,36 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: filteredProducts.length,
+              itemExtent: 132, // 固定高度：120 + 12(margin)
               itemBuilder: (context, index) {
                 final product = filteredProducts[index];
                 final isSelected = _selectedProductIds.contains(product.id);
+                final companyColor = _getCompanyColor(product.company);
 
                 return Card(
                   elevation: isSelected ? 12 : 4,
                   shadowColor: isSelected
-                      ? _getCompanyColor(product.company).withOpacity(0.3)
+                      ? companyColor.withOpacity(0.3)
                       : Colors.black.withOpacity(0.1),
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
-                      color: isSelected
-                          ? _getCompanyColor(product.company)
-                          : Colors.transparent,
+                      color: isSelected ? companyColor : Colors.transparent,
                       width: 2,
                     ),
                   ),
                   child: Container(
+                    height: 120, // 固定高度，让一页显示5个产品
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: isSelected
-                          ? LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                _getCompanyColor(
-                                  product.company,
-                                ).withOpacity(0.1),
-                                _getCompanyColor(
-                                  product.company,
-                                ).withOpacity(0.05),
-                              ],
-                            )
-                          : LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Colors.white, Colors.grey.shade50],
-                            ),
+                      borderRadius: BorderRadius.circular(16),
+                      color: isSelected
+                          ? companyColor.withOpacity(0.1)
+                          : Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade800
+                          : Colors.white,
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              _getCompanyColor(product.company),
-                              _getCompanyColor(
-                                product.company,
-                              ).withOpacity(0.7),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _getCompanyColor(
-                                product.company,
-                              ).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            product.company[0],
-                            style: TextStyle(
-                              color: Theme.of(context).cardColor,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        product.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: isSelected
-                              ? _getCompanyColor(product.company)
-                              : Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getCompanyColor(
-                                product.company,
-                              ).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              product.company,
-                              style: TextStyle(
-                                color: _getCompanyColor(product.company),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            product.category,
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.color,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: SettingsService.showPrices
-                                ? Text(
-                                    SettingsService.formatPrice(product.price),
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                        ],
-                      ),
-                      trailing: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? _getCompanyColor(product.company)
-                              : Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Checkbox(
-                          value: isSelected,
-                          activeColor: Colors.white,
-                          checkColor: _getCompanyColor(product.company),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedProductIds.add(product.id);
-                              } else {
-                                _selectedProductIds.remove(product.id);
-                              }
-                            });
-                          },
-                        ),
-                      ),
+                    child: InkWell(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
@@ -366,6 +268,186 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           }
                         });
                       },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            // 左侧：公司logo
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: companyColor,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: companyColor.withOpacity(0.3),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  AppConfig.getCompanyLogo(product.company),
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // 中间：产品信息
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // 产品名称
+                                  Text(
+                                    product.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? _getCompanyColor(product.company)
+                                          : Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium?.color,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // 公司名称
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: companyColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      product.company,
+                                      style: TextStyle(
+                                        color: companyColor,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // 类别和更新时间
+                                  Row(
+                                    children: [
+                                      Text(
+                                        product.category,
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.color,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.color,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _formatUpdateTime(product.releaseDate),
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.color,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // 价格
+                                  if (SettingsService.showPrices)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.green.withOpacity(0.2)
+                                            : Colors.green.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        SettingsService.formatPrice(
+                                          product.price,
+                                        ),
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.green.shade300
+                                              : Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // 右侧：选择框
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? _getCompanyColor(product.company)
+                                    : Theme.of(context).brightness ==
+                                          Brightness.dark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Checkbox(
+                                value: isSelected,
+                                activeColor:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : companyColor,
+                                checkColor:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? companyColor
+                                    : Colors.white,
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _selectedProductIds.add(product.id);
+                                    } else {
+                                      _selectedProductIds.remove(product.id);
+                                    }
+                                  });
+                                },
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 );
@@ -510,7 +592,23 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       items: _companies.map((company) {
                         return DropdownMenuItem(
                           value: company,
-                          child: Text(company),
+                          child: Row(
+                            children: [
+                              Text(
+                                company == '全部'
+                                    ? '🏢'
+                                    : AppConfig.getCompanyLogo(company),
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  company,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -542,7 +640,23 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       items: _categories.map((category) {
                         return DropdownMenuItem(
                           value: category,
-                          child: Text(category),
+                          child: Row(
+                            children: [
+                              Text(
+                                category == '全部'
+                                    ? '📦'
+                                    : AppConfig.getCategoryLogo(category),
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  category,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: _selectedCompany != '全部'
@@ -577,7 +691,21 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   items: _productsForCompany.map((product) {
                     return DropdownMenuItem(
                       value: product,
-                      child: Text(product),
+                      child: Row(
+                        children: [
+                          Text(
+                            product == '全部' ? '📦' : '🛍️',
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              product,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -622,7 +750,23 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       items: _categories.map((category) {
                         return DropdownMenuItem(
                           value: category,
-                          child: Text(category),
+                          child: Row(
+                            children: [
+                              Text(
+                                category == '全部'
+                                    ? '📦'
+                                    : AppConfig.getCategoryLogo(category),
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  category,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -653,7 +797,21 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       items: _productsForCategory.map((product) {
                         return DropdownMenuItem(
                           value: product,
-                          child: Text(product),
+                          child: Row(
+                            children: [
+                              Text(
+                                product == '全部' ? '📦' : '🛍️',
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  product,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: _selectedCategoryForComparison != '全部'
@@ -685,21 +843,39 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   }
 
   List<Product> _getFilteredProducts() {
+    // 生成缓存键
+    final filterKey =
+        '${_comparisonMode}_${_selectedCompany}_${_selectedCategoryForComparison}';
+
+    // 如果过滤条件没有变化，返回缓存结果
+    if (_cachedFilteredProducts != null && _lastFilterKey == filterKey) {
+      return _cachedFilteredProducts!;
+    }
+
+    List<Product> result;
     if (_comparisonMode == 'same_brand') {
       // 自家对比模式：显示选中公司的所有产品
       if (_selectedCompany != '全部') {
-        return _products.where((p) => p.company == _selectedCompany).toList();
+        result = _products.where((p) => p.company == _selectedCompany).toList();
+      } else {
+        result = [];
       }
-      return [];
     } else {
       // 同类对比模式：显示选中类别的所有产品
       if (_selectedCategoryForComparison != '全部') {
-        return _products
+        result = _products
             .where((p) => p.category == _selectedCategoryForComparison)
             .toList();
+      } else {
+        result = [];
       }
-      return [];
     }
+
+    // 缓存结果
+    _cachedFilteredProducts = result;
+    _lastFilterKey = filterKey;
+
+    return result;
   }
 
   void _navigateToComparison() {
@@ -712,8 +888,69 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     );
   }
 
+  // 缓存颜色计算结果 - 使用更高效的缓存
+  static final Map<String, Color> _colorCache = {};
+
+  // 预计算常用颜色，避免运行时计算
+  static final Map<String, Color> _precomputedColors = {
+    'Apple': const Color(0xFF007AFF),
+    'Samsung': const Color(0xFF1F2937),
+    'Google': const Color(0xFF4285F4),
+    'Tesla': const Color(0xFFCC0000),
+    'Microsoft': const Color(0xFF00BCF2),
+    'Huawei': const Color(0xFFFF6B35),
+    'Xiaomi': const Color(0xFFFF6900),
+    'Oppo': const Color(0xFF00C853),
+    'Vivo': const Color(0xFF1E88E5),
+    'OnePlus': const Color(0xFFF50057),
+  };
+
   Color _getCompanyColor(String company) {
+    // 首先检查预计算的颜色
+    if (_precomputedColors.containsKey(company)) {
+      return _precomputedColors[company]!;
+    }
+
+    // 然后检查缓存
+    if (_colorCache.containsKey(company)) {
+      return _colorCache[company]!;
+    }
+
+    // 最后才进行字符串解析
     final colorString = AppConfig.getCompanyColor(company);
-    return Color(int.parse(colorString.replaceAll('#', '0xFF')));
+    final color = Color(int.parse(colorString.replaceAll('#', '0xFF')));
+    _colorCache[company] = color;
+    return color;
+  }
+
+  // 缓存时间格式化结果
+  static final Map<String, String> _timeFormatCache = {};
+
+  // 格式化更新时间 - 使用缓存避免重复计算
+  String _formatUpdateTime(DateTime dateTime) {
+    final cacheKey = dateTime.toIso8601String();
+
+    if (_timeFormatCache.containsKey(cacheKey)) {
+      return _timeFormatCache[cacheKey]!;
+    }
+
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    String result;
+    if (difference.inDays > 365) {
+      result = '${(difference.inDays / 365).floor()}年前';
+    } else if (difference.inDays > 30) {
+      result = '${(difference.inDays / 30).floor()}个月前';
+    } else if (difference.inDays > 0) {
+      result = '${difference.inDays}天前';
+    } else if (difference.inHours > 0) {
+      result = '${difference.inHours}小时前';
+    } else {
+      result = '刚刚';
+    }
+
+    _timeFormatCache[cacheKey] = result;
+    return result;
   }
 }

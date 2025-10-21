@@ -30,6 +30,18 @@ class AppConfig {
     '游戏设备',
   ];
 
+  // 产品类别logo配置 - 前端固定
+  static const Map<String, String> categoryLogos = {
+    '手机': '📱',
+    '笔记本电脑': '💻',
+    '平板电脑': '📱',
+    '智能手表': '⌚',
+    '耳机': '🎧',
+    '汽车': '🚗',
+    '家电': '🏠',
+    '游戏设备': '🎮',
+  };
+
   // 规格参数配置 - 前端固定，定义所有可能的参数类型
   static const Map<String, SpecConfig> specConfigs = {
     // 手机相关参数
@@ -116,9 +128,33 @@ class AppConfig {
     'OnePlus': '#F50057',
   };
 
+  // 公司logo配置 - 前端固定
+  static const Map<String, String> companyLogos = {
+    'Apple': '🍎',
+    'Samsung': '📱',
+    'Google': '🔍',
+    'Tesla': '⚡',
+    'Microsoft': '🪟',
+    'Huawei': '🌸',
+    'Xiaomi': '📦',
+    'Oppo': '📷',
+    'Vivo': '🎵',
+    'OnePlus': '➕',
+  };
+
   // 获取公司颜色
   static String getCompanyColor(String company) {
     return companyColors[company] ?? '#6B7280';
+  }
+
+  // 获取公司logo
+  static String getCompanyLogo(String company) {
+    return companyLogos[company] ?? '🏢';
+  }
+
+  // 获取类别logo
+  static String getCategoryLogo(String category) {
+    return categoryLogos[category] ?? '📦';
   }
 
   // 获取规格配置
