@@ -110,7 +110,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   // 获取当前显示的页面
   Widget get _currentPage {
     if (_showComparison && _selectedProductIds.isNotEmpty) {
-      return ProductComparisonScreen(selectedProductIds: _selectedProductIds);
+      return ProductComparisonScreen(
+        selectedProductIds: _selectedProductIds,
+        onBackPressed: returnToProductSelection,
+      );
     }
     return _pages[_currentIndex];
   }
