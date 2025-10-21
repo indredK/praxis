@@ -239,60 +239,59 @@ class MockDataService {
     return _products.map((product) => product.company).toSet().toList();
   }
 
-  // 获取产品对比数据（带延迟）
+  // 获取产品对比数据（带延迟）- 优化版本
   static Future<List<SpecComparison>> getSpecComparisons(
     List<String> productIds,
   ) async {
     await Future.delayed(_networkDelay);
+
+    // 优化：限制产品数量，避免性能问题
+    final limitedProductIds = productIds.take(10).toList();
     final selectedProducts = _products
-        .where((p) => productIds.contains(p.id))
+        .where((p) => limitedProductIds.contains(p.id))
         .toList();
 
     if (selectedProducts.isEmpty) return [];
 
-    // 优化：只对比共有参数和重要参数
+    // 优化：当产品数量过多时，只显示最重要的参数
+    final productCount = selectedProducts.length;
     final commonSpecKeys = _getCommonSpecKeys(selectedProducts);
     final importantSpecs = _getImportantSpecs(selectedProducts);
-    final allSpecKeys = {...commonSpecKeys, ...importantSpecs};
+
+    // 根据产品数量调整参数数量
+    Set<String> allSpecKeys;
+    if (productCount <= 3) {
+      // 3个或以下：显示所有参数
+      allSpecKeys = {...commonSpecKeys, ...importantSpecs};
+    } else if (productCount <= 5) {
+      // 4-5个：只显示共有参数和最重要的参数
+      allSpecKeys = {...commonSpecKeys, ...importantSpecs.take(10).toSet()};
+    } else {
+      // 6个以上：只显示共有参数
+      allSpecKeys = commonSpecKeys;
+    }
 
     final comparisons = <SpecComparison>[];
 
+    // 优化：批量处理，减少循环嵌套
     for (final specKey in allSpecKeys) {
-      final values = <SpecValue>[];
-
-      for (final product in selectedProducts) {
+      final values = selectedProducts.map((product) {
         final specValue = product.specs[specKey];
-        if (specValue != null) {
-          values.add(
-            SpecValue(
-              productId: product.id,
-              productName: product.name,
-              value: specValue,
-              displayValue: specValue.toString(),
-            ),
-          );
-        } else {
-          // 对于非共有参数，显示"-"表示无此参数
-          values.add(
-            SpecValue(
-              productId: product.id,
-              productName: product.name,
-              value: null,
-              displayValue: '-',
-            ),
-          );
-        }
-      }
-
-      if (values.isNotEmpty) {
-        comparisons.add(
-          SpecComparison(
-            name: specKey,
-            unit: getUnitForSpec(specKey),
-            values: values,
-          ),
+        return SpecValue(
+          productId: product.id,
+          productName: product.name,
+          value: specValue,
+          displayValue: specValue?.toString() ?? '-',
         );
-      }
+      }).toList();
+
+      comparisons.add(
+        SpecComparison(
+          name: specKey,
+          unit: getUnitForSpec(specKey),
+          values: values,
+        ),
+      );
     }
 
     return comparisons;
@@ -312,43 +311,41 @@ class MockDataService {
     return commonKeys;
   }
 
-  // 获取重要参数（即使不是所有产品都有）
+  // 获取重要参数（即使不是所有产品都有）- 优化版本
   static Set<String> _getImportantSpecs(List<Product> products) {
-    final importantSpecs = <String>{};
+    if (products.isEmpty) return {};
 
-    // 定义重要参数列表
+    // 定义重要参数列表（按优先级排序）
     final importantKeys = [
       '价格',
       '屏幕尺寸',
       '处理器',
+      'CPU',
       '内存',
+      'RAM',
       '存储',
+      'ROM',
       '电池容量',
       '摄像头',
       '重量',
       '操作系统',
       '网络',
-      '颜色',
-      '材质',
-      'CPU',
-      'GPU',
-      'RAM',
-      'ROM',
       '分辨率',
       '刷新率',
+      'GPU',
+      '颜色',
+      '材质',
     ];
 
-    // 检查哪些重要参数在至少一半的产品中存在
+    final importantSpecs = <String>{};
     final productCount = products.length;
-    final threshold = (productCount / 2).ceil();
+    final threshold = (productCount / 2).ceil(); // 至少一半产品有该参数
 
+    // 优化：批量检查参数存在性
     for (final key in importantKeys) {
-      int count = 0;
-      for (final product in products) {
-        if (product.specs.containsKey(key)) {
-          count++;
-        }
-      }
+      final count = products
+          .where((product) => product.specs.containsKey(key))
+          .length;
 
       // 如果至少一半的产品有这个参数，就加入对比
       if (count >= threshold) {
@@ -359,11 +356,17 @@ class MockDataService {
     return importantSpecs;
   }
 
-  // 获取价格对比图表数据
+  // 获取价格对比图表数据 - 优化版本
   static ChartData getPriceComparisonChart(List<String> productIds) {
+    // 优化：限制产品数量，避免图表过于复杂
+    final limitedProductIds = productIds.take(8).toList();
     final selectedProducts = _products
-        .where((p) => productIds.contains(p.id))
+        .where((p) => limitedProductIds.contains(p.id))
         .toList();
+
+    if (selectedProducts.isEmpty) {
+      return ChartData(type: ChartType.bar, title: '价格对比', items: []);
+    }
 
     final items = selectedProducts
         .map(
@@ -382,26 +385,28 @@ class MockDataService {
     return ChartData(type: ChartType.bar, title: '价格对比', items: items);
   }
 
-  // 获取性能雷达图数据
+  // 获取性能雷达图数据 - 优化版本
   static ChartData getPerformanceRadarChart(List<String> productIds) {
+    // 优化：限制产品数量，避免雷达图过于复杂
+    final limitedProductIds = productIds.take(6).toList();
     final selectedProducts = _products
-        .where((p) => productIds.contains(p.id))
+        .where((p) => limitedProductIds.contains(p.id))
         .toList();
 
-    // 为每个产品创建性能评分
-    final items = <ChartItem>[];
-
-    for (final product in selectedProducts) {
-      double performanceScore = calculatePerformanceScore(product);
-      items.add(
-        ChartItem(
-          label: product.name,
-          value: performanceScore,
-          color: getCompanyColor(product.company),
-          metadata: {'company': product.company, 'category': product.category},
-        ),
-      );
+    if (selectedProducts.isEmpty) {
+      return ChartData(type: ChartType.radar, title: '性能对比', items: []);
     }
+
+    // 为每个产品创建性能评分
+    final items = selectedProducts.map((product) {
+      double performanceScore = calculatePerformanceScore(product);
+      return ChartItem(
+        label: product.name,
+        value: performanceScore,
+        color: getCompanyColor(product.company),
+        metadata: {'company': product.company, 'category': product.category},
+      );
+    }).toList();
 
     return ChartData(type: ChartType.radar, title: '性能对比', items: items);
   }
