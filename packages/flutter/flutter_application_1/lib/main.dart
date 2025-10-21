@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/product_selection_screen.dart';
+import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
@@ -89,11 +90,46 @@ class MainNavigationPage extends StatefulWidget {
 class _MainNavigationPageState extends State<MainNavigationPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const ProductSelectionScreen(),
-    const CalculatorPage(title: '计算器'),
-    const SettingsScreen(),
-  ];
+  // 添加产品对比页面的状态管理
+  List<String> _selectedProductIds = [];
+  bool _showComparison = false;
+
+  // 延迟初始化页面列表
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      ProductSelectionScreen(onNavigateToComparison: showProductComparison),
+      const CalculatorPage(title: '计算器'),
+      const SettingsScreen(),
+    ];
+  }
+
+  // 获取当前显示的页面
+  Widget get _currentPage {
+    if (_showComparison && _selectedProductIds.isNotEmpty) {
+      return ProductComparisonScreen(selectedProductIds: _selectedProductIds);
+    }
+    return _pages[_currentIndex];
+  }
+
+  // 显示产品对比页面
+  void showProductComparison(List<String> selectedProductIds) {
+    setState(() {
+      _selectedProductIds = selectedProductIds;
+      _showComparison = true;
+    });
+  }
+
+  // 返回产品选择页面
+  void returnToProductSelection() {
+    setState(() {
+      _showComparison = false;
+      _selectedProductIds.clear();
+    });
+  }
 
   // 获取本地化文本
   String _getLocalizedText(BuildContext context, String key) {
@@ -127,7 +163,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: _currentPage,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -185,10 +221,19 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
             ),
           ),
           child: BottomNavigationBar(
-            currentIndex: _currentIndex,
+            currentIndex: _showComparison ? 0 : _currentIndex,
             onTap: (index) {
               setState(() {
-                _currentIndex = index;
+                if (_showComparison && index == 0) {
+                  // 如果已经在对比页面，点击对比按钮返回产品选择页面
+                  _showComparison = false;
+                  _selectedProductIds.clear();
+                } else {
+                  // 切换到其他页面
+                  _currentIndex = index;
+                  _showComparison = false;
+                  _selectedProductIds.clear();
+                }
               });
             },
             items: [

@@ -7,7 +7,9 @@ import '../config/app_config.dart';
 import 'product_comparison_screen.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
-  const ProductSelectionScreen({super.key});
+  final Function(List<String>)? onNavigateToComparison;
+
+  const ProductSelectionScreen({super.key, this.onNavigateToComparison});
 
   @override
   State<ProductSelectionScreen> createState() => _ProductSelectionScreenState();
@@ -261,12 +263,15 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             _selectedProductIds.remove(product.id);
                           } else {
                             // 检查是否超过最大选择数量
-                            if (_selectedProductIds.length < 5) {
+                            if (_selectedProductIds.length <
+                                SettingsService.maxProducts) {
                               _selectedProductIds.add(product.id);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('最多只能选择5个产品进行对比'),
+                                SnackBar(
+                                  content: Text(
+                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                  ),
                                   backgroundColor: Colors.orange,
                                 ),
                               );
@@ -886,13 +891,18 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   }
 
   void _navigateToComparison() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ProductComparisonScreen(
-          selectedProductIds: _selectedProductIds.toList(),
+    if (widget.onNavigateToComparison != null) {
+      widget.onNavigateToComparison!(_selectedProductIds.toList());
+    } else {
+      // 备用方案：使用原来的Navigator.push
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ProductComparisonScreen(
+            selectedProductIds: _selectedProductIds.toList(),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   // 缓存颜色计算结果 - 使用更高效的缓存
