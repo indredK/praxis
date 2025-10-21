@@ -368,11 +368,10 @@ class MockBackendService {
 
     final comparisons = <SpecComparison>[];
 
-    // 获取所有产品的规格键
-    final allSpecKeys = <String>{};
-    for (final product in selectedProducts) {
-      allSpecKeys.addAll(product.specs.keys);
-    }
+    // 优化：只对比共有参数和重要参数
+    final commonSpecKeys = _getCommonSpecKeys(selectedProducts);
+    final importantSpecs = _getImportantSpecs(selectedProducts);
+    final allSpecKeys = {...commonSpecKeys, ...importantSpecs};
 
     // 为每个规格创建对比
     for (final specKey in allSpecKeys) {
@@ -387,6 +386,16 @@ class MockBackendService {
               productName: product.name,
               value: specValue,
               displayValue: specValue.toString(),
+            ),
+          );
+        } else {
+          // 对于非共有参数，显示"-"表示无此参数
+          values.add(
+            SpecValue(
+              productId: product.id,
+              productName: product.name,
+              value: null,
+              displayValue: '-',
             ),
           );
         }
@@ -405,6 +414,67 @@ class MockBackendService {
     }
 
     return comparisons;
+  }
+
+  // 获取所有产品共有的规格参数
+  static Set<String> _getCommonSpecKeys(List<Product> products) {
+    if (products.isEmpty) return {};
+
+    // 从第一个产品开始，逐步求交集
+    Set<String> commonKeys = Set.from(products.first.specs.keys);
+
+    for (int i = 1; i < products.length; i++) {
+      commonKeys = commonKeys.intersection(products[i].specs.keys.toSet());
+    }
+
+    return commonKeys;
+  }
+
+  // 获取重要参数（即使不是所有产品都有）
+  static Set<String> _getImportantSpecs(List<Product> products) {
+    final importantSpecs = <String>{};
+
+    // 定义重要参数列表
+    final importantKeys = [
+      '价格',
+      '屏幕尺寸',
+      '处理器',
+      '内存',
+      '存储',
+      '电池容量',
+      '摄像头',
+      '重量',
+      '操作系统',
+      '网络',
+      '颜色',
+      '材质',
+      'CPU',
+      'GPU',
+      'RAM',
+      'ROM',
+      '分辨率',
+      '刷新率',
+    ];
+
+    // 检查哪些重要参数在至少一半的产品中存在
+    final productCount = products.length;
+    final threshold = (productCount / 2).ceil();
+
+    for (final key in importantKeys) {
+      int count = 0;
+      for (final product in products) {
+        if (product.specs.containsKey(key)) {
+          count++;
+        }
+      }
+
+      // 如果至少一半的产品有这个参数，就加入对比
+      if (count >= threshold) {
+        importantSpecs.add(key);
+      }
+    }
+
+    return importantSpecs;
   }
 
   // 获取图表数据
