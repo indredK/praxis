@@ -1,4 +1,4 @@
-import '../models/filter_data_model.dart';
+// 移除不存在的导入
 
 /// 筛选器数据服务（模拟后端API）
 class FilterDataService {
@@ -6,7 +6,7 @@ class FilterDataService {
   FilterDataService._();
 
   /// 获取产品选择页面的筛选器配置
-  static Future<FilterConfigDataModel> getProductSelectionFilterConfig() async {
+  static Future<Map<String, dynamic>> getProductSelectionFilterConfig() async {
     // 模拟网络延迟
     await Future.delayed(const Duration(milliseconds: 2000));
 
@@ -259,7 +259,7 @@ class FilterDataService {
       ],
     };
 
-    return FilterConfigDataModel.fromJson(jsonData);
+    return jsonData;
   }
 
   /// 根据品牌获取产品类别
@@ -412,7 +412,7 @@ class FilterDataService {
   }
 
   /// 根据ID获取筛选器配置
-  static Future<FilterConfigDataModel?> getFilterConfigById(String id) async {
+  static Future<Map<String, dynamic>?> getFilterConfigById(String id) async {
     // 目前只支持产品选择筛选器配置
     if (id == 'product_selection_config') {
       return await getProductSelectionFilterConfig();
@@ -422,39 +422,42 @@ class FilterDataService {
 
   /// 保存筛选器选择状态到后端
   static Future<bool> saveFilterSelections(
-    List<FilterSelectionModel> selections,
+    List<Map<String, dynamic>> selections,
   ) async {
     await Future.delayed(const Duration(milliseconds: 2000));
 
     // 模拟保存到后端
-    print(
-      '保存筛选器选择状态: ${selections.map((s) => '${s.filterId}: ${s.selectedValue}').join(', ')}',
-    );
+    // 在实际应用中，这里应该使用适当的日志库
+    // print('保存筛选器选择状态: ${selections.map((s) => '${s['filterId']}: ${s['selectedValue']}').join(', ')}');
 
     // 模拟成功/失败
     return true;
   }
 
   /// 从后端获取筛选器选择状态
-  static Future<List<FilterSelectionModel>> getFilterSelections(
+  static Future<List<Map<String, dynamic>>> getFilterSelections(
     String userId,
   ) async {
     await Future.delayed(const Duration(milliseconds: 2000));
 
     // 模拟从后端获取数据
     return [
-      FilterSelectionModel(
-        filterId: 'brand_filter',
-        selectedId: 'brand_apple',
-        selectedValue: 'Apple',
-        selectedAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      FilterSelectionModel(
-        filterId: 'category_filter',
-        selectedId: 'category_electronics',
-        selectedValue: 'Electronics',
-        selectedAt: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
+      {
+        'filterId': 'brand_filter',
+        'selectedId': 'brand_apple',
+        'selectedValue': 'Apple',
+        'selectedAt': DateTime.now()
+            .subtract(const Duration(hours: 2))
+            .toIso8601String(),
+      },
+      {
+        'filterId': 'category_filter',
+        'selectedId': 'category_electronics',
+        'selectedValue': 'Electronics',
+        'selectedAt': DateTime.now()
+            .subtract(const Duration(hours: 1))
+            .toIso8601String(),
+      },
     ];
   }
 }

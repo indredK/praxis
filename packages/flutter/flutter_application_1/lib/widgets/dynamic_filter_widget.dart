@@ -26,6 +26,7 @@ class DynamicFilterWidget extends StatefulWidget {
 
 class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
   FilterSelectionState _currentSelection = const FilterSelectionState();
+  List<FilterTreeNode>? _cachedFilterTree; // 缓存同类对比模式的筛选器树
 
   @override
   void initState() {
@@ -40,6 +41,8 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
     if (oldWidget.comparisonMode != widget.comparisonMode ||
         oldWidget.initialSelection != widget.initialSelection) {
       _currentSelection = widget.initialSelection;
+      // 清空缓存，重新构建
+      _cachedFilterTree = null;
     }
   }
 
@@ -50,15 +53,10 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
 
     if (nodeId.startsWith('brand_')) {
       newSelection = newSelection.copyWith(selectedBrand: value);
-      // 清空后续选择
-      newSelection = newSelection.copyWith(
-        selectedCategory: null,
-        selectedProductLine: null,
-      );
+      // 不再自动清空后续选择，允许用户独立选择每个级别
     } else if (nodeId.startsWith('category_')) {
       newSelection = newSelection.copyWith(selectedCategory: value);
-      // 清空后续选择
-      newSelection = newSelection.copyWith(selectedProductLine: null);
+      // 不再自动清空后续选择，允许用户独立选择每个级别
     } else if (nodeId.startsWith('product_line_')) {
       newSelection = newSelection.copyWith(selectedProductLine: value);
       // 产品线是筛选器的最后一级，选择后会在右边产品列表中显示具体产品
@@ -66,6 +64,10 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
 
     setState(() {
       _currentSelection = newSelection;
+      // 同类对比模式：清空缓存，强制重新构建筛选器树
+      if (widget.comparisonMode == 'same_category') {
+        _cachedFilterTree = null;
+      }
     });
 
     // 通知外部选择变化
@@ -74,7 +76,26 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 FutureBuilder 来动态构建筛选器树
+    // 同类对比模式使用缓存，避免重复构建
+    if (widget.comparisonMode == 'same_category') {
+      if (_cachedFilterTree == null) {
+        _cachedFilterTree =
+            DynamicFilterService.createSameCategoryFilterTreeSync(
+              currentSelection: _currentSelection,
+              onSelectionChanged: _handleSelectionChanged,
+            );
+      }
+
+      return TreeFilterWidget(
+        filterTree: _cachedFilterTree!,
+        config:
+            widget.config ?? FilterConfig.getProductSelectionConfig(context),
+        onSelectionChanged: _handleSelectionChanged,
+        isLoading: false, // 同类对比模式不需要加载状态
+      );
+    }
+
+    // 自家对比模式使用 FutureBuilder
     return FutureBuilder<List<FilterTreeNode>>(
       future: DynamicFilterService.createDynamicFilterTree(
         comparisonMode: widget.comparisonMode,
@@ -82,7 +103,6 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
         onSelectionChanged: _handleSelectionChanged,
       ),
       builder: (context, snapshot) {
-        // 即使正在加载也显示筛选器，但会禁用后续选择
         final filterTree = snapshot.data ?? [];
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
@@ -91,7 +111,7 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
           config:
               widget.config ?? FilterConfig.getProductSelectionConfig(context),
           onSelectionChanged: _handleSelectionChanged,
-          isLoading: isLoading, // 传递加载状态
+          isLoading: isLoading,
         );
       },
     );

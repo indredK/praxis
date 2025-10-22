@@ -51,9 +51,9 @@ class FilterConfig {
     fontSize: 11,
     titleFontSize: 12,
     backgroundColor: Colors.grey.shade900,
-    selectedColor: Colors.blue.withOpacity(0.7),
+    selectedColor: Colors.blue.withValues(alpha: 0.7),
     textColor: Colors.white,
-    titleColor: Colors.blue.withOpacity(0.6),
+    titleColor: Colors.blue.withValues(alpha: 0.6),
     padding: const EdgeInsets.all(8),
     borderRadius: const BorderRadius.all(Radius.circular(12)),
   );
@@ -64,9 +64,9 @@ class FilterConfig {
     fontSize: 11,
     titleFontSize: 12,
     backgroundColor: Colors.grey.shade50,
-    selectedColor: Colors.blue.withOpacity(0.7),
+    selectedColor: Colors.blue.withValues(alpha: 0.7),
     textColor: Colors.black87,
-    titleColor: Colors.blue.withOpacity(0.6),
+    titleColor: Colors.blue.withValues(alpha: 0.6),
     padding: const EdgeInsets.all(8),
     borderRadius: const BorderRadius.all(Radius.circular(12)),
   );
@@ -104,9 +104,9 @@ class FilterConfig {
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? Colors.grey.shade900
           : Colors.grey.shade50,
-      selectedColor: Theme.of(context).primaryColor.withOpacity(0.7),
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.7),
       textColor: Theme.of(context).textTheme.bodyLarge?.color,
-      titleColor: Theme.of(context).primaryColor.withOpacity(0.6),
+      titleColor: Theme.of(context).primaryColor.withValues(alpha: 0.6),
       padding: const EdgeInsets.all(8),
       borderRadius: const BorderRadius.all(Radius.circular(12)),
     );
@@ -121,9 +121,9 @@ class FilterConfig {
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? Colors.grey.shade800
           : Colors.grey.shade100,
-      selectedColor: Theme.of(context).primaryColor.withOpacity(0.6),
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.6),
       textColor: Theme.of(context).textTheme.bodyMedium?.color,
-      titleColor: Theme.of(context).primaryColor.withOpacity(0.5),
+      titleColor: Theme.of(context).primaryColor.withValues(alpha: 0.5),
       padding: const EdgeInsets.all(6),
       borderRadius: const BorderRadius.all(Radius.circular(8)),
     );
