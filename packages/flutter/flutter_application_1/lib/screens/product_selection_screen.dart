@@ -8,7 +8,8 @@ import '../services/settings_service.dart';
 import '../services/global_data_cache.dart';
 import '../services/product_selection_state_service.dart';
 import '../config/app_config.dart';
-import '../widgets/smart_filter_widget.dart';
+import '../widgets/dynamic_filter_widget.dart';
+import '../models/product_filter_models.dart' as filter_models;
 import 'product_comparison_screen.dart';
 
 // 图钉信息类
@@ -51,9 +52,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   // 当前选中的产品（用于图钉显示）
   Product? _currentSelectedProduct;
 
+  // 动态筛选器选择状态
+  late filter_models.FilterSelectionState _filterSelection;
+
   List<Product> _products = [];
-  List<String> _categories = [];
-  List<String> _companies = [];
   List<String> _productsForCompany = [];
   List<String> _productsForCategory = [];
   bool _isLoading = true;
@@ -65,6 +67,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   @override
   void initState() {
     super.initState();
+
+    // 初始化筛选器状态
+    _filterSelection = const filter_models.FilterSelectionState();
+
     // 数据已在app启动时预加载，直接加载
     _loadData();
 
@@ -89,78 +95,9 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     }
   }
 
-  // 处理公司选择
-  void _handleCompanySelection(String company) {
-    setState(() {
-      _stateService.setSameBrandSelections(company: company);
-      _stateService.clearAll();
-      _updateProductLists();
-    });
-  }
-
-  // 处理类别选择
-  void _handleCategorySelection(String category) {
-    setState(() {
-      _stateService.setSameBrandSelections(category: category);
-      _stateService.clearAll();
-      _updateProductLists();
-    });
-  }
-
-  // 处理产品选择
-  void _handleProductSelection(String product) {
-    setState(() {
-      _stateService.setSameBrandSelections(product: product);
-      _stateService.clearAll();
-      if (product != '全部') {
-        final productObj = _products.firstWhere(
-          (p) =>
-              p.name == product &&
-              p.company == _stateService.selectedCompany &&
-              p.category == _stateService.selectedCategory,
-        );
-        _stateService.addProductId(productObj.id);
-      }
-    });
-  }
-
-  // 处理同类对比类别选择
-  void _handleCategoryForComparisonSelection(String category) {
-    setState(() {
-      _stateService.setSameCategorySelections(category: category);
-      _stateService.clearAll();
-      _updateProductLists();
-    });
-  }
-
-  // 处理同类对比产品选择
-  void _handleProductForComparisonSelection(String product) {
-    setState(() {
-      _stateService.setSameCategorySelections(product: product);
-      _stateService.clearAll();
-      if (product != '全部') {
-        final productObj = _products.firstWhere(
-          (p) =>
-              p.name == product &&
-              p.category == _stateService.selectedCategoryForComparison,
-        );
-        _stateService.addProductId(productObj.id);
-      }
-    });
-  }
-
   Future<void> _loadData() async {
     print('🚀 开始加载数据');
 
-    // 立即设置静态数据，无需等待，并去重排序
-    _categories = [
-      '全部',
-      ...DataService.getAllCategories().toSet().toList()..sort(),
-    ];
-    _companies = [
-      '全部',
-      ...DataService.getAllCompanies().toSet().toList()..sort(),
-    ];
     print('✅ 静态数据设置完成');
 
     setState(() {
@@ -226,6 +163,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 .map((p) => p.name)
                 .toSet() // 去重
                 .toList()
+                .cast<String>()
               ..sort(); // 排序
         _productsForCompany.insert(0, '全部');
       } else {
@@ -243,6 +181,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 .map((p) => p.name)
                 .toSet() // 去重
                 .toList()
+                .cast<String>()
               ..sort(); // 排序
         _productsForCategory.insert(0, '全部');
       } else {
@@ -337,38 +276,39 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 const Divider(height: 1),
                 // 筛选器
                 Expanded(
-                  child: ProductSelectionFilterWidget(
+                  child: ProductSelectionDynamicFilterWidget(
                     comparisonMode: _stateService.comparisonMode,
-                    companies: _companies,
-                    categories: _categories,
-                    productsForCompany: _productsForCompany,
-                    productsForCategory: _productsForCategory,
-                    currentSelections: {
-                      'company': _stateService.selectedCompany,
-                      'category': _stateService.comparisonMode == 'same_brand'
-                          ? _stateService.selectedCategory
-                          : _stateService.selectedCategoryForComparison,
-                      'product': _stateService.comparisonMode == 'same_brand'
-                          ? _stateService.selectedProduct
-                          : _stateService.selectedProductForComparison,
-                    },
+                    initialSelection: _filterSelection,
                     onSelectionChanged: (nodeId, value) {
-                      // 根据nodeId调用相应的处理方法
-                      if (nodeId.startsWith('company_')) {
-                        _handleCompanySelection(value ?? '');
-                      } else if (nodeId.startsWith('category_')) {
-                        if (_stateService.comparisonMode == 'same_brand') {
-                          _handleCategorySelection(value ?? '');
-                        } else {
-                          _handleCategoryForComparisonSelection(value ?? '');
+                      // 更新筛选器选择状态
+                      setState(() {
+                        if (nodeId.startsWith('brand_')) {
+                          _filterSelection = _filterSelection.copyWith(
+                            selectedBrand: value,
+                          );
+                          // 清空后续选择
+                          _filterSelection = _filterSelection.copyWith(
+                            selectedCategory: null,
+                            selectedProductLine: null,
+                          );
+                        } else if (nodeId.startsWith('category_')) {
+                          _filterSelection = _filterSelection.copyWith(
+                            selectedCategory: value,
+                          );
+                          // 清空后续选择
+                          _filterSelection = _filterSelection.copyWith(
+                            selectedProductLine: null,
+                          );
+                        } else if (nodeId.startsWith('product_line_')) {
+                          _filterSelection = _filterSelection.copyWith(
+                            selectedProductLine: value,
+                          );
+                          // 产品线是筛选器的最后一级，选择后会在右边产品列表中显示具体产品
                         }
-                      } else if (nodeId.startsWith('product_')) {
-                        if (_stateService.comparisonMode == 'same_brand') {
-                          _handleProductSelection(value ?? '');
-                        } else {
-                          _handleProductForComparisonSelection(value ?? '');
-                        }
-                      }
+                      });
+
+                      // 根据选择更新产品列表
+                      // _updateProductListsBasedOnFilter();
                     },
                   ),
                 ),
@@ -925,30 +865,42 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   // 获取当前筛选条件文本
   String _getCurrentFilterText() {
-    List<String> filters = [];
+    // 如果筛选器状态无效，返回空字符串
+    try {
+      List<String> filters = [];
 
-    if (_stateService.comparisonMode == 'same_brand') {
-      // 自家对比模式
-      if (_stateService.selectedCompany != '全部') {
-        filters.add('公司: ${_stateService.selectedCompany}');
+      if (_stateService.comparisonMode == 'same_brand') {
+        // 自家对比模式 - 使用动态筛选器的选择状态
+        if (_filterSelection.selectedBrand != null &&
+            _filterSelection.selectedBrand != '全部') {
+          filters.add('品牌: ${_filterSelection.selectedBrand}');
+        }
+        if (_filterSelection.selectedCategory != null &&
+            _filterSelection.selectedCategory != '全部') {
+          filters.add('类别: ${_filterSelection.selectedCategory}');
+        }
+        if (_filterSelection.selectedProductLine != null &&
+            _filterSelection.selectedProductLine != '全部') {
+          filters.add('产品线: ${_filterSelection.selectedProductLine}');
+        }
+      } else {
+        // 同类对比模式 - 使用动态筛选器的选择状态
+        if (_filterSelection.selectedCategory != null &&
+            _filterSelection.selectedCategory != '全部') {
+          filters.add('类别: ${_filterSelection.selectedCategory}');
+        }
+        if (_filterSelection.selectedProductLine != null &&
+            _filterSelection.selectedProductLine != '全部') {
+          filters.add('产品线: ${_filterSelection.selectedProductLine}');
+        }
       }
-      if (_stateService.selectedCategory != '全部') {
-        filters.add('类别: ${_stateService.selectedCategory}');
-      }
-      if (_stateService.selectedProduct != '全部') {
-        filters.add('产品: ${_stateService.selectedProduct}');
-      }
-    } else {
-      // 同类对比模式
-      if (_stateService.selectedCategoryForComparison != '全部') {
-        filters.add('类别: ${_stateService.selectedCategoryForComparison}');
-      }
-      if (_stateService.selectedProductForComparison != '全部') {
-        filters.add('产品: ${_stateService.selectedProductForComparison}');
-      }
+
+      return filters.join(' | ');
+    } catch (e) {
+      // 如果出现任何错误，返回空字符串
+      print('Error in _getCurrentFilterText: $e');
+      return '';
     }
-
-    return filters.join(' | ');
   }
 
   List<Product> _getFilteredProducts() {
