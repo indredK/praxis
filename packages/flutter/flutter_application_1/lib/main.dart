@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'screens/product_selection_screen.dart';
 import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
@@ -63,20 +64,27 @@ class _MyAppState extends State<MyApp> {
     return AnimatedBuilder(
       animation: Listenable.merge([_themeManager, _languageManager]),
       builder: (context, child) {
-        return MaterialApp(
-          title: '产品对比应用',
-          theme: _themeManager.lightTheme,
-          darkTheme: _themeManager.darkTheme,
-          themeMode: _themeManager.themeMode,
-          locale: _languageManager.currentLocale,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: LanguageService.supportedLocales,
-          home: const MainNavigationPage(),
+        return ScreenUtilInit(
+          designSize: const Size(375, 812), // iPhone X 设计尺寸
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return MaterialApp(
+              title: '产品对比应用',
+              theme: _themeManager.lightTheme,
+              darkTheme: _themeManager.darkTheme,
+              themeMode: _themeManager.themeMode,
+              locale: _languageManager.currentLocale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: LanguageService.supportedLocales,
+              home: const MainNavigationPage(),
+            );
+          },
         );
       },
     );

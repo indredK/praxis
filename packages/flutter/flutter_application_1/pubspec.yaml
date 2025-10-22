@@ -49,6 +49,11 @@ dependencies:
   intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
+  
+  # 最佳实践UI组件库 - 使用稳定版本
+  flutter_animate: ^4.5.0  # 强大的动画库
+  flutter_slidable: ^3.1.1  # 滑动操作卡片
+  flutter_screenutil: ^5.9.0  # 屏幕适配
 
 dev_dependencies:
   flutter_test:
