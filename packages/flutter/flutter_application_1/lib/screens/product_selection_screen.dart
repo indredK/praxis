@@ -3,8 +3,32 @@ import '../models/product.dart';
 import '../services/data_service.dart';
 import '../services/settings_service.dart';
 import '../services/global_data_cache.dart';
+import '../services/product_selection_state_service.dart';
 import '../config/app_config.dart';
 import 'product_comparison_screen.dart';
+
+// 图钉信息类
+class PinInfo {
+  final String icon;
+  final Color color;
+  final PinType type;
+  final dynamic content;
+
+  PinInfo({
+    required this.icon,
+    required this.color,
+    required this.type,
+    required this.content,
+  });
+}
+
+// 图钉类型枚举
+enum PinType {
+  product, // 产品
+  company, // 公司
+  category, // 类别
+  help, // 帮助
+}
 
 class ProductSelectionScreen extends StatefulWidget {
   final Function(List<String>)? onNavigateToComparison;
@@ -16,22 +40,12 @@ class ProductSelectionScreen extends StatefulWidget {
 }
 
 class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
-  final Set<String> _selectedProductIds = {};
+  // 产品选择状态管理服务
+  final ProductSelectionStateService _stateService =
+      ProductSelectionStateService();
 
   // 当前选中的产品（用于图钉显示）
   Product? _currentSelectedProduct;
-
-  // 对比模式：'same_brand' 自家对比, 'same_category' 同类对比
-  String _comparisonMode = 'same_brand';
-
-  // 自家对比模式的选择
-  String _selectedCompany = '全部';
-  String _selectedCategory = '全部';
-  String _selectedProduct = '全部';
-
-  // 同类对比模式的选择
-  String _selectedCategoryForComparison = '全部';
-  String _selectedProductForComparison = '全部';
 
   List<Product> _products = [];
   List<String> _categories = [];
@@ -44,22 +58,31 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   List<Product>? _cachedFilteredProducts;
   String? _lastFilterKey;
 
-  // 缓存产品列表，避免重复创建（现在使用全局缓存）
-  // List<Product>? _cachedProducts;
-
   @override
   void initState() {
     super.initState();
     // 数据已在app启动时预加载，直接加载
     _loadData();
+
+    // 监听状态变化
+    _stateService.addListener(_onStateChanged);
   }
 
   @override
   void dispose() {
+    _stateService.removeListener(_onStateChanged);
     // 清理缓存，避免内存泄漏
     _cachedFilteredProducts = null;
     _lastFilterKey = null;
     super.dispose();
+  }
+
+  void _onStateChanged() {
+    if (mounted) {
+      setState(() {
+        // 状态变化时更新UI
+      });
+    }
   }
 
   Future<void> _loadData() async {
@@ -119,14 +142,15 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   // 更新产品列表
   void _updateProductLists() {
-    if (_comparisonMode == 'same_brand') {
+    if (_stateService.comparisonMode == 'same_brand') {
       // 自家对比模式：根据选择的公司和类别更新产品列表
-      if (_selectedCompany != '全部' && _selectedCategory != '全部') {
+      if (_stateService.selectedCompany != '全部' &&
+          _stateService.selectedCategory != '全部') {
         _productsForCompany = _products
             .where(
               (p) =>
-                  p.company == _selectedCompany &&
-                  p.category == _selectedCategory,
+                  p.company == _stateService.selectedCompany &&
+                  p.category == _stateService.selectedCategory,
             )
             .map((p) => p.name)
             .toList();
@@ -136,9 +160,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       }
     } else {
       // 同类对比模式：根据选择的类别更新产品列表
-      if (_selectedCategoryForComparison != '全部') {
+      if (_stateService.selectedCategoryForComparison != '全部') {
         _productsForCategory = _products
-            .where((p) => p.category == _selectedCategoryForComparison)
+            .where(
+              (p) => p.category == _stateService.selectedCategoryForComparison,
+            )
             .map((p) => p.name)
             .toList();
         _productsForCategory.insert(0, '全部');
@@ -160,15 +186,15 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       appBar: AppBar(
         title: const Text('产品对比'),
         actions: [
-          if (_selectedProductIds.isNotEmpty)
+          if (_stateService.selectedProductIds.isNotEmpty)
             TextButton(
-              onPressed: _selectedProductIds.length >= 2
+              onPressed: _stateService.canStartComparison
                   ? () => _navigateToComparison()
                   : null,
               child: Text(
-                '对比 (${_selectedProductIds.length})',
+                '对比 (${_stateService.selectedCount})',
                 style: TextStyle(
-                  color: _selectedProductIds.length >= 2
+                  color: _stateService.canStartComparison
                       ? Colors.white
                       : Theme.of(context).textTheme.bodyMedium?.color,
                 ),
@@ -197,11 +223,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         icon: Icon(Icons.category),
                       ),
                     ],
-                    selected: {_comparisonMode},
+                    selected: {_stateService.comparisonMode},
                     onSelectionChanged: (Set<String> selection) {
                       setState(() {
-                        _comparisonMode = selection.first;
-                        _selectedProductIds.clear();
+                        _stateService.setComparisonMode(selection.first);
+                        _stateService.clearAll();
                         _updateProductLists();
                       });
                     },
@@ -227,7 +253,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               itemExtent: 132, // 固定高度：120 + 12(margin)
               itemBuilder: (context, index) {
                 final product = filteredProducts[index];
-                final isSelected = _selectedProductIds.contains(product.id);
+                final isSelected = _stateService.isProductSelected(product.id);
                 final companyColor = _getCompanyColor(product.company);
 
                 return Card(
@@ -259,13 +285,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           // 更新当前选中的产品（用于图钉显示）
                           _currentSelectedProduct = product;
 
-                          if (isSelected) {
-                            _selectedProductIds.remove(product.id);
-                          } else {
+                          if (!isSelected) {
                             // 检查是否超过最大选择数量
-                            if (_selectedProductIds.length <
+                            if (_stateService.selectedCount <
                                 SettingsService.maxProducts) {
-                              _selectedProductIds.add(product.id);
+                              _stateService.addProductId(product.id);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -278,6 +302,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             }
                           }
                         });
+                      },
+                      onLongPress: () {
+                        // 长按显示产品详情，同时更新当前选中产品
+                        setState(() {
+                          _currentSelectedProduct = product;
+                        });
+                        _showProductDetails(product);
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Padding(
@@ -446,14 +477,35 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 onChanged: (value) {
                                   setState(() {
                                     if (value == true) {
-                                      _selectedProductIds.add(product.id);
-                                    } else {
-                                      _selectedProductIds.remove(product.id);
+                                      _stateService.addProductId(product.id);
                                     }
                                   });
                                 },
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            // 长按提示图标
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.touch_app,
+                                size: 12,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -469,7 +521,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       ),
 
       // 底部操作栏
-      bottomNavigationBar: _selectedProductIds.isNotEmpty
+      bottomNavigationBar: _stateService.selectedProductIds.isNotEmpty
           ? Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -503,7 +555,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       child: OutlinedButton(
                         onPressed: () {
                           setState(() {
-                            _selectedProductIds.clear();
+                            _stateService.clearAll();
                           });
                         },
                         style: OutlinedButton.styleFrom(
@@ -528,7 +580,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     child: Container(
                       height: 50,
                       decoration: BoxDecoration(
-                        gradient: _selectedProductIds.length >= 2
+                        gradient: _stateService.canStartComparison
                             ? LinearGradient(
                                 colors: [Colors.blue, Colors.blue.shade700],
                               )
@@ -539,7 +591,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 ],
                               ),
                         borderRadius: BorderRadius.circular(25),
-                        boxShadow: _selectedProductIds.length >= 2
+                        boxShadow: _stateService.canStartComparison
                             ? [
                                 BoxShadow(
                                   color: Colors.blue.withOpacity(0.3),
@@ -550,7 +602,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             : null,
                       ),
                       child: ElevatedButton(
-                        onPressed: _selectedProductIds.length >= 2
+                        onPressed: _stateService.canStartComparison
                             ? () => _navigateToComparison()
                             : null,
                         style: ElevatedButton.styleFrom(
@@ -561,8 +613,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           ),
                         ),
                         child: Text(
-                          _selectedProductIds.length >= 2
-                              ? '开始${_comparisonMode == 'same_brand' ? '自家' : '同类'}对比 (${_selectedProductIds.length}个产品)'
+                          _stateService.canStartComparison
+                              ? '开始${_stateService.comparisonMode == 'same_brand' ? '自家' : '同类'}对比 (${_stateService.selectedCount}个产品)'
                               : '至少选择2个产品',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
@@ -583,7 +635,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   // 构建筛选器界面
   Widget _buildFilterSection() {
-    if (_comparisonMode == 'same_brand') {
+    if (_stateService.comparisonMode == 'same_brand') {
       // 自家对比模式：公司 → 类别 → 产品
       return Column(
         children: [
@@ -599,7 +651,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
-                      value: _selectedCompany,
+                      value: _stateService.selectedCompany,
                       isExpanded: true,
                       items: _companies.map((company) {
                         return DropdownMenuItem(
@@ -625,10 +677,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          _selectedCompany = value!;
-                          _selectedCategory = '全部';
-                          _selectedProduct = '全部';
-                          _selectedProductIds.clear();
+                          _stateService.setSameBrandSelections(company: value!);
+                          _stateService.clearAll();
                           _updateProductLists();
                         });
                       },
@@ -647,7 +697,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
-                      value: _selectedCategory,
+                      value: _stateService.selectedCategory,
                       isExpanded: true,
                       items: _categories.map((category) {
                         return DropdownMenuItem(
@@ -671,12 +721,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           ),
                         );
                       }).toList(),
-                      onChanged: _selectedCompany != '全部'
+                      onChanged: _stateService.selectedCompany != '全部'
                           ? (value) {
                               setState(() {
-                                _selectedCategory = value!;
-                                _selectedProduct = '全部';
-                                _selectedProductIds.clear();
+                                _stateService.setSameBrandSelections(
+                                  category: value!,
+                                );
+                                _stateService.clearAll();
                                 _updateProductLists();
                               });
                             }
@@ -687,7 +738,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               ),
             ],
           ),
-          if (_selectedCompany != '全部' && _selectedCategory != '全部') ...[
+          if (_stateService.selectedCompany != '全部' &&
+              _stateService.selectedCategory != '全部') ...[
             const SizedBox(height: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,7 +750,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButton<String>(
-                  value: _selectedProduct,
+                  value: _stateService.selectedProduct,
                   isExpanded: true,
                   items: _productsForCompany.map((product) {
                     return DropdownMenuItem(
@@ -722,16 +774,16 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedProduct = value!;
-                      _selectedProductIds.clear();
+                      _stateService.setSameBrandSelections(product: value!);
+                      _stateService.clearAll();
                       if (value != '全部') {
                         final product = _products.firstWhere(
                           (p) =>
                               p.name == value &&
-                              p.company == _selectedCompany &&
-                              p.category == _selectedCategory,
+                              p.company == _stateService.selectedCompany &&
+                              p.category == _stateService.selectedCategory,
                         );
-                        _selectedProductIds.add(product.id);
+                        _stateService.addProductId(product.id);
                       }
                     });
                   },
@@ -757,7 +809,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
-                      value: _selectedCategoryForComparison,
+                      value: _stateService.selectedCategoryForComparison,
                       isExpanded: true,
                       items: _categories.map((category) {
                         return DropdownMenuItem(
@@ -783,9 +835,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          _selectedCategoryForComparison = value!;
-                          _selectedProductForComparison = '全部';
-                          _selectedProductIds.clear();
+                          _stateService.setSameCategorySelections(
+                            category: value!,
+                          );
+                          _stateService.clearAll();
                           _updateProductLists();
                         });
                       },
@@ -804,7 +857,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
-                      value: _selectedProductForComparison,
+                      value: _stateService.selectedProductForComparison,
                       isExpanded: true,
                       items: _productsForCategory.map((product) {
                         return DropdownMenuItem(
@@ -826,19 +879,23 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           ),
                         );
                       }).toList(),
-                      onChanged: _selectedCategoryForComparison != '全部'
+                      onChanged:
+                          _stateService.selectedCategoryForComparison != '全部'
                           ? (value) {
                               setState(() {
-                                _selectedProductForComparison = value!;
-                                _selectedProductIds.clear();
+                                _stateService.setSameCategorySelections(
+                                  product: value!,
+                                );
+                                _stateService.clearAll();
                                 if (value != '全部') {
                                   final product = _products.firstWhere(
                                     (p) =>
                                         p.name == value &&
                                         p.category ==
-                                            _selectedCategoryForComparison,
+                                            _stateService
+                                                .selectedCategoryForComparison,
                                   );
-                                  _selectedProductIds.add(product.id);
+                                  _stateService.addProductId(product.id);
                                 }
                               });
                             }
@@ -857,7 +914,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   List<Product> _getFilteredProducts() {
     // 生成缓存键
     final filterKey =
-        '${_comparisonMode}_${_selectedCompany}_${_selectedCategoryForComparison}';
+        '${_stateService.comparisonMode}_${_stateService.selectedCompany}_${_stateService.selectedCategoryForComparison}';
 
     // 如果过滤条件没有变化，返回缓存结果
     if (_cachedFilteredProducts != null && _lastFilterKey == filterKey) {
@@ -865,18 +922,22 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     }
 
     List<Product> result;
-    if (_comparisonMode == 'same_brand') {
+    if (_stateService.comparisonMode == 'same_brand') {
       // 自家对比模式：显示选中公司的所有产品
-      if (_selectedCompany != '全部') {
-        result = _products.where((p) => p.company == _selectedCompany).toList();
+      if (_stateService.selectedCompany != '全部') {
+        result = _products
+            .where((p) => p.company == _stateService.selectedCompany)
+            .toList();
       } else {
         result = [];
       }
     } else {
       // 同类对比模式：显示选中类别的所有产品
-      if (_selectedCategoryForComparison != '全部') {
+      if (_stateService.selectedCategoryForComparison != '全部') {
         result = _products
-            .where((p) => p.category == _selectedCategoryForComparison)
+            .where(
+              (p) => p.category == _stateService.selectedCategoryForComparison,
+            )
             .toList();
       } else {
         result = [];
@@ -892,13 +953,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   void _navigateToComparison() {
     if (widget.onNavigateToComparison != null) {
-      widget.onNavigateToComparison!(_selectedProductIds.toList());
+      widget.onNavigateToComparison!(_stateService.selectedProductIds);
     } else {
       // 备用方案：使用原来的Navigator.push
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ProductComparisonScreen(
-            selectedProductIds: _selectedProductIds.toList(),
+            selectedProductIds: _stateService.selectedProductIds,
           ),
         ),
       );
@@ -973,31 +1034,86 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   // 构建右下角固定图钉
   Widget _buildFloatingActionButton() {
+    // 获取当前应该显示的图标和颜色
+    final pinInfo = _getCurrentPinInfo();
+
     return FloatingActionButton(
       onPressed: _showProductInfo,
-      backgroundColor: _currentSelectedProduct != null
-          ? _getCompanyColor(_currentSelectedProduct!.company)
-          : Theme.of(context).primaryColor,
-      child: Icon(
-        _currentSelectedProduct != null ? Icons.info : Icons.help,
-        color: Colors.white,
-      ),
+      backgroundColor: pinInfo.color,
+      child: Text(pinInfo.icon, style: const TextStyle(fontSize: 24)),
+    );
+  }
+
+  // 获取当前图钉应该显示的信息
+  PinInfo _getCurrentPinInfo() {
+    // 优先级：当前点击的产品 > 选中的公司 > 选中的类别 > 默认帮助
+    if (_currentSelectedProduct != null) {
+      // 显示当前点击产品的公司logo
+      return PinInfo(
+        icon: AppConfig.getCompanyLogo(_currentSelectedProduct!.company),
+        color: _getCompanyColor(_currentSelectedProduct!.company),
+        type: PinType.product,
+        content: _currentSelectedProduct!,
+      );
+    }
+
+    if (_stateService.comparisonMode == 'same_brand' &&
+        _stateService.selectedCompany != '全部') {
+      // 显示选中公司的logo
+      return PinInfo(
+        icon: AppConfig.getCompanyLogo(_stateService.selectedCompany),
+        color: _getCompanyColor(_stateService.selectedCompany),
+        type: PinType.company,
+        content: _stateService.selectedCompany,
+      );
+    }
+
+    if (_stateService.comparisonMode == 'same_category' &&
+        _stateService.selectedCategoryForComparison != '全部') {
+      // 显示选中类别的logo
+      return PinInfo(
+        icon: AppConfig.getCategoryLogo(
+          _stateService.selectedCategoryForComparison,
+        ),
+        color: Theme.of(context).primaryColor,
+        type: PinType.category,
+        content: _stateService.selectedCategoryForComparison,
+      );
+    }
+
+    // 默认状态
+    return PinInfo(
+      icon: '❓',
+      color: Theme.of(context).primaryColor,
+      type: PinType.help,
+      content: '帮助',
     );
   }
 
   // 显示产品信息或操作提示
   void _showProductInfo() {
-    if (_currentSelectedProduct != null) {
-      _showProductDetails(_currentSelectedProduct!);
-    } else {
-      _showOperationTips();
+    final pinInfo = _getCurrentPinInfo();
+
+    switch (pinInfo.type) {
+      case PinType.product:
+        _showProductDetails(pinInfo.content as Product);
+        break;
+      case PinType.company:
+        _showCompanyInfo(pinInfo.content as String);
+        break;
+      case PinType.category:
+        _showCategoryInfo(pinInfo.content as String);
+        break;
+      case PinType.help:
+        _showOperationTips();
+        break;
     }
   }
 
   // 显示产品详细信息
   void _showProductDetails(Product product) {
     final companyColor = _getCompanyColor(product.company);
-    final isSelected = _selectedProductIds.contains(product.id);
+    final isSelected = _stateService.isProductSelected(product.id);
 
     showDialog(
       context: context,
@@ -1133,11 +1249,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         ),
                       ]),
                       const SizedBox(height: 16),
-                      // 规格信息卡片
+                      // 规格信息卡片 - 显示所有规格
                       _buildInfoCard(
-                        '主要规格',
+                        '详细规格',
                         product.specs.entries
-                            .take(5)
                             .map(
                               (entry) => _buildInfoRow(
                                 entry.key,
@@ -1146,6 +1261,17 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             )
                             .toList(),
                       ),
+                      const SizedBox(height: 16),
+                      // 产品统计信息
+                      _buildInfoCard('产品统计', [
+                        _buildInfoRow('规格参数数量', '${product.specs.length}个'),
+                        _buildInfoRow('产品ID', product.id),
+                        _buildInfoRow('公司', product.company),
+                        _buildInfoRow('类别', product.category),
+                      ]),
+                      const SizedBox(height: 16),
+                      // 性能指标（如果有数值型规格）
+                      _buildPerformanceCard(product),
                     ],
                   ),
                 ),
@@ -1178,7 +1304,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       ),
                     ),
                     if (isSelected) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
@@ -1199,6 +1325,356 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       ),
                     ],
                   ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 显示公司信息
+  void _showCompanyInfo(String company) {
+    final companyColor = _getCompanyColor(company);
+    final companyLogo = AppConfig.getCompanyLogo(company);
+
+    // 获取该公司的所有产品
+    final companyProducts = _products
+        .where((p) => p.company == company)
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 20,
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 头部 - 带渐变背景
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [companyColor, companyColor.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    // 公司logo
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          companyLogo,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // 公司信息
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            company,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${companyProducts.length}个产品',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 内容区域
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 产品列表
+                      _buildInfoCard('产品列表', [
+                        ...companyProducts
+                            .take(10)
+                            .map(
+                              (product) => ListTile(
+                                leading: Text(
+                                  AppConfig.getCategoryLogo(product.category),
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                                title: Text(product.name),
+                                subtitle: Text(
+                                  '${product.category} • ¥${product.price.toStringAsFixed(0)}',
+                                ),
+                                trailing:
+                                    _stateService.isProductSelected(product.id)
+                                    ? const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    _currentSelectedProduct = product;
+                                  });
+                                },
+                              ),
+                            )
+                            .toList(),
+                        if (companyProducts.length > 10)
+                          const ListTile(
+                            title: Text('...'),
+                            subtitle: Text('更多产品请使用筛选器查看'),
+                          ),
+                      ]),
+                    ],
+                  ),
+                ),
+              ),
+              // 底部按钮
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.grey.shade50,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                    label: const Text('关闭'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 显示类别信息
+  void _showCategoryInfo(String category) {
+    final categoryLogo = AppConfig.getCategoryLogo(category);
+
+    // 获取该类别的所有产品
+    final categoryProducts = _products
+        .where((p) => p.category == category)
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 20,
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 头部 - 带渐变背景
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    // 类别logo
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          categoryLogo,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // 类别信息
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${categoryProducts.length}个产品',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 内容区域
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 产品列表
+                      _buildInfoCard('产品列表', [
+                        ...categoryProducts
+                            .take(10)
+                            .map(
+                              (product) => ListTile(
+                                leading: Text(
+                                  AppConfig.getCompanyLogo(product.company),
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                                title: Text(product.name),
+                                subtitle: Text(
+                                  '${product.company} • ¥${product.price.toStringAsFixed(0)}',
+                                ),
+                                trailing:
+                                    _stateService.isProductSelected(product.id)
+                                    ? const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    _currentSelectedProduct = product;
+                                  });
+                                },
+                              ),
+                            )
+                            .toList(),
+                        if (categoryProducts.length > 10)
+                          const ListTile(
+                            title: Text('...'),
+                            subtitle: Text('更多产品请使用筛选器查看'),
+                          ),
+                      ]),
+                    ],
+                  ),
+                ),
+              ),
+              // 底部按钮
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.grey.shade50,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                    label: const Text('关闭'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -1265,11 +1741,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     children: [
                       _buildTipCard('📱', '选择产品', '点击产品卡片选择产品进行对比'),
                       const SizedBox(height: 12),
+                      _buildTipCard('👆', '查看详情', '长按产品卡片查看详细规格参数'),
+                      const SizedBox(height: 12),
                       _buildTipCard('🔍', '筛选产品', '使用筛选器快速找到目标产品'),
                       const SizedBox(height: 12),
                       _buildTipCard('⚡', '开始对比', '选择2-5个产品后点击"对比"按钮'),
                       const SizedBox(height: 12),
-                      _buildTipCard('💡', '产品信息', '点击产品后，图钉会显示该产品信息'),
+                      _buildTipCard('💡', '智能图钉', '点击图钉查看当前选择状态，图标会根据选择内容变化'),
                     ],
                   ),
                 ),
@@ -1427,5 +1905,36 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         ],
       ),
     );
+  }
+
+  // 构建性能指标卡片
+  Widget _buildPerformanceCard(Product product) {
+    // 提取数值型规格参数
+    final numericSpecs = <String, double>{};
+    final textSpecs = <String, String>{};
+
+    for (final entry in product.specs.entries) {
+      final value = entry.value;
+      if (value is num) {
+        numericSpecs[entry.key] = value.toDouble();
+      } else {
+        textSpecs[entry.key] = value.toString();
+      }
+    }
+
+    if (numericSpecs.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return _buildInfoCard('性能指标', [
+      ...numericSpecs.entries
+          .map(
+            (entry) => _buildInfoRow(
+              entry.key,
+              '${entry.value.toStringAsFixed(entry.value % 1 == 0 ? 0 : 2)}',
+            ),
+          )
+          .toList(),
+    ]);
   }
 }

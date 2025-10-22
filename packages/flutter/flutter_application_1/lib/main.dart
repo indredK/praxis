@@ -3,12 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/product_selection_screen.dart';
 import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/product_selection_state_test.dart';
 import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
 import 'services/language_manager.dart';
 import 'services/data_service.dart';
 import 'services/global_data_cache.dart';
+import 'services/product_selection_state_service.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
@@ -20,6 +22,7 @@ void main() async {
     await SettingsService.init();
     await LanguageService.init();
     await LanguageManager().init();
+    await ProductSelectionStateService().init();
     print('✅ 基础服务初始化完成');
 
     // 预加载所有数据，避免首次加载延迟
@@ -89,10 +92,11 @@ class MainNavigationPage extends StatefulWidget {
 
 class _MainNavigationPageState extends State<MainNavigationPage> {
   int _currentIndex = 0;
-
-  // 添加产品对比页面的状态管理
-  List<String> _selectedProductIds = [];
   bool _showComparison = false;
+
+  // 产品选择状态管理服务
+  final ProductSelectionStateService _stateService =
+      ProductSelectionStateService();
 
   // 延迟初始化页面列表
   late final List<Widget> _pages;
@@ -103,15 +107,33 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     _pages = [
       ProductSelectionScreen(onNavigateToComparison: showProductComparison),
       const CalculatorPage(title: '计算器'),
+      const ProductSelectionStateTest(),
       const SettingsScreen(),
     ];
+
+    // 监听状态变化
+    _stateService.addListener(_onStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _stateService.removeListener(_onStateChanged);
+    super.dispose();
+  }
+
+  void _onStateChanged() {
+    if (mounted) {
+      setState(() {
+        // 状态变化时更新UI
+      });
+    }
   }
 
   // 获取当前显示的页面
   Widget get _currentPage {
-    if (_showComparison && _selectedProductIds.isNotEmpty) {
+    if (_showComparison && _stateService.selectedProductIds.isNotEmpty) {
       return ProductComparisonScreen(
-        selectedProductIds: _selectedProductIds,
+        selectedProductIds: _stateService.selectedProductIds,
         onBackPressed: returnToProductSelection,
       );
     }
@@ -120,8 +142,9 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   // 显示产品对比页面
   void showProductComparison(List<String> selectedProductIds) {
+    // 更新状态服务中的选择
+    _stateService.setSelectedProductIds(selectedProductIds);
     setState(() {
-      _selectedProductIds = selectedProductIds;
       _showComparison = true;
     });
   }
@@ -130,7 +153,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   void returnToProductSelection() {
     setState(() {
       _showComparison = false;
-      _selectedProductIds.clear();
+      // 不再清空选择状态，保持用户的选择
     });
   }
 
@@ -230,12 +253,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                 if (_showComparison && index == 0) {
                   // 如果已经在对比页面，点击对比按钮返回产品选择页面
                   _showComparison = false;
-                  _selectedProductIds.clear();
                 } else {
                   // 切换到其他页面
                   _currentIndex = index;
                   _showComparison = false;
-                  _selectedProductIds.clear();
                 }
               });
             },
@@ -247,6 +268,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               BottomNavigationBarItem(
                 icon: const Icon(Icons.calculate, size: 28),
                 label: _getLocalizedText(context, 'calculator'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.bug_report, size: 28),
+                label: '状态测试',
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.settings, size: 28),
