@@ -286,19 +286,12 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           _filterSelection = _filterSelection.copyWith(
                             selectedBrand: value,
                           );
-                          // 清空后续选择
-                          _filterSelection = _filterSelection.copyWith(
-                            selectedCategory: null,
-                            selectedProductLine: null,
-                          );
+                          // 不再自动清空后续选择，允许用户独立选择每个级别
                         } else if (nodeId.startsWith('category_')) {
                           _filterSelection = _filterSelection.copyWith(
                             selectedCategory: value,
                           );
-                          // 清空后续选择
-                          _filterSelection = _filterSelection.copyWith(
-                            selectedProductLine: null,
-                          );
+                          // 不再自动清空后续选择，允许用户独立选择每个级别
                         } else if (nodeId.startsWith('product_line_')) {
                           _filterSelection = _filterSelection.copyWith(
                             selectedProductLine: value,
@@ -373,7 +366,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           decoration: BoxDecoration(
                             color: Theme.of(
                               context,
-                            ).primaryColor.withOpacity(0.1),
+                            ).primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -438,8 +431,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             child: Card(
                               elevation: isSelected ? 12 : 4,
                               shadowColor: isSelected
-                                  ? companyColor.withOpacity(0.3)
-                                  : Colors.black.withOpacity(0.1),
+                                  ? companyColor.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.1),
                               margin: const EdgeInsets.only(bottom: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -455,7 +448,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   color: isSelected
-                                      ? companyColor.withOpacity(0.1)
+                                      ? companyColor.withValues(alpha: 0.1)
                                       : Theme.of(context).brightness ==
                                             Brightness.dark
                                       ? Colors.grey.shade800
@@ -512,8 +505,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: companyColor.withOpacity(
-                                                  0.2,
+                                                color: companyColor.withValues(
+                                                  alpha: 0.2,
                                                 ),
                                                 blurRadius: 2,
                                                 offset: const Offset(0, 1),
@@ -574,7 +567,9 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                                         ),
                                                     decoration: BoxDecoration(
                                                       color: companyColor
-                                                          .withOpacity(0.1),
+                                                          .withValues(
+                                                            alpha: 0.1,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             3,
@@ -617,12 +612,12 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                                                 ).brightness ==
                                                                 Brightness.dark
                                                             ? Colors.green
-                                                                  .withOpacity(
-                                                                    0.2,
+                                                                  .withValues(
+                                                                    alpha: 0.2,
                                                                   )
                                                             : Colors.green
-                                                                  .withOpacity(
-                                                                    0.1,
+                                                                  .withValues(
+                                                                    alpha: 0.1,
                                                                   ),
                                                         borderRadius:
                                                             BorderRadius.circular(
@@ -736,7 +731,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     : Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
@@ -843,7 +838,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             shadowColor: _stateService.canStartComparison
                                 ? Theme.of(
                                     context,
-                                  ).primaryColor.withOpacity(0.3)
+                                  ).primaryColor.withValues(alpha: 0.3)
                                 : Colors.transparent,
                             elevation: _stateService.canStartComparison ? 2 : 0,
                             shape: RoundedRectangleBorder(
@@ -1154,7 +1149,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [companyColor, companyColor.withOpacity(0.8)],
+                    colors: [companyColor, companyColor.withValues(alpha: 0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -1171,10 +1166,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -1209,7 +1204,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             product.company,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1224,7 +1219,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Row(
@@ -1383,7 +1378,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [companyColor, companyColor.withOpacity(0.8)],
+                    colors: [companyColor, companyColor.withValues(alpha: 0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -1400,10 +1395,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -1436,7 +1431,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             '${companyProducts.length}个产品',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1558,7 +1553,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -1576,10 +1571,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -1612,7 +1607,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             '${categoryProducts.length}个产品',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1727,7 +1722,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.8),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

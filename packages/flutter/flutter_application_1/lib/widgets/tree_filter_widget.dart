@@ -68,7 +68,6 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
     }).toList();
   }
 
-
   /// 使用当前选择状态更新树结构
   List<FilterTreeNode> _updateTreeWithCurrentSelections(
     List<FilterTreeNode> newTree,
@@ -102,8 +101,8 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
     return false;
   }
 
-  /// 更新同级别的选择状态（单选模式）
-  List<FilterTreeNode> _updateSelectionInSameLevel(
+  /// 更新节点选择状态（同级别单选，不同级别独立）
+  List<FilterTreeNode> _updateNodeSelection(
     List<FilterTreeNode> tree,
     FilterTreeNode selectedNode,
   ) {
@@ -111,43 +110,40 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
       if (node.children.isNotEmpty) {
         // 如果是父节点，递归处理子节点
         return node.copyWith(
-          children: _updateSelectionInSameLevel(node.children, selectedNode),
+          children: _updateNodeSelection(node.children, selectedNode),
         );
       } else {
-        // 如果是叶子节点，检查是否与选中节点在同一级别
-        if (_isInSameLevel(tree, node.id, selectedNode.id)) {
-          // 同级别：只有选中的节点高亮，其他都取消高亮
-          return node.copyWith(isSelected: node.id == selectedNode.id);
+        // 简化逻辑：直接处理选择状态
+        // 检查是否与选中节点在同一个级别
+        final isInSameLevel = _isInSameParent(tree, node.id, selectedNode.id);
+
+        if (isInSameLevel) {
+          // 同一个级别：只有选中的节点高亮，其他都取消高亮（单选）
+          final shouldSelect = node.id == selectedNode.id;
+          return node.copyWith(isSelected: shouldSelect);
         } else {
-          // 不同级别：保持原状态
+          // 不同级别：保持原状态（独立选择）
           return node;
         }
       }
     }).toList();
   }
 
-  /// 判断两个节点是否在同一级别
-  bool _isInSameLevel(List<FilterTreeNode> tree, String nodeId1, String nodeId2) {
-    // 查找两个节点的父节点ID
-    final parentId1 = _findParentId(tree, nodeId1);
-    final parentId2 = _findParentId(tree, nodeId2);
-    
-    // 如果父节点ID相同，说明在同一级别
-    return parentId1 == parentId2;
-  }
+  /// 判断两个节点是否在同一个级别
+  bool _isInSameParent(
+    List<FilterTreeNode> tree,
+    String nodeId1,
+    String nodeId2,
+  ) {
+    // 基于节点ID前缀判断是否同级别
+    // 品牌: brand_all, brand_Apple, brand_Samsung
+    // 类别: category_all, category_Electronics
+    // 产品线: product_line_all, product_line_iPhone
 
-  /// 查找节点的父节点ID
-  String? _findParentId(List<FilterTreeNode> tree, String nodeId) {
-    for (final node in tree) {
-      if (node.children.any((child) => child.id == nodeId)) {
-        return node.id;
-      }
-      if (node.children.isNotEmpty) {
-        final parentId = _findParentId(node.children, nodeId);
-        if (parentId != null) return parentId;
-      }
-    }
-    return null;
+    final prefix1 = nodeId1.split('_')[0];
+    final prefix2 = nodeId2.split('_')[0];
+
+    return prefix1 == prefix2;
   }
 
   void _handleNodeTap(FilterTreeNode node) {
@@ -163,8 +159,8 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
   void _handleFilterChipTap(FilterTreeNode node) {
     // 立即更新本地选择状态，提供即时视觉反馈
     setState(() {
-      // 先清除同级别的其他选择，然后高亮当前选择
-      _currentTree = _updateSelectionInSameLevel(_currentTree, node);
+      // 更新选择状态：同级别单选，不同级别独立
+      _currentTree = _updateNodeSelection(_currentTree, node);
     });
 
     // 通知外部选择变化
@@ -199,10 +195,10 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
             thickness: WidgetStateProperty.all(5),
             radius: const Radius.circular(2.5),
             thumbColor: WidgetStateProperty.all(
-              Theme.of(context).primaryColor.withOpacity(0.2),
+              Theme.of(context).primaryColor.withValues(alpha: 0.2),
             ),
             trackColor: WidgetStateProperty.all(
-              Theme.of(context).primaryColor.withOpacity(0.05),
+              Theme.of(context).primaryColor.withValues(alpha: 0.05),
             ),
           ),
           child: Scrollbar(
@@ -218,14 +214,12 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
   }
 
   List<Widget> _buildFilterSlivers() {
-    List<Widget> slivers = [];
-    for (var node in _currentTree) {
-      // 添加吸顶标题
-      slivers.add(_buildStickyHeader(node));
+    return _currentTree.expand((node) {
+      final widgets = <Widget>[_buildStickyHeader(node)];
 
       // 如果节点展开且有子节点，添加子节点列表
       if (node.isExpanded && node.children.isNotEmpty) {
-        slivers.add(
+        widgets.add(
           SliverList(
             delegate: SliverChildListDelegate([
               const SizedBox(height: 3),
@@ -235,8 +229,9 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
           ),
         );
       }
-    }
-    return slivers;
+
+      return widgets;
+    }).toList();
   }
 
   Widget _buildStickyHeader(FilterTreeNode node) {
@@ -254,8 +249,6 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
 
   Widget _buildFilterChip(FilterTreeNode node) {
     final isSelected = node.isSelected;
-
-    // 判断是否应该禁用此选项
     final isDisabled = _shouldDisableNode(node);
 
     return Container(
@@ -263,61 +256,18 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
           margin: const EdgeInsets.only(bottom: 1, right: 8),
           child: FilterChip(
             labelPadding: EdgeInsets.zero,
-            label: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: Text(
-                node.title,
-                style: TextStyle(
-                  fontSize: widget.config.fontSize,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isDisabled
-                      ? (isSelected
-                            ? Colors.white.withOpacity(0.6)
-                            : (widget.config.textColor ?? Colors.black)
-                                  .withOpacity(0.4))
-                      : (isSelected ? Colors.white : widget.config.textColor),
-                  letterSpacing: 0.1,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                textAlign: TextAlign.center,
-              ),
-            ),
+            label: _buildChipLabel(node, isSelected, isDisabled),
             selected: isSelected,
-            onSelected: isDisabled
-                ? null
-                : (selected) => _handleFilterChipTap(node),
-            backgroundColor: isDisabled
-                ? (Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade800.withOpacity(0.3)
-                      : Colors.grey.shade50.withOpacity(0.5))
-                : (Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade800.withOpacity(0.5)
-                      : Colors.grey.shade50),
-            selectedColor: isDisabled
-                ? (widget.config.selectedColor ??
-                          Theme.of(context).primaryColor)
-                      .withOpacity(0.3)
-                : (widget.config.selectedColor ??
-                          Theme.of(context).primaryColor)
-                      .withOpacity(0.7),
+            onSelected: isDisabled ? null : (_) => _handleFilterChipTap(node),
+            backgroundColor: _getChipBackgroundColor(isDisabled),
+            selectedColor: _getChipSelectedColor(isDisabled),
             showCheckmark: false,
-            side: BorderSide(
-              color: isSelected
-                  ? (widget.config.selectedColor ??
-                            Theme.of(context).primaryColor)
-                        .withOpacity(isDisabled ? 0.2 : 0.3)
-                  : Colors.transparent,
-              width: 1,
-            ),
+            side: _getChipBorder(isSelected, isDisabled),
             shape: RoundedRectangleBorder(
               borderRadius: widget.config.borderRadius,
             ),
             elevation: isSelected && !isDisabled ? 2 : 0,
-            shadowColor:
-                (widget.config.selectedColor ?? Theme.of(context).primaryColor)
-                    .withOpacity(0.3),
+            shadowColor: _getChipShadowColor(),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
@@ -326,11 +276,10 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
         .animate()
         .fadeIn(duration: 200.ms)
         .slideX(begin: -0.1, end: 0)
-        // 添加波动动画效果
         .animate(target: isDisabled && widget.isLoading ? 1 : 0)
         .shimmer(
           duration: 1500.ms,
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           angle: 0,
         )
         .animate(target: isDisabled && widget.isLoading ? 1 : 0)
@@ -342,6 +291,75 @@ class _TreeFilterWidgetState extends State<TreeFilterWidget> {
         )
         .animate(target: isDisabled && widget.isLoading ? 1 : 0)
         .fade(begin: 1.0, end: 0.7, duration: 1000.ms, curve: Curves.easeInOut);
+  }
+
+  Widget _buildChipLabel(
+    FilterTreeNode node,
+    bool isSelected,
+    bool isDisabled,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 0),
+      child: Text(
+        node.title,
+        style: TextStyle(
+          fontSize: widget.config.fontSize,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          color: _getChipTextColor(isSelected, isDisabled),
+          letterSpacing: 0.1,
+        ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Color _getChipTextColor(bool isSelected, bool isDisabled) {
+    if (isDisabled) {
+      return isSelected
+          ? Colors.white.withValues(alpha: 0.6)
+          : (widget.config.textColor ?? Colors.black).withValues(alpha: 0.4);
+    }
+    return isSelected
+        ? Colors.white
+        : (widget.config.textColor ?? Colors.black);
+  }
+
+  Color _getChipBackgroundColor(bool isDisabled) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDisabled) {
+      return isDark
+          ? Colors.grey.shade800.withValues(alpha: 0.3)
+          : Colors.grey.shade50.withValues(alpha: 0.5);
+    }
+    return isDark
+        ? Colors.grey.shade800.withValues(alpha: 0.5)
+        : Colors.grey.shade50;
+  }
+
+  Color _getChipSelectedColor(bool isDisabled) {
+    final selectedColor =
+        widget.config.selectedColor ?? Theme.of(context).primaryColor;
+    return selectedColor.withValues(alpha: isDisabled ? 0.3 : 0.7);
+  }
+
+  BorderSide _getChipBorder(bool isSelected, bool isDisabled) {
+    if (!isSelected) return BorderSide.none;
+
+    final selectedColor =
+        widget.config.selectedColor ?? Theme.of(context).primaryColor;
+    return BorderSide(
+      color: selectedColor.withValues(alpha: isDisabled ? 0.2 : 0.3),
+      width: 1,
+    );
+  }
+
+  Color _getChipShadowColor() {
+    final selectedColor =
+        widget.config.selectedColor ?? Theme.of(context).primaryColor;
+    return selectedColor.withValues(alpha: 0.3);
   }
 
   /// 判断节点是否应该被禁用
@@ -431,7 +449,7 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
         ),
         child: InkWell(
@@ -447,7 +465,7 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                     fontWeight: FontWeight.w600,
                     color:
                         config.titleColor ??
-                        Theme.of(context).primaryColor.withOpacity(0.6),
+                        Theme.of(context).primaryColor.withValues(alpha: 0.6),
                     letterSpacing: 0.1,
                   ),
                 ),
@@ -460,7 +478,7 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                   size: 16,
                   color:
                       config.titleColor ??
-                      Theme.of(context).primaryColor.withOpacity(0.6),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.6),
                 ),
             ],
           ),

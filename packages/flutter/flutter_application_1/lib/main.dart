@@ -210,8 +210,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.black.withOpacity(0.1),
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -219,7 +219,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           border: Theme.of(context).brightness == Brightness.dark
               ? Border(
                   top: BorderSide(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 )

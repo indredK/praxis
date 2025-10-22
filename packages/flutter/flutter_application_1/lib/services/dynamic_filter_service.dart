@@ -147,7 +147,8 @@ class DynamicFilterService {
         onSelectionChanged: onSelectionChanged,
       );
     } else {
-      return await _createSameCategoryFilterTree(
+      // 同类对比模式使用同步方法
+      return _createSameCategoryFilterTree(
         currentSelection: currentSelection,
         onSelectionChanged: onSelectionChanged,
       );
@@ -267,14 +268,25 @@ class DynamicFilterService {
     return filterTree;
   }
 
-  /// 创建同类对比筛选器树
-  static Future<List<FilterTreeNode>> _createSameCategoryFilterTree({
+  /// 创建同类对比筛选器树（同步版本）
+  static List<FilterTreeNode> createSameCategoryFilterTreeSync({
     required FilterSelectionState currentSelection,
     required Function(String nodeId, String? value) onSelectionChanged,
-  }) async {
+  }) {
+    return _createSameCategoryFilterTree(
+      currentSelection: currentSelection,
+      onSelectionChanged: onSelectionChanged,
+    );
+  }
+
+  /// 创建同类对比筛选器树
+  static List<FilterTreeNode> _createSameCategoryFilterTree({
+    required FilterSelectionState currentSelection,
+    required Function(String nodeId, String? value) onSelectionChanged,
+  }) {
     final List<FilterTreeNode> filterTree = [];
 
-    // 1. 产品类别选择（固定列表）
+    // 1. 产品类别选择（固定列表，无"全部"选项）
     final categories = [
       const Category(
         id: 'category_electronics',
@@ -291,6 +303,16 @@ class DynamicFilterService {
         name: 'Software',
         displayName: '软件服务',
       ),
+      const Category(
+        id: 'category_automotive',
+        name: 'Automotive',
+        displayName: '汽车',
+      ),
+      const Category(
+        id: 'category_fashion',
+        name: 'Fashion',
+        displayName: '时尚',
+      ),
     ];
 
     filterTree.add(
@@ -298,82 +320,74 @@ class DynamicFilterService {
         id: 'category_filter',
         title: '选择类别',
         isExpanded: true,
-        children: [
-          FilterTreeNode(
-            id: 'category_all',
-            title: '全部',
-            value: '全部',
-            isSelected:
-                currentSelection.selectedCategory == null ||
-                currentSelection.selectedCategory == '全部',
-          ),
-          ...categories.map(
-            (category) => FilterTreeNode(
-              id: 'category_${category.name}',
-              title: category.displayName,
-              value: category.name,
-              isSelected: currentSelection.selectedCategory == category.name,
-            ),
-          ),
-        ],
+        children: categories
+            .map(
+              (category) => FilterTreeNode(
+                id: 'category_${category.name}',
+                title: category.displayName,
+                value: category.name,
+                isSelected: currentSelection.selectedCategory == category.name,
+              ),
+            )
+            .toList(),
       ),
     );
 
-    // 2. 产品线选择（根据类别动态加载）
-    List<ProductLine> productLines = [];
-    if (currentSelection.selectedCategory != null &&
-        currentSelection.selectedCategory != '全部') {
-      // 这里可以根据类别获取产品线
-      // 暂时使用固定数据
-      productLines = [
-        const ProductLine(
-          id: 'product_line_phone',
-          name: 'Phone',
-          displayName: '手机',
-        ),
-        const ProductLine(
-          id: 'product_line_tablet',
-          name: 'Tablet',
-          displayName: '平板',
-        ),
-        const ProductLine(
-          id: 'product_line_laptop',
-          name: 'Laptop',
-          displayName: '笔记本电脑',
-        ),
-      ];
-    }
+    // 2. 产品线选择（固定列表，无"全部"选项，无级联关系）
+    final productLines = [
+      const ProductLine(
+        id: 'product_line_phone',
+        name: 'Phone',
+        displayName: '手机',
+      ),
+      const ProductLine(
+        id: 'product_line_tablet',
+        name: 'Tablet',
+        displayName: '平板',
+      ),
+      const ProductLine(
+        id: 'product_line_laptop',
+        name: 'Laptop',
+        displayName: '笔记本电脑',
+      ),
+      const ProductLine(
+        id: 'product_line_watch',
+        name: 'Watch',
+        displayName: '智能手表',
+      ),
+      const ProductLine(
+        id: 'product_line_headphones',
+        name: 'Headphones',
+        displayName: '耳机',
+      ),
+      const ProductLine(
+        id: 'product_line_camera',
+        name: 'Camera',
+        displayName: '相机',
+      ),
+    ];
 
     filterTree.add(
       FilterTreeNode(
         id: 'product_line_filter',
         title: '选择产品线',
         isExpanded: true,
-        children: [
-          FilterTreeNode(
-            id: 'product_line_all',
-            title: '全部',
-            value: '全部',
-            isSelected:
-                currentSelection.selectedProductLine == null ||
-                currentSelection.selectedProductLine == '全部',
-          ),
-          ...productLines.map(
-            (productLine) => FilterTreeNode(
-              id: 'product_line_${productLine.name}',
-              title: productLine.displayName,
-              value: productLine.name,
-              isSelected:
-                  currentSelection.selectedProductLine == productLine.name,
-            ),
-          ),
-        ],
+        children: productLines
+            .map(
+              (productLine) => FilterTreeNode(
+                id: 'product_line_${productLine.name}',
+                title: productLine.displayName,
+                value: productLine.name,
+                isSelected:
+                    currentSelection.selectedProductLine == productLine.name,
+              ),
+            )
+            .toList(),
       ),
     );
 
-    // 筛选器只有三级：类别 → 产品线
-    // 选择产品线后，具体产品会在右边的产品列表中显示
-
+    // 同类对比模式：类别和产品线都是独立的，必须都选择
+    // 没有级联关系，都是前端固定数据
     return filterTree;
   }
 

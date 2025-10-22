@@ -126,11 +126,11 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   // 根据百分比获取颜色
   Color _getPercentageColor(String percentage) {
     if (percentage.startsWith('+')) {
-      return Colors.red.withOpacity(0.1);
+      return Colors.red.withValues(alpha: 0.1);
     } else if (percentage.startsWith('-')) {
-      return Colors.blue.withOpacity(0.1);
+      return Colors.blue.withValues(alpha: 0.1);
     } else {
-      return Colors.grey.withOpacity(0.1);
+      return Colors.grey.withValues(alpha: 0.1);
     }
   }
 
@@ -426,12 +426,12 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).primaryColor.withOpacity(0.3),
+                          ).primaryColor.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -466,11 +466,11 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.blue.shade900.withOpacity(0.3)
+                        ? Colors.blue.shade900.withValues(alpha: 0.3)
                         : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -533,15 +533,15 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
             colors: [
               Theme.of(
                 context,
-              ).scaffoldBackgroundColor.withOpacity(0.95 + opacity * 0.05),
+              ).scaffoldBackgroundColor.withValues(alpha: 0.95 + opacity * 0.05),
               Theme.of(
                 context,
-              ).scaffoldBackgroundColor.withOpacity(0.85 + opacity * 0.1),
+              ).scaffoldBackgroundColor.withValues(alpha: 0.85 + opacity * 0.1),
             ],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -591,16 +591,16 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                           end: Alignment.bottomRight,
                           colors: isBaseline
                               ? [
-                                  Colors.green.withOpacity(0.2),
-                                  Colors.green.withOpacity(0.1),
+                                  Colors.green.withValues(alpha: 0.2),
+                                  Colors.green.withValues(alpha: 0.1),
                                 ]
                               : [
                                   _getCompanyColor(
                                     product.company,
-                                  ).withOpacity(0.2),
+                                  ).withValues(alpha: 0.2),
                                   _getCompanyColor(
                                     product.company,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                 ],
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -609,7 +609,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                             : Border.all(
                                 color: _getCompanyColor(
                                   product.company,
-                                ).withOpacity(0.3),
+                                ).withValues(alpha: 0.3),
                                 width: 1,
                               ),
                       ),
@@ -629,7 +629,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                                         _getCompanyColor(product.company),
                                         _getCompanyColor(
                                           product.company,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ],
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -670,7 +670,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                               decoration: BoxDecoration(
                                 color: isBaseline
                                     ? Colors.green
-                                    : Colors.grey.withOpacity(0.3),
+                                    : Colors.grey.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: isBaseline
@@ -713,16 +713,16 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                           end: Alignment.bottomRight,
                           colors: isBaseline
                               ? [
-                                  Colors.green.withOpacity(0.2),
-                                  Colors.green.withOpacity(0.1),
+                                  Colors.green.withValues(alpha: 0.2),
+                                  Colors.green.withValues(alpha: 0.1),
                                 ]
                               : [
                                   _getCompanyColor(
                                     product.company,
-                                  ).withOpacity(0.2),
+                                  ).withValues(alpha: 0.2),
                                   _getCompanyColor(
                                     product.company,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                 ],
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -731,7 +731,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                             : Border.all(
                                 color: _getCompanyColor(
                                   product.company,
-                                ).withOpacity(0.3),
+                                ).withValues(alpha: 0.3),
                                 width: 1,
                               ),
                       ),
@@ -751,7 +751,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                                         _getCompanyColor(product.company),
                                         _getCompanyColor(
                                           product.company,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ],
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -792,7 +792,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                               decoration: BoxDecoration(
                                 color: isBaseline
                                     ? Colors.green
-                                    : Colors.grey.withOpacity(0.3),
+                                    : Colors.grey.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: isBaseline
@@ -967,7 +967,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
       height: height,
       child: Card(
         elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
@@ -981,18 +981,18 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
               end: Alignment.bottomRight,
               colors: isBaseline
                   ? [
-                      Colors.green.withOpacity(0.15),
-                      Colors.green.withOpacity(0.08),
+                      Colors.green.withValues(alpha: 0.15),
+                      Colors.green.withValues(alpha: 0.08),
                     ]
                   : [
-                      _getCompanyColor(product.company).withOpacity(0.1),
-                      _getCompanyColor(product.company).withOpacity(0.05),
+                      _getCompanyColor(product.company).withValues(alpha: 0.1),
+                      _getCompanyColor(product.company).withValues(alpha: 0.05),
                     ],
             ),
             border: isBaseline
                 ? Border.all(color: Colors.green, width: 3)
                 : Border.all(
-                    color: _getCompanyColor(product.company).withOpacity(0.3),
+                    color: _getCompanyColor(product.company).withValues(alpha: 0.3),
                     width: 1,
                   ),
           ),
@@ -1012,7 +1012,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                       end: Alignment.bottomRight,
                       colors: [
                         _getCompanyColor(product.company),
-                        _getCompanyColor(product.company).withOpacity(0.7),
+                        _getCompanyColor(product.company).withValues(alpha: 0.7),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -1020,7 +1020,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                       BoxShadow(
                         color: _getCompanyColor(
                           product.company,
-                        ).withOpacity(0.3),
+                        ).withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -1070,7 +1070,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                       decoration: BoxDecoration(
                         color: _getCompanyColor(
                           product.company,
-                        ).withOpacity(0.1),
+                        ).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -1098,7 +1098,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -1214,7 +1214,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   ) {
     return Card(
       elevation: 8,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         decoration: BoxDecoration(
@@ -1260,7 +1260,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
       columnSpacing: 8,
       horizontalMargin: 8,
       headingRowColor: MaterialStateProperty.all(
-        Theme.of(context).primaryColor.withOpacity(0.1),
+        Theme.of(context).primaryColor.withValues(alpha: 0.1),
       ),
       headingTextStyle: TextStyle(
         fontWeight: FontWeight.bold,
@@ -1279,7 +1279,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -1310,8 +1310,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                 ),
                 decoration: BoxDecoration(
                   color: isBaseline
-                      ? Colors.green.withOpacity(0.2)
-                      : _getCompanyColor(product.company).withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.2)
+                      : _getCompanyColor(product.company).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: isBaseline
                       ? Border.all(color: Colors.green, width: 2)
@@ -1389,7 +1389,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
               // 计算显示值和颜色
               String displayValue = '${value.displayValue}${comparison.unit}';
-              Color cellColor = companyColor.withOpacity(0.05);
+              Color cellColor = companyColor.withValues(alpha: 0.05);
 
               if (!isBaseline && _baselineIndex < comparison.values.length) {
                 final baselineValue = comparison.values[_baselineIndex];
@@ -1423,7 +1423,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                     border: isBaseline
                         ? Border.all(color: Colors.green, width: 1)
                         : Border.all(
-                            color: companyColor.withOpacity(0.2),
+                            color: companyColor.withValues(alpha: 0.2),
                             width: 1,
                           ),
                   ),
@@ -1485,15 +1485,15 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         boxShadow: [
           BoxShadow(
             color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withOpacity(0.5)
-                : Colors.black.withOpacity(0.1),
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: 2,
           ),
         ],
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.2),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -1512,7 +1512,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                     height: 60,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20),
@@ -1545,10 +1545,10 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                             ),
                             decoration: BoxDecoration(
                               color: isBaseline
-                                  ? Colors.green.withOpacity(0.2)
+                                  ? Colors.green.withValues(alpha: 0.2)
                                   : _getCompanyColor(
                                       product.company,
-                                    ).withOpacity(0.1),
+                                    ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: isBaseline
                                   ? Border.all(color: Colors.green, width: 2)
@@ -1637,7 +1637,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
                             String displayValue =
                                 '${value.displayValue}${comparison.unit}';
-                            Color cellColor = companyColor.withOpacity(0.05);
+                            Color cellColor = companyColor.withValues(alpha: 0.05);
 
                             if (!isBaseline &&
                                 _baselineIndex < comparison.values.length) {
@@ -1670,7 +1670,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                                 border: isBaseline
                                     ? Border.all(color: Colors.green, width: 1)
                                     : Border.all(
-                                        color: companyColor.withOpacity(0.2),
+                                        color: companyColor.withValues(alpha: 0.2),
                                         width: 1,
                                       ),
                               ),
