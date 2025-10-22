@@ -8,6 +8,7 @@ import '../services/settings_service.dart';
 import '../services/global_data_cache.dart';
 import '../services/product_selection_state_service.dart';
 import '../config/app_config.dart';
+import '../widgets/smart_filter_widget.dart';
 import 'product_comparison_screen.dart';
 
 // 图钉信息类
@@ -50,11 +51,6 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   // 当前选中的产品（用于图钉显示）
   Product? _currentSelectedProduct;
 
-  // 筛选器展开/收起状态
-  bool _isCompanyExpanded = true;
-  bool _isCategoryExpanded = true;
-  bool _isProductExpanded = true;
-
   List<Product> _products = [];
   List<String> _categories = [];
   List<String> _companies = [];
@@ -91,6 +87,66 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         // 状态变化时更新UI
       });
     }
+  }
+
+  // 处理公司选择
+  void _handleCompanySelection(String company) {
+    setState(() {
+      _stateService.setSameBrandSelections(company: company);
+      _stateService.clearAll();
+      _updateProductLists();
+    });
+  }
+
+  // 处理类别选择
+  void _handleCategorySelection(String category) {
+    setState(() {
+      _stateService.setSameBrandSelections(category: category);
+      _stateService.clearAll();
+      _updateProductLists();
+    });
+  }
+
+  // 处理产品选择
+  void _handleProductSelection(String product) {
+    setState(() {
+      _stateService.setSameBrandSelections(product: product);
+      _stateService.clearAll();
+      if (product != '全部') {
+        final productObj = _products.firstWhere(
+          (p) =>
+              p.name == product &&
+              p.company == _stateService.selectedCompany &&
+              p.category == _stateService.selectedCategory,
+        );
+        _stateService.addProductId(productObj.id);
+      }
+    });
+  }
+
+  // 处理同类对比类别选择
+  void _handleCategoryForComparisonSelection(String category) {
+    setState(() {
+      _stateService.setSameCategorySelections(category: category);
+      _stateService.clearAll();
+      _updateProductLists();
+    });
+  }
+
+  // 处理同类对比产品选择
+  void _handleProductForComparisonSelection(String product) {
+    setState(() {
+      _stateService.setSameCategorySelections(product: product);
+      _stateService.clearAll();
+      if (product != '全部') {
+        final productObj = _products.firstWhere(
+          (p) =>
+              p.name == product &&
+              p.category == _stateService.selectedCategoryForComparison,
+        );
+        _stateService.addProductId(productObj.id);
+      }
+    });
   }
 
   Future<void> _loadData() async {
@@ -281,27 +337,39 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 const Divider(height: 1),
                 // 筛选器
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 1),
-                    child: ScrollbarTheme(
-                      data: ScrollbarThemeData(
-                        thumbVisibility: WidgetStateProperty.all(true),
-                        trackVisibility: WidgetStateProperty.all(true),
-                        thickness: WidgetStateProperty.all(5),
-                        radius: const Radius.circular(2.5),
-                        thumbColor: WidgetStateProperty.all(
-                          Theme.of(context).primaryColor.withOpacity(0.2),
-                        ),
-                        trackColor: WidgetStateProperty.all(
-                          Theme.of(context).primaryColor.withOpacity(0.05),
-                        ),
-                      ),
-                      child: Scrollbar(
-                        child: CustomScrollView(
-                          slivers: _buildStickyFilterSlivers(),
-                        ),
-                      ),
-                    ),
+                  child: ProductSelectionFilterWidget(
+                    comparisonMode: _stateService.comparisonMode,
+                    companies: _companies,
+                    categories: _categories,
+                    productsForCompany: _productsForCompany,
+                    productsForCategory: _productsForCategory,
+                    currentSelections: {
+                      'company': _stateService.selectedCompany,
+                      'category': _stateService.comparisonMode == 'same_brand'
+                          ? _stateService.selectedCategory
+                          : _stateService.selectedCategoryForComparison,
+                      'product': _stateService.comparisonMode == 'same_brand'
+                          ? _stateService.selectedProduct
+                          : _stateService.selectedProductForComparison,
+                    },
+                    onSelectionChanged: (nodeId, value) {
+                      // 根据nodeId调用相应的处理方法
+                      if (nodeId.startsWith('company_')) {
+                        _handleCompanySelection(value ?? '');
+                      } else if (nodeId.startsWith('category_')) {
+                        if (_stateService.comparisonMode == 'same_brand') {
+                          _handleCategorySelection(value ?? '');
+                        } else {
+                          _handleCategoryForComparisonSelection(value ?? '');
+                        }
+                      } else if (nodeId.startsWith('product_')) {
+                        if (_stateService.comparisonMode == 'same_brand') {
+                          _handleProductSelection(value ?? '');
+                        } else {
+                          _handleProductForComparisonSelection(value ?? '');
+                        }
+                      }
+                    },
                   ),
                 ),
               ],
@@ -853,252 +921,6 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-  }
-
-  // 构建吸顶筛选器Sliver列表
-  List<Widget> _buildStickyFilterSlivers() {
-    if (_stateService.comparisonMode == 'same_brand') {
-      return _buildSameBrandStickySlivers();
-    } else {
-      return _buildSameCategoryStickySlivers();
-    }
-  }
-
-  // 自家对比模式的吸顶筛选器Sliver列表
-  List<Widget> _buildSameBrandStickySlivers() {
-    return [
-      // 公司选择标题（吸顶）
-      _buildStickyFilterHeader(
-        '选择公司',
-        _isCompanyExpanded,
-        () => setState(() => _isCompanyExpanded = !_isCompanyExpanded),
-      ),
-      // 公司选择项
-      SliverList(
-        delegate: SliverChildListDelegate([
-          if (_isCompanyExpanded) ...[
-            const SizedBox(height: 3),
-            ..._companies.map(
-              (company) => _buildVerticalChip(
-                company,
-                _stateService.selectedCompany,
-                () {
-                  setState(() {
-                    _stateService.setSameBrandSelections(company: company);
-                    _stateService.clearAll();
-                    _updateProductLists();
-                  });
-                },
-              ),
-            ),
-          ],
-        ]),
-      ),
-
-      // 类别选择标题（吸顶）
-      _buildStickyFilterHeader(
-        '选择类别',
-        _isCategoryExpanded,
-        () => setState(() => _isCategoryExpanded = !_isCategoryExpanded),
-      ),
-      // 类别选择项
-      SliverList(
-        delegate: SliverChildListDelegate([
-          if (_isCategoryExpanded) ...[
-            const SizedBox(height: 3),
-            ..._categories.map(
-              (category) => _buildVerticalChip(
-                category,
-                _stateService.selectedCategory,
-                () {
-                  setState(() {
-                    _stateService.setSameBrandSelections(category: category);
-                    _stateService.clearAll();
-                    _updateProductLists();
-                  });
-                },
-              ),
-            ),
-          ],
-        ]),
-      ),
-
-      // 产品选择标题（吸顶）
-      _buildStickyFilterHeader(
-        '选择产品',
-        _isProductExpanded,
-        () => setState(() => _isProductExpanded = !_isProductExpanded),
-      ),
-      // 产品选择项
-      SliverList(
-        delegate: SliverChildListDelegate([
-          if (_isProductExpanded) ...[
-            const SizedBox(height: 3),
-            ..._productsForCompany.map(
-              (product) => _buildVerticalChip(
-                product,
-                _stateService.selectedProduct,
-                () {
-                  setState(() {
-                    _stateService.setSameBrandSelections(product: product);
-                    _stateService.clearAll();
-                    if (product != '全部') {
-                      final productObj = _products.firstWhere(
-                        (p) =>
-                            p.name == product &&
-                            p.company == _stateService.selectedCompany &&
-                            p.category == _stateService.selectedCategory,
-                      );
-                      _stateService.addProductId(productObj.id);
-                    }
-                  });
-                },
-              ),
-            ),
-          ],
-          const SizedBox(height: 20), // 底部间距
-        ]),
-      ),
-    ];
-  }
-
-  // 同类对比模式的吸顶筛选器Sliver列表
-  List<Widget> _buildSameCategoryStickySlivers() {
-    return [
-      // 类别选择标题（吸顶）
-      _buildStickyFilterHeader(
-        '选择类别',
-        _isCategoryExpanded,
-        () => setState(() => _isCategoryExpanded = !_isCategoryExpanded),
-      ),
-      // 类别选择项
-      SliverList(
-        delegate: SliverChildListDelegate([
-          if (_isCategoryExpanded) ...[
-            const SizedBox(height: 3),
-            ..._categories.map(
-              (category) => _buildVerticalChip(
-                category,
-                _stateService.selectedCategoryForComparison,
-                () {
-                  setState(() {
-                    _stateService.setSameCategorySelections(category: category);
-                    _stateService.clearAll();
-                    _updateProductLists();
-                  });
-                },
-              ),
-            ),
-          ],
-        ]),
-      ),
-
-      // 产品选择标题（吸顶）
-      _buildStickyFilterHeader(
-        '选择产品',
-        _isProductExpanded,
-        () => setState(() => _isProductExpanded = !_isProductExpanded),
-      ),
-      // 产品选择项
-      SliverList(
-        delegate: SliverChildListDelegate([
-          if (_isProductExpanded) ...[
-            const SizedBox(height: 3),
-            ..._productsForCategory.map(
-              (product) => _buildVerticalChip(
-                product,
-                _stateService.selectedProductForComparison,
-                () {
-                  setState(() {
-                    _stateService.setSameCategorySelections(product: product);
-                    _stateService.clearAll();
-                    if (product != '全部') {
-                      final productObj = _products.firstWhere(
-                        (p) =>
-                            p.name == product &&
-                            p.category ==
-                                _stateService.selectedCategoryForComparison,
-                      );
-                      _stateService.addProductId(productObj.id);
-                    }
-                  });
-                },
-              ),
-            ),
-          ],
-          const SizedBox(height: 20), // 底部间距
-        ]),
-      ),
-    ];
-  }
-
-  // 构建吸顶筛选器标题
-  Widget _buildStickyFilterHeader(
-    String title,
-    bool isExpanded,
-    VoidCallback onTap,
-  ) {
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _StickyFilterHeaderDelegate(
-        title: title,
-        isExpanded: isExpanded,
-        onTap: onTap,
-        context: context,
-      ),
-    );
-  }
-
-  // 构建竖向Chip - 使用现代FilterChip
-  Widget _buildVerticalChip(
-    String label,
-    String selectedValue,
-    VoidCallback onTap,
-  ) {
-    final isSelected = label == selectedValue;
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 1, right: 8),
-      child: FilterChip(
-        labelPadding: EdgeInsets.zero,
-        label: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 0),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? Colors.white : null,
-              letterSpacing: 0.1,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        selected: isSelected,
-        onSelected: (selected) => onTap(),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade800.withOpacity(0.5)
-            : Colors.grey.shade50,
-        selectedColor: Theme.of(context).primaryColor.withOpacity(0.7),
-        showCheckmark: false, // 完全禁用打钩图标
-        side: BorderSide(
-          color: isSelected
-              ? Theme.of(context).primaryColor.withOpacity(0.3)
-              : Colors.transparent,
-          width: 1,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: isSelected ? 2 : 0,
-        shadowColor: Theme.of(context).primaryColor.withOpacity(0.3),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
-    ).animate().fadeIn(duration: 200.ms).slideX(begin: -0.1, end: 0);
   }
 
   // 获取当前筛选条件文本
@@ -2183,89 +2005,5 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           )
           .toList(),
     ]);
-  }
-}
-
-// 吸顶筛选器标题委托类
-class _StickyFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-  final bool isExpanded;
-  final VoidCallback onTap;
-  final BuildContext context;
-
-  _StickyFilterHeaderDelegate({
-    required this.title,
-    required this.isExpanded,
-    required this.onTap,
-    required this.context,
-  });
-
-  @override
-  double get minExtent => 40.0;
-
-  @override
-  double get maxExtent => 40.0;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      height: 45.0,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade900
-            : Colors.grey.shade50,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey.shade700
-                : Colors.grey.shade300,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).primaryColor.withOpacity(0.6),
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              ),
-              Icon(
-                isExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-                size: 16,
-                color: Theme.of(context).primaryColor.withOpacity(0.6),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return oldDelegate is _StickyFilterHeaderDelegate &&
-        (oldDelegate.title != title || oldDelegate.isExpanded != isExpanded);
   }
 }
