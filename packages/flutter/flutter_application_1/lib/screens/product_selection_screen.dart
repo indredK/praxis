@@ -88,9 +88,15 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   Future<void> _loadData() async {
     print('🚀 开始加载数据');
 
-    // 立即设置静态数据，无需等待
-    _categories = ['全部', ...DataService.getAllCategories()];
-    _companies = ['全部', ...DataService.getAllCompanies()];
+    // 立即设置静态数据，无需等待，并去重排序
+    _categories = [
+      '全部',
+      ...DataService.getAllCategories().toSet().toList()..sort(),
+    ];
+    _companies = [
+      '全部',
+      ...DataService.getAllCompanies().toSet().toList()..sort(),
+    ];
     print('✅ 静态数据设置完成');
 
     setState(() {
@@ -146,14 +152,17 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       // 自家对比模式：根据选择的公司和类别更新产品列表
       if (_stateService.selectedCompany != '全部' &&
           _stateService.selectedCategory != '全部') {
-        _productsForCompany = _products
-            .where(
-              (p) =>
-                  p.company == _stateService.selectedCompany &&
-                  p.category == _stateService.selectedCategory,
-            )
-            .map((p) => p.name)
-            .toList();
+        _productsForCompany =
+            _products
+                .where(
+                  (p) =>
+                      p.company == _stateService.selectedCompany &&
+                      p.category == _stateService.selectedCategory,
+                )
+                .map((p) => p.name)
+                .toSet() // 去重
+                .toList()
+              ..sort(); // 排序
         _productsForCompany.insert(0, '全部');
       } else {
         _productsForCompany = ['全部'];
@@ -161,12 +170,16 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     } else {
       // 同类对比模式：根据选择的类别更新产品列表
       if (_stateService.selectedCategoryForComparison != '全部') {
-        _productsForCategory = _products
-            .where(
-              (p) => p.category == _stateService.selectedCategoryForComparison,
-            )
-            .map((p) => p.name)
-            .toList();
+        _productsForCategory =
+            _products
+                .where(
+                  (p) =>
+                      p.category == _stateService.selectedCategoryForComparison,
+                )
+                .map((p) => p.name)
+                .toSet() // 去重
+                .toList()
+              ..sort(); // 排序
         _productsForCategory.insert(0, '全部');
       } else {
         _productsForCategory = ['全部'];
@@ -202,713 +215,794 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
             ),
         ],
       ),
-      body: Column(
+      body: Row(
         children: [
-          // 对比模式选择
+          // 左侧筛选器
           Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            width: 200,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade900
+                  : Colors.grey.shade50,
+              border: Border(
+                right: BorderSide(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Column(
               children: [
-                Expanded(
-                  child: SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment<String>(
-                        value: 'same_brand',
-                        label: Text('自家产品对比'),
-                        icon: Icon(Icons.business),
+                // 对比模式选择
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '对比模式',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
-                      ButtonSegment<String>(
-                        value: 'same_category',
-                        label: Text('同类产品对比'),
-                        icon: Icon(Icons.category),
+                      const SizedBox(height: 8),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment<String>(
+                            value: 'same_brand',
+                            label: Text('自家对比'),
+                            icon: Icon(Icons.business, size: 16),
+                          ),
+                          ButtonSegment<String>(
+                            value: 'same_category',
+                            label: Text('同类对比'),
+                            icon: Icon(Icons.category, size: 16),
+                          ),
+                        ],
+                        selected: {_stateService.comparisonMode},
+                        onSelectionChanged: (Set<String> selection) {
+                          setState(() {
+                            _stateService.setComparisonMode(selection.first);
+                            _stateService.clearAll();
+                            _updateProductLists();
+                          });
+                        },
                       ),
                     ],
-                    selected: {_stateService.comparisonMode},
-                    onSelectionChanged: (Set<String> selection) {
-                      setState(() {
-                        _stateService.setComparisonMode(selection.first);
-                        _stateService.clearAll();
-                        _updateProductLists();
-                      });
+                  ),
+                ),
+                const Divider(height: 1),
+                // 筛选器
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildVerticalFilterSection(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 右侧产品列表
+          Expanded(
+            child: Column(
+              children: [
+                // 顶部工具栏
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade800
+                        : Colors.white,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade700
+                            : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '产品列表 (${filteredProducts.length}个)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_stateService.selectedCount > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '已选择 ${_stateService.selectedCount} 个',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // 产品列表
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      final isSelected = _stateService.isProductSelected(
+                        product.id,
+                      );
+                      final companyColor = _getCompanyColor(product.company);
+
+                      return Card(
+                        elevation: isSelected ? 12 : 4,
+                        shadowColor: isSelected
+                            ? companyColor.withOpacity(0.3)
+                            : Colors.black.withOpacity(0.1),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isSelected
+                                ? companyColor
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Container(
+                          height: 80, // 进一步减少高度
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: isSelected
+                                ? companyColor.withOpacity(0.1)
+                                : Theme.of(context).brightness ==
+                                      Brightness.dark
+                                ? Colors.grey.shade800
+                                : Colors.white,
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                // 更新当前选中的产品（用于图钉显示）
+                                _currentSelectedProduct = product;
+
+                                if (!isSelected) {
+                                  // 检查是否超过最大选择数量
+                                  if (_stateService.selectedCount <
+                                      SettingsService.maxProducts) {
+                                    _stateService.addProductId(product.id);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                        ),
+                                        backgroundColor: Colors.orange,
+                                      ),
+                                    );
+                                  }
+                                }
+                              });
+                            },
+                            onLongPress: () {
+                              // 长按显示产品详情，同时更新当前选中产品
+                              setState(() {
+                                _currentSelectedProduct = product;
+                              });
+                              _showProductDetails(product);
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                children: [
+                                  // 左侧：公司logo
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: companyColor,
+                                      borderRadius: BorderRadius.circular(6),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: companyColor.withOpacity(0.2),
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        AppConfig.getCompanyLogo(
+                                          product.company,
+                                        ),
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // 中间：产品信息 - 均匀分布
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        // 产品名称
+                                        Text(
+                                          product.name,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: isSelected
+                                                ? _getCompanyColor(
+                                                    product.company,
+                                                  )
+                                                : Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium?.color,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 1),
+                                        // 次要信息 - 均匀分布在一行
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            // 公司标签
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 3,
+                                                    vertical: 1,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: companyColor.withOpacity(
+                                                  0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(3),
+                                              ),
+                                              child: Text(
+                                                product.company,
+                                                style: TextStyle(
+                                                  color: companyColor,
+                                                  fontSize: 7,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                            // 类别
+                                            Text(
+                                              product.category,
+                                              style: TextStyle(
+                                                color: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall?.color,
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                            // 价格
+                                            if (SettingsService.showPrices)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 3,
+                                                      vertical: 1,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Theme.of(
+                                                            context,
+                                                          ).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.green
+                                                            .withOpacity(0.2)
+                                                      : Colors.green
+                                                            .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
+                                                ),
+                                                child: Text(
+                                                  '¥${product.price.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    color: Colors.green,
+                                                    fontSize: 7,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            // 更新时间
+                                            Text(
+                                              _formatUpdateTime(
+                                                product.releaseDate,
+                                              ),
+                                              style: TextStyle(
+                                                color: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall?.color,
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  // 右侧：选择框
+                                  Container(
+                                    width: 18,
+                                    height: 18,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? _getCompanyColor(product.company)
+                                          : Theme.of(context).brightness ==
+                                                Brightness.dark
+                                          ? Colors.grey.shade600
+                                          : Colors.grey.shade300,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Checkbox(
+                                      value: isSelected,
+                                      activeColor:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : companyColor,
+                                      checkColor:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? companyColor
+                                          : Colors.white,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          if (value == true) {
+                                            _stateService.addProductId(
+                                              product.id,
+                                            );
+                                          }
+                                        });
+                                      },
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
               ],
             ),
           ),
-
-          // 筛选器
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: _buildFilterSection(),
-          ),
-
-          const Divider(height: 1),
-
-          // 产品列表
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredProducts.length,
-              itemExtent: 132, // 固定高度：120 + 12(margin)
-              itemBuilder: (context, index) {
-                final product = filteredProducts[index];
-                final isSelected = _stateService.isProductSelected(product.id);
-                final companyColor = _getCompanyColor(product.company);
-
-                return Card(
-                  elevation: isSelected ? 12 : 4,
-                  shadowColor: isSelected
-                      ? companyColor.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.1),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: isSelected ? companyColor : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Container(
-                    height: 120, // 固定高度，让一页显示5个产品
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: isSelected
-                          ? companyColor.withOpacity(0.1)
-                          : Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade800
-                          : Colors.white,
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          // 更新当前选中的产品（用于图钉显示）
-                          _currentSelectedProduct = product;
-
-                          if (!isSelected) {
-                            // 检查是否超过最大选择数量
-                            if (_stateService.selectedCount <
-                                SettingsService.maxProducts) {
-                              _stateService.addProductId(product.id);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
-                                  ),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            }
-                          }
-                        });
-                      },
-                      onLongPress: () {
-                        // 长按显示产品详情，同时更新当前选中产品
-                        setState(() {
-                          _currentSelectedProduct = product;
-                        });
-                        _showProductDetails(product);
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            // 左侧：公司logo
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: companyColor,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: companyColor.withOpacity(0.3),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  AppConfig.getCompanyLogo(product.company),
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // 中间：产品信息
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // 产品名称
-                                  Text(
-                                    product.name,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: isSelected
-                                          ? _getCompanyColor(product.company)
-                                          : Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium?.color,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  // 公司名称
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: companyColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      product.company,
-                                      style: TextStyle(
-                                        color: companyColor,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  // 类别和更新时间
-                                  Row(
-                                    children: [
-                                      Text(
-                                        product.category,
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.color,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '•',
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.color,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _formatUpdateTime(product.releaseDate),
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.color,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  // 价格
-                                  if (SettingsService.showPrices)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.green.withOpacity(0.2)
-                                            : Colors.green.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        SettingsService.formatPrice(
-                                          product.price,
-                                        ),
-                                        style: TextStyle(
-                                          color:
-                                              Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? Colors.green.shade300
-                                              : Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            // 右侧：选择框
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? _getCompanyColor(product.company)
-                                    : Theme.of(context).brightness ==
-                                          Brightness.dark
-                                    ? Colors.grey.shade600
-                                    : Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Checkbox(
-                                value: isSelected,
-                                activeColor:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : companyColor,
-                                checkColor:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? companyColor
-                                    : Colors.white,
-                                onChanged: (value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _stateService.addProductId(product.id);
-                                    }
-                                  });
-                                },
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            // 长按提示图标
-                            Container(
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                Icons.touch_app,
-                                size: 12,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
         ],
       ),
 
-      // 底部操作栏
+      // 底部操作栏 - 优化版本
       bottomNavigationBar: _stateService.selectedProductIds.isNotEmpty
           ? Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.white, Colors.grey.shade50],
-                ),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey.shade900
+                    : Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, -5),
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
                   ),
                 ],
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(30),
+                  top: Radius.circular(20),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.grey.shade200, Colors.grey.shade300],
-                        ),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          setState(() {
-                            _stateService.clearAll();
-                          });
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    // 清空选择按钮
+                    Expanded(
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _stateService.clearAll();
+                            });
+                          },
+                          icon: Icon(
+                            Icons.clear_all,
+                            size: 18,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
                           ),
-                        ),
-                        child: const Text(
-                          '清空选择',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          label: Text(
+                            '清空选择',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: _stateService.canStartComparison
-                            ? LinearGradient(
-                                colors: [Colors.blue, Colors.blue.shade700],
-                              )
-                            : LinearGradient(
-                                colors: [
-                                  Colors.grey.shade400,
-                                  Colors.grey.shade500,
-                                ],
-                              ),
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: _stateService.canStartComparison
-                            ? [
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _stateService.canStartComparison
-                            ? () => _navigateToComparison()
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                        child: Text(
-                          _stateService.canStartComparison
-                              ? '开始${_stateService.comparisonMode == 'same_brand' ? '自家' : '同类'}对比 (${_stateService.selectedCount}个产品)'
-                              : '至少选择2个产品',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
+                              width: 1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            backgroundColor:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade50,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    // 开始对比按钮
+                    Expanded(
+                      flex: 2,
+                      child: SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          onPressed: _stateService.canStartComparison
+                              ? () => _navigateToComparison()
+                              : null,
+                          icon: Icon(
+                            Icons.compare_arrows,
+                            size: 18,
+                            color: _stateService.canStartComparison
+                                ? Colors.white
+                                : Theme.of(context).brightness ==
+                                      Brightness.dark
+                                ? Colors.grey.shade600
+                                : Colors.grey.shade400,
+                          ),
+                          label: Text(
+                            _stateService.canStartComparison
+                                ? '开始对比 (${_stateService.selectedCount})'
+                                : '至少选择2个产品',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: _stateService.canStartComparison
+                                  ? Colors.white
+                                  : Theme.of(context).brightness ==
+                                        Brightness.dark
+                                  ? Colors.grey.shade600
+                                  : Colors.grey.shade400,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _stateService.canStartComparison
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).brightness ==
+                                      Brightness.dark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
+                            shadowColor: _stateService.canStartComparison
+                                ? Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.3)
+                                : Colors.transparent,
+                            elevation: _stateService.canStartComparison ? 2 : 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )
           : null,
       floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  // 构建筛选器界面
-  Widget _buildFilterSection() {
+  // 构建竖向筛选器
+  Widget _buildVerticalFilterSection() {
     if (_stateService.comparisonMode == 'same_brand') {
-      // 自家对比模式：公司 → 类别 → 产品
-      return Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '选择公司',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: _stateService.selectedCompany,
-                      isExpanded: true,
-                      items: _companies.map((company) {
-                        return DropdownMenuItem(
-                          value: company,
-                          child: Row(
-                            children: [
-                              Text(
-                                company == '全部'
-                                    ? '🏢'
-                                    : AppConfig.getCompanyLogo(company),
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  company,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _stateService.setSameBrandSelections(company: value!);
-                          _stateService.clearAll();
-                          _updateProductLists();
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '选择类别',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: _stateService.selectedCategory,
-                      isExpanded: true,
-                      items: _categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Text(
-                                category == '全部'
-                                    ? '📦'
-                                    : AppConfig.getCategoryLogo(category),
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  category,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: _stateService.selectedCompany != '全部'
-                          ? (value) {
-                              setState(() {
-                                _stateService.setSameBrandSelections(
-                                  category: value!,
-                                );
-                                _stateService.clearAll();
-                                _updateProductLists();
-                              });
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (_stateService.selectedCompany != '全部' &&
-              _stateService.selectedCategory != '全部') ...[
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '选择产品',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                DropdownButton<String>(
-                  value: _stateService.selectedProduct,
-                  isExpanded: true,
-                  items: _productsForCompany.map((product) {
-                    return DropdownMenuItem(
-                      value: product,
-                      child: Row(
-                        children: [
-                          Text(
-                            product == '全部' ? '📦' : '🛍️',
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              product,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _stateService.setSameBrandSelections(product: value!);
-                      _stateService.clearAll();
-                      if (value != '全部') {
-                        final product = _products.firstWhere(
-                          (p) =>
-                              p.name == value &&
-                              p.company == _stateService.selectedCompany &&
-                              p.category == _stateService.selectedCategory,
-                        );
-                        _stateService.addProductId(product.id);
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-        ],
-      );
+      return _buildSameBrandVerticalFilter();
     } else {
-      // 同类对比模式：类别 → 产品
-      return Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '选择类别',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: _stateService.selectedCategoryForComparison,
-                      isExpanded: true,
-                      items: _categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Text(
-                                category == '全部'
-                                    ? '📦'
-                                    : AppConfig.getCategoryLogo(category),
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  category,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _stateService.setSameCategorySelections(
-                            category: value!,
-                          );
-                          _stateService.clearAll();
-                          _updateProductLists();
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '选择产品',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: _stateService.selectedProductForComparison,
-                      isExpanded: true,
-                      items: _productsForCategory.map((product) {
-                        return DropdownMenuItem(
-                          value: product,
-                          child: Row(
-                            children: [
-                              Text(
-                                product == '全部' ? '📦' : '🛍️',
-                                style: const TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  product,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged:
-                          _stateService.selectedCategoryForComparison != '全部'
-                          ? (value) {
-                              setState(() {
-                                _stateService.setSameCategorySelections(
-                                  product: value!,
-                                );
-                                _stateService.clearAll();
-                                if (value != '全部') {
-                                  final product = _products.firstWhere(
-                                    (p) =>
-                                        p.name == value &&
-                                        p.category ==
-                                            _stateService
-                                                .selectedCategoryForComparison,
-                                  );
-                                  _stateService.addProductId(product.id);
-                                }
-                              });
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+      return _buildSameCategoryVerticalFilter();
+    }
+  }
+
+  // 自家对比模式的竖向筛选器
+  Widget _buildSameBrandVerticalFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '筛选条件',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 公司选择
+        Text(
+          '选择公司',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+        ),
+        const SizedBox(height: 6),
+        ..._companies.map(
+          (company) =>
+              _buildVerticalChip(company, _stateService.selectedCompany, () {
+                setState(() {
+                  _stateService.setSameBrandSelections(company: company);
+                  _stateService.clearAll();
+                  _updateProductLists();
+                });
+              }),
+        ),
+
+        if (_stateService.selectedCompany != '全部') ...[
+          const SizedBox(height: 16),
+          Text(
+            '选择类别',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ..._categories.map(
+            (category) => _buildVerticalChip(
+              category,
+              _stateService.selectedCategory,
+              () {
+                setState(() {
+                  _stateService.setSameBrandSelections(category: category);
+                  _stateService.clearAll();
+                  _updateProductLists();
+                });
+              },
+            ),
           ),
         ],
-      );
+
+        if (_stateService.selectedCompany != '全部' &&
+            _stateService.selectedCategory != '全部') ...[
+          const SizedBox(height: 16),
+          Text(
+            '选择产品',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ..._productsForCompany.map(
+            (product) =>
+                _buildVerticalChip(product, _stateService.selectedProduct, () {
+                  setState(() {
+                    _stateService.setSameBrandSelections(product: product);
+                    _stateService.clearAll();
+                    if (product != '全部') {
+                      final productObj = _products.firstWhere(
+                        (p) =>
+                            p.name == product &&
+                            p.company == _stateService.selectedCompany &&
+                            p.category == _stateService.selectedCategory,
+                      );
+                      _stateService.addProductId(productObj.id);
+                    }
+                  });
+                }),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // 同类对比模式的竖向筛选器
+  Widget _buildSameCategoryVerticalFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '筛选条件',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 类别选择
+        Text(
+          '选择类别',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+        ),
+        const SizedBox(height: 6),
+        ..._categories.map(
+          (category) => _buildVerticalChip(
+            category,
+            _stateService.selectedCategoryForComparison,
+            () {
+              setState(() {
+                _stateService.setSameCategorySelections(category: category);
+                _stateService.clearAll();
+                _updateProductLists();
+              });
+            },
+          ),
+        ),
+
+        if (_stateService.selectedCategoryForComparison != '全部') ...[
+          const SizedBox(height: 16),
+          Text(
+            '选择产品',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ..._productsForCategory.map(
+            (product) => _buildVerticalChip(
+              product,
+              _stateService.selectedProductForComparison,
+              () {
+                setState(() {
+                  _stateService.setSameCategorySelections(product: product);
+                  _stateService.clearAll();
+                  if (product != '全部') {
+                    final productObj = _products.firstWhere(
+                      (p) =>
+                          p.name == product &&
+                          p.category ==
+                              _stateService.selectedCategoryForComparison,
+                    );
+                    _stateService.addProductId(productObj.id);
+                  }
+                });
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // 构建竖向Chip
+  Widget _buildVerticalChip(
+    String label,
+    String selectedValue,
+    VoidCallback onTap,
+  ) {
+    final isSelected = label == selectedValue;
+    final isDefault = label == '全部';
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade700
+                : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected
+                  ? Theme.of(context).primaryColor
+                  : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              if (isDefault) ...[
+                Icon(
+                  Icons.all_inclusive,
+                  size: 14,
+                  color: isSelected ? Colors.white : Colors.grey,
+                ),
+                const SizedBox(width: 6),
+              ] else ...[
+                Text(
+                  _getOptionIcon(label),
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    color: isSelected ? Colors.white : null,
+                  ),
+                ),
+              ),
+              if (isSelected) Icon(Icons.check, size: 16, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 获取选项图标
+  String _getOptionIcon(String option) {
+    // 公司图标
+    if (_companies.contains(option) && option != '全部') {
+      return AppConfig.getCompanyLogo(option);
     }
+    // 类别图标
+    if (_categories.contains(option) && option != '全部') {
+      return AppConfig.getCategoryLogo(option);
+    }
+    // 产品图标
+    return '🛍️';
   }
 
   List<Product> _getFilteredProducts() {
@@ -1036,11 +1130,40 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   Widget _buildFloatingActionButton() {
     // 获取当前应该显示的图标和颜色
     final pinInfo = _getCurrentPinInfo();
+    final selectedCount = _stateService.selectedCount;
 
-    return FloatingActionButton(
-      onPressed: _showProductInfo,
-      backgroundColor: pinInfo.color,
-      child: Text(pinInfo.icon, style: const TextStyle(fontSize: 24)),
+    return Stack(
+      children: [
+        FloatingActionButton(
+          onPressed: _showProductInfo,
+          backgroundColor: pinInfo.color,
+          child: Text(pinInfo.icon, style: const TextStyle(fontSize: 24)),
+        ),
+        // 上标显示选中产品数量
+        if (selectedCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              child: Text(
+                selectedCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 

@@ -231,12 +231,13 @@ class MockDataService {
 
   // 获取所有类别
   static List<String> getAllCategories() {
-    return _products.map((product) => product.category).toSet().toList();
+    return _products.map((product) => product.category).toSet().toList()
+      ..sort();
   }
 
   // 获取所有公司
   static List<String> getAllCompanies() {
-    return _products.map((product) => product.company).toSet().toList();
+    return _products.map((product) => product.company).toSet().toList()..sort();
   }
 
   // 获取产品对比数据（带延迟）- 优化版本
