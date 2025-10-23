@@ -3,7 +3,7 @@ import '../models/product_filter_models.dart';
 import '../models/filter_tree.dart';
 import '../services/dynamic_filter_service.dart';
 import '../config/filter_config.dart';
-import 'tree_filter_widget.dart';
+import 'material_filter_widget.dart';
 
 /// 动态筛选器组件 - 支持联动加载
 class DynamicFilterWidget extends StatefulWidget {
@@ -76,6 +76,19 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final config =
+        widget.config ?? FilterConfig.getProductSelectionConfig(context);
+
+    // 使用Material Design筛选器组件
+    Widget buildFilterWidget(List<FilterTreeNode> filterTree, bool isLoading) {
+      return MaterialFilterWidget(
+        filterTree: filterTree,
+        config: config,
+        onSelectionChanged: _handleSelectionChanged,
+        isLoading: isLoading,
+      );
+    }
+
     // 同类对比模式使用缓存，避免重复构建
     if (widget.comparisonMode == 'same_category') {
       if (_cachedFilterTree == null) {
@@ -86,13 +99,7 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
             );
       }
 
-      return TreeFilterWidget(
-        filterTree: _cachedFilterTree!,
-        config:
-            widget.config ?? FilterConfig.getProductSelectionConfig(context),
-        onSelectionChanged: _handleSelectionChanged,
-        isLoading: false, // 同类对比模式不需要加载状态
-      );
+      return buildFilterWidget(_cachedFilterTree!, false);
     }
 
     // 自家对比模式使用 FutureBuilder
@@ -106,13 +113,7 @@ class _DynamicFilterWidgetState extends State<DynamicFilterWidget> {
         final filterTree = snapshot.data ?? [];
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
-        return TreeFilterWidget(
-          filterTree: filterTree,
-          config:
-              widget.config ?? FilterConfig.getProductSelectionConfig(context),
-          onSelectionChanged: _handleSelectionChanged,
-          isLoading: isLoading,
-        );
+        return buildFilterWidget(filterTree, isLoading);
       },
     );
   }

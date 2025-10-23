@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'screens/product_selection_screen.dart';
 import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/product_selection_state_test.dart';
+import 'screens/calculator_page.dart';
 import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
@@ -64,27 +63,20 @@ class _MyAppState extends State<MyApp> {
     return AnimatedBuilder(
       animation: Listenable.merge([_themeManager, _languageManager]),
       builder: (context, child) {
-        return ScreenUtilInit(
-          designSize: const Size(375, 812), // iPhone X 设计尺寸
-          minTextAdapt: true,
-          splitScreenMode: true,
-          builder: (context, child) {
-            return MaterialApp(
-              title: '产品对比应用',
-              theme: _themeManager.lightTheme,
-              darkTheme: _themeManager.darkTheme,
-              themeMode: _themeManager.themeMode,
-              locale: _languageManager.currentLocale,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: LanguageService.supportedLocales,
-              home: const MainNavigationPage(),
-            );
-          },
+        return MaterialApp(
+          title: '产品对比应用',
+          theme: _themeManager.lightTheme,
+          darkTheme: _themeManager.darkTheme,
+          themeMode: _themeManager.themeMode,
+          locale: _languageManager.currentLocale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LanguageService.supportedLocales,
+          home: const MainNavigationPage(),
         );
       },
     );
@@ -115,7 +107,6 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     _pages = [
       ProductSelectionScreen(onNavigateToComparison: showProductComparison),
       const CalculatorPage(title: '计算器'),
-      const ProductSelectionStateTest(),
       const SettingsScreen(),
     ];
 
@@ -145,7 +136,9 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         onBackPressed: returnToProductSelection,
       );
     }
-    return _pages[_currentIndex];
+    // 添加边界检查，防止索引超出范围
+    final safeIndex = _currentIndex.clamp(0, _pages.length - 1);
+    return _pages[safeIndex];
   }
 
   // 显示产品对比页面
@@ -262,9 +255,11 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                   // 如果已经在对比页面，点击对比按钮返回产品选择页面
                   _showComparison = false;
                 } else {
-                  // 切换到其他页面
-                  _currentIndex = index;
-                  _showComparison = false;
+                  // 切换到其他页面，添加边界检查
+                  if (index < _pages.length) {
+                    _currentIndex = index;
+                    _showComparison = false;
+                  }
                 }
               });
             },
@@ -276,10 +271,6 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               BottomNavigationBarItem(
                 icon: const Icon(Icons.calculate, size: 28),
                 label: _getLocalizedText(context, 'calculator'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.bug_report, size: 28),
-                label: '状态测试',
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.settings, size: 28),
