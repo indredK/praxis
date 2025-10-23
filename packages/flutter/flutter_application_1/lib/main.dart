@@ -4,6 +4,7 @@ import 'screens/product_selection_screen.dart';
 import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/calculator_page.dart';
+import 'screens/exchange_rate_page.dart';
 import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
@@ -16,18 +17,13 @@ import 'l10n/app_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    print('🚀 开始应用初始化...');
-
     // 初始化基础服务
     await SettingsService.init();
     await LanguageService.init();
     await LanguageManager().init();
     await ProductSelectionStateService().init();
-    print('✅ 基础服务初始化完成');
 
     // 预加载所有数据，避免首次加载延迟
-    print('⏳ 开始预加载数据...');
-    final startTime = DateTime.now();
 
     // 预加载产品数据
     final products = await DataService.getAllProducts();
@@ -38,11 +34,8 @@ void main() async {
 
     // 设置全局缓存
     GlobalDataCache.setProducts(products);
-
-    final endTime = DateTime.now();
-    print('✅ 数据预加载完成，耗时: ${endTime.difference(startTime).inMilliseconds}ms');
   } catch (e) {
-    print('❌ 应用初始化失败: $e');
+    // 初始化失败时仍然启动应用，但使用默认配置
   }
   runApp(const MyApp());
 }
@@ -107,6 +100,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     _pages = [
       ProductSelectionScreen(onNavigateToComparison: showProductComparison),
       const CalculatorPage(title: '计算器'),
+      const ExchangeRatePage(),
       const SettingsScreen(),
     ];
 
@@ -251,26 +245,25 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
             currentIndex: _showComparison ? 0 : _currentIndex,
             onTap: (index) {
               setState(() {
-                if (_showComparison && index == 0) {
-                  // 如果已经在对比页面，点击对比按钮返回产品选择页面
+                // 切换到其他页面，添加边界检查
+                if (index < _pages.length) {
+                  _currentIndex = index;
                   _showComparison = false;
-                } else {
-                  // 切换到其他页面，添加边界检查
-                  if (index < _pages.length) {
-                    _currentIndex = index;
-                    _showComparison = false;
-                  }
                 }
               });
             },
             items: [
               BottomNavigationBarItem(
-                icon: const Icon(Icons.compare_arrows, size: 28),
-                label: _getLocalizedText(context, 'productComparison'),
+                icon: const Icon(Icons.shopping_cart, size: 28),
+                label: '产品选择',
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.calculate, size: 28),
                 label: _getLocalizedText(context, 'calculator'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.currency_exchange, size: 28),
+                label: '汇率换算',
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.settings, size: 28),
