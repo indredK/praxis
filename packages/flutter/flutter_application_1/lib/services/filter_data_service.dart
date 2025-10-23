@@ -428,7 +428,6 @@ class FilterDataService {
 
     // 模拟保存到后端
     // 在实际应用中，这里应该使用适当的日志库
-    // print('保存筛选器选择状态: ${selections.map((s) => '${s['filterId']}: ${s['selectedValue']}').join(', ')}');
 
     // 模拟成功/失败
     return true;

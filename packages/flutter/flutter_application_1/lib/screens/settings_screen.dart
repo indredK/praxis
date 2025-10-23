@@ -249,21 +249,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('🔍 设置页面 build 开始');
-    print('🔍 当前语言: $_defaultLanguage');
-
-    // 添加错误边界检查
-    try {
-      final languages = LanguageManager().getAllLanguages();
-      print('🔍 获取到的语言列表长度: ${languages.length}');
-      for (int i = 0; i < languages.length; i++) {
-        print('🔍 语言[$i]: ${languages[i]}');
-      }
-    } catch (e, stackTrace) {
-      print('❌ 获取语言列表时出错: $e');
-      print('❌ 堆栈追踪: $stackTrace');
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),

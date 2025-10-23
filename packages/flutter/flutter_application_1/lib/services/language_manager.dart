@@ -31,9 +31,7 @@ class LanguageManager extends ChangeNotifier {
         _currentLocale = Locale(parts[0]);
       }
       notifyListeners();
-    } catch (e) {
-      print('语言更新失败: $e');
-    }
+    } catch (e) {}
   }
 
   // 获取语言显示名称

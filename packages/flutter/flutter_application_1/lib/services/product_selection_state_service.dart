@@ -70,11 +70,7 @@ class ProductSelectionStateService extends ChangeNotifier {
           prefs.getString(_keySelectedCategoryForComparison) ?? '全部';
       _selectedProductForComparison =
           prefs.getString(_keySelectedProductForComparison) ?? '全部';
-
-      print('✅ 产品选择状态加载完成: ${_selectedProductIds.length}个产品');
-    } catch (e) {
-      print('❌ 加载产品选择状态失败: $e');
-    }
+    } catch (e) {}
   }
 
   /// 设置选中的产品ID列表
@@ -205,11 +201,7 @@ class ProductSelectionStateService extends ChangeNotifier {
         _keySelectedProductForComparison,
         _selectedProductForComparison,
       );
-
-      print('✅ 产品选择状态已保存');
-    } catch (e) {
-      print('❌ 保存产品选择状态失败: $e');
-    }
+    } catch (e) {}
   }
 
   /// 重置所有状态到默认值

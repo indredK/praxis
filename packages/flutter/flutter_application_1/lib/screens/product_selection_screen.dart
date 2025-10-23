@@ -46,28 +46,19 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         _isLoading = true;
       });
 
-      final startTime = DateTime.now();
-      print('🔄 开始加载产品数据...');
-
       List<Product> products;
       final cachedProducts = GlobalDataCache.getProducts();
       if (cachedProducts != null && cachedProducts.isNotEmpty) {
         products = cachedProducts;
-        print('✅ 从全局缓存加载产品数据');
       } else {
         products = await DataService.getAllProducts();
-        print('✅ 从数据服务加载产品数据');
       }
-
-      final endTime = DateTime.now();
-      print('✅ 产品数据加载完成，耗时: ${endTime.difference(startTime).inMilliseconds}ms');
 
       setState(() {
         _products = products;
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ 加载失败: $e');
       setState(() {
         _isLoading = false;
       });

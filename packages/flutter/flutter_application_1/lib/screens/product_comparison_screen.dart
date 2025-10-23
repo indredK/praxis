@@ -138,7 +138,6 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
-    print('✅ TabController 初始化完成，长度: ${_tabController.length}');
     _loadSelectedProducts();
 
     // 监听滚动事件
@@ -180,10 +179,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
       List<Product> products;
       if (GlobalDataCache.getProducts() != null) {
         products = GlobalDataCache.getProducts()!;
-        print('✅ 使用全局缓存的产品数据');
       } else {
         products = await DataService.getAllProducts();
-        print('全局缓存为空，重新加载数据');
       }
 
       // 添加边界检查
@@ -226,7 +223,6 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         }
       }
     } catch (e) {
-      print('❌ 加载产品数据失败: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -258,11 +254,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         setState(() {
           _cachedComparisons = comparisons;
         });
-        print('✅ 预加载基础对比数据完成');
       }
-    } catch (e) {
-      print('❌ 预加载基础对比数据失败: $e');
-    }
+    } catch (e) {}
   }
 
   // 无缝切换基准
@@ -272,7 +265,6 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     setState(() {
       _baselineIndex = newBaselineIndex;
       // 对比数据相同，只是显示方式不同，无需重新加载
-      print('✅ 切换基准索引到 $newBaselineIndex');
     });
   }
 
