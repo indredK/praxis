@@ -426,7 +426,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Theme.of(
@@ -470,7 +472,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                         : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -531,9 +535,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(
-                context,
-              ).scaffoldBackgroundColor.withValues(alpha: 0.95 + opacity * 0.05),
+              Theme.of(context).scaffoldBackgroundColor.withValues(
+                alpha: 0.95 + opacity * 0.05,
+              ),
               Theme.of(
                 context,
               ).scaffoldBackgroundColor.withValues(alpha: 0.85 + opacity * 0.1),
@@ -992,7 +996,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
             border: isBaseline
                 ? Border.all(color: Colors.green, width: 3)
                 : Border.all(
-                    color: _getCompanyColor(product.company).withValues(alpha: 0.3),
+                    color: _getCompanyColor(
+                      product.company,
+                    ).withValues(alpha: 0.3),
                     width: 1,
                   ),
           ),
@@ -1012,7 +1018,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                       end: Alignment.bottomRight,
                       colors: [
                         _getCompanyColor(product.company),
-                        _getCompanyColor(product.company).withValues(alpha: 0.7),
+                        _getCompanyColor(
+                          product.company,
+                        ).withValues(alpha: 0.7),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -1311,7 +1319,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                 decoration: BoxDecoration(
                   color: isBaseline
                       ? Colors.green.withValues(alpha: 0.2)
-                      : _getCompanyColor(product.company).withValues(alpha: 0.1),
+                      : _getCompanyColor(
+                          product.company,
+                        ).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: isBaseline
                       ? Border.all(color: Colors.green, width: 2)
@@ -1384,6 +1394,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
               final product = _selectedProducts.firstWhere(
                 (p) => p.id == value.productId,
+                orElse: () => _selectedProducts.first, // 如果找不到，使用第一个产品
               );
               final companyColor = _getCompanyColor(product.company);
 
@@ -1630,6 +1641,8 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
                             final product = _selectedProducts.firstWhere(
                               (p) => p.id == value.productId,
+                              orElse: () =>
+                                  _selectedProducts.first, // 如果找不到，使用第一个产品
                             );
                             final companyColor = _getCompanyColor(
                               product.company,
@@ -1637,7 +1650,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
 
                             String displayValue =
                                 '${value.displayValue}${comparison.unit}';
-                            Color cellColor = companyColor.withValues(alpha: 0.05);
+                            Color cellColor = companyColor.withValues(
+                              alpha: 0.05,
+                            );
 
                             if (!isBaseline &&
                                 _baselineIndex < comparison.values.length) {
@@ -1670,7 +1685,9 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
                                 border: isBaseline
                                     ? Border.all(color: Colors.green, width: 1)
                                     : Border.all(
-                                        color: companyColor.withValues(alpha: 0.2),
+                                        color: companyColor.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         width: 1,
                                       ),
                               ),
