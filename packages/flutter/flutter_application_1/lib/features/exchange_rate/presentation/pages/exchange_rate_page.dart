@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/services/exchange_rate_service.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ExchangeRatePage extends StatefulWidget {
   const ExchangeRatePage({super.key});
@@ -67,9 +68,10 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
         _isLoading = false;
       });
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('换算失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('${l10n.conversionFailed}: $e')));
       }
     }
   }
@@ -84,6 +86,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
   }
 
   void _copyResult() {
+    final l10n = AppLocalizations.of(context);
     final result = ExchangeRateService.formatAmount(
       _convertedAmount,
       _toCurrency,
@@ -91,14 +94,16 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
     Clipboard.setData(ClipboardData(text: result));
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
+    ).showSnackBar(SnackBar(content: Text(l10n.copiedToClipboard)));
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('汇率换算'),
+        title: Text(l10n.exchangeRate),
         backgroundColor: Theme.of(
           context,
         ).colorScheme.surface.withValues(alpha: 0.8),
@@ -133,7 +138,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
               ExchangeRateService.clearCache();
               _convertCurrency();
             },
-            tooltip: '刷新汇率',
+            tooltip: l10n.refreshRate,
           ),
         ],
       ),
@@ -157,7 +162,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '汇率信息',
+                          l10n.rateInfo,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -165,13 +170,13 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '支持货币: ${ExchangeRateService.supportedCurrencies.values.join('、')}',
+                      '${l10n.supportedCurrencies}: ${ExchangeRateService.supportedCurrencies.values.join('、')}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     if (_lastUpdateTime.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        '更新时间: $_lastUpdateTime',
+                        '${l10n.lastUpdate}: $_lastUpdateTime',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -194,8 +199,8 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                       controller: _amountController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: '输入金额',
-                        hintText: '请输入要换算的金额',
+                        labelText: l10n.inputAmount,
+                        hintText: l10n.inputAmountHint,
                         prefixIcon: const Icon(Icons.attach_money),
                         border: const OutlineInputBorder(),
                         suffixText: ExchangeRateService.getCurrencySymbol(
@@ -214,7 +219,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '从',
+                                l10n.from,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w500),
                               ),
@@ -269,7 +274,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '到',
+                                l10n.to,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w500),
                               ),
@@ -325,7 +330,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                       child: Column(
                         children: [
                           Text(
-                            '换算结果',
+                            l10n.conversionResult,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
@@ -369,7 +374,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                                 ? _copyResult
                                 : null,
                             icon: const Icon(Icons.copy),
-                            label: const Text('复制结果'),
+                            label: Text(l10n.copyResult),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -377,7 +382,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                           child: FilledButton.icon(
                             onPressed: _convertCurrency,
                             icon: const Icon(Icons.refresh),
-                            label: const Text('重新换算'),
+                            label: Text(l10n.recalculate),
                           ),
                         ),
                       ],
@@ -396,7 +401,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '常用汇率',
+                      l10n.commonRates,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -414,6 +419,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
   }
 
   Widget _buildCommonRates() {
+    final l10n = AppLocalizations.of(context);
     final commonPairs = [
       {'from': 'USD', 'to': 'CNY'},
       {'from': 'USD', 'to': 'HKD'},
@@ -448,7 +454,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
             }).toList(),
           );
         } else if (snapshot.hasError) {
-          return Text('加载失败: ${snapshot.error}');
+          return Text('${l10n.loadFailed}: ${snapshot.error}');
         } else {
           return const CircularProgressIndicator();
         }

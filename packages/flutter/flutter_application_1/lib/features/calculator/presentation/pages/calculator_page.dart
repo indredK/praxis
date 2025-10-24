@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../domain/viewmodels/calculator_viewmodel.dart';
 import '../widgets/calculator_display.dart';
 import '../widgets/calculator_keypad.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 计算器页面
 class CalculatorPage extends StatelessWidget {
@@ -10,9 +11,11 @@ class CalculatorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('计算器'),
+        title: Text(l10n.calculator),
         backgroundColor: Theme.of(
           context,
         ).colorScheme.surface.withValues(alpha: 0.8),
