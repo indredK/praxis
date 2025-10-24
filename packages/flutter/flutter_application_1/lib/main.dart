@@ -6,13 +6,13 @@ import 'core/state/app_state_manager.dart';
 import 'core/navigation/navigation_manager.dart';
 import 'core/constants/app_constants.dart';
 import 'presentation/pages/main_page.dart';
-import 'presentation/pages/calculator_page.dart';
-import 'presentation/pages/settings_page.dart';
-import 'presentation/pages/exchange_rate_page.dart';
+import 'features/calculator/presentation/pages/calculator_page.dart';
+import 'features/settings/presentation/pages/settings_page.dart';
+import 'features/exchange_rate/presentation/pages/exchange_rate_page.dart';
 import 'presentation/pages/product_comparison_page.dart';
 import 'presentation/pages/product_selection_page.dart';
 import 'presentation/viewmodels/main_viewmodel.dart';
-import 'presentation/viewmodels/calculator_viewmodel.dart';
+import 'features/calculator/domain/viewmodels/calculator_viewmodel.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {

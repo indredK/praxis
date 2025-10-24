@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/state/app_state_manager.dart';
+import '../../../../core/state/app_state_manager.dart';
 
 /// 设置页面
 class SettingsPage extends StatelessWidget {

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/state/app_state_manager.dart';
 import '../../models/product.dart' as models;
 import '../../services/data_service.dart';
-import '../../services/settings_service.dart';
+import '../../features/settings/data/services/settings_service.dart';
 import '../../services/global_data_cache.dart';
 import '../../services/product_selection_state_service.dart';
 import '../../widgets/advanced_filter_widget.dart';
