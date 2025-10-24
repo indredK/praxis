@@ -109,7 +109,12 @@ class CalculatorKeypad extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 2,
-                  child: _buildButton('0', () => onDigit('0'), isDark, theme),
+                  child: _buildButtonContent(
+                    '0',
+                    () => onDigit('0'),
+                    isDark,
+                    theme,
+                  ),
                 ),
                 _buildButton('.', () => onDigit('.'), isDark, theme),
                 _buildButton('=', onEqual, isDark, theme, isEqual: true),
@@ -121,8 +126,8 @@ class CalculatorKeypad extends StatelessWidget {
     );
   }
 
-  /// 构建按钮
-  Widget _buildButton(
+  /// 构建按钮内容（不包含 Expanded）
+  Widget _buildButtonContent(
     String text,
     VoidCallback onTap,
     bool isDark,
@@ -155,45 +160,66 @@ class CalculatorKeypad extends StatelessWidget {
       textColor = theme.colorScheme.onSurface;
     }
 
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(4.0),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: buttonColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.1),
-                  width: 0.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: buttonColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    return Container(
+      margin: const EdgeInsets.all(4.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: buttonColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
+                width: 0.5,
               ),
-              child: Center(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: buttonColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// 构建按钮（包含 Expanded）
+  Widget _buildButton(
+    String text,
+    VoidCallback onTap,
+    bool isDark,
+    ThemeData theme, {
+    bool isFunction = false,
+    bool isOperator = false,
+    bool isEqual = false,
+  }) {
+    return Expanded(
+      child: _buildButtonContent(
+        text,
+        onTap,
+        isDark,
+        theme,
+        isFunction: isFunction,
+        isOperator: isOperator,
+        isEqual: isEqual,
       ),
     );
   }
