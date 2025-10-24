@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter/services.dart';
 import '../services/exchange_rate_service.dart';
 
@@ -54,8 +55,11 @@ class _CalculatorPageState extends State<CalculatorPage>
           _display = '0';
         }
       } else if (buttonText == '=') {
-        _calculate();
+        _calculateResult();
       } else if (['+', '-', '×', '÷'].contains(buttonText)) {
+        if (_operation.isNotEmpty && !_waitingForOperand) {
+          _calculateResult();
+        }
         _operation = buttonText;
         _firstNumber = double.parse(_display);
         _waitingForOperand = true;
@@ -70,10 +74,9 @@ class _CalculatorPageState extends State<CalculatorPage>
     });
   }
 
-  void _calculate() {
+  void _calculateResult() {
     _secondNumber = double.parse(_display);
     double result = 0;
-
     switch (_operation) {
       case '+':
         result = _firstNumber + _secondNumber;
@@ -87,13 +90,9 @@ class _CalculatorPageState extends State<CalculatorPage>
       case '÷':
         if (_secondNumber != 0) {
           result = _firstNumber / _secondNumber;
-        } else {
-          _display = 'Error';
-          return;
         }
         break;
     }
-
     _display = result.toString();
     if (_display.endsWith('.0')) {
       _display = _display.substring(0, _display.length - 2);
@@ -116,7 +115,6 @@ class _CalculatorPageState extends State<CalculatorPage>
         fromCurrency: _fromCurrency,
         toCurrency: _toCurrency,
       );
-
       setState(() {
         _convertedAmount = converted;
         _isExchangeLoading = false;
@@ -128,7 +126,7 @@ class _CalculatorPageState extends State<CalculatorPage>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('换算失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('汇率转换失败: $e')));
       }
     }
   }
@@ -145,33 +143,109 @@ class _CalculatorPageState extends State<CalculatorPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.copy),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: _display));
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
-            },
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.1),
+                    Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.05),
+                  ],
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AppBar(
+                title: Text(
+                  widget.title,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _display));
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.calculate), text: '计算器'),
-            Tab(icon: Icon(Icons.currency_exchange), text: '汇率换算'),
-          ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildCalculatorTab(), _buildExchangeRateTab()],
+      body: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).colorScheme.onSurface,
+              unselectedLabelColor: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant,
+              indicatorColor: Theme.of(context).primaryColor,
+              dividerColor: Theme.of(context).colorScheme.outline,
+              tabs: const [
+                Tab(icon: Icon(Icons.calculate), text: '计算器'),
+                Tab(icon: Icon(Icons.currency_exchange), text: '汇率换算'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [_buildCalculatorTab(), _buildExchangeRateTab()],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -184,7 +258,7 @@ class _CalculatorPageState extends State<CalculatorPage>
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             border: Border(
               bottom: BorderSide(
                 color: Theme.of(context).dividerColor,
@@ -197,15 +271,16 @@ class _CalculatorPageState extends State<CalculatorPage>
             children: [
               Text(
                 _display,
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontWeight: FontWeight.w300,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+                textAlign: TextAlign.end,
               ),
               if (_operation.isNotEmpty)
                 Text(
                   '$_firstNumber $_operation',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(
                       context,
                     ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -214,63 +289,58 @@ class _CalculatorPageState extends State<CalculatorPage>
             ],
           ),
         ),
-        // 按钮区域
+        // 按钮网格
         Expanded(
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                // 第一行：清除和删除
                 Expanded(
                   child: Row(
                     children: [
-                      _buildButton('C', Colors.red.shade400),
-                      _buildButton('⌫', Colors.orange.shade400),
-                      _buildButton('÷', Colors.blue.shade400),
-                      _buildButton('×', Colors.blue.shade400),
+                      _buildButton('C', Colors.red),
+                      _buildButton('⌫', Colors.orange),
+                      _buildButton('÷', Colors.blue),
+                      _buildButton('×', Colors.blue),
                     ],
                   ),
                 ),
-                // 第二行：7, 8, 9, -
                 Expanded(
                   child: Row(
                     children: [
                       _buildButton('7'),
                       _buildButton('8'),
                       _buildButton('9'),
-                      _buildButton('-', Colors.blue.shade400),
+                      _buildButton('-', Colors.blue),
                     ],
                   ),
                 ),
-                // 第三行：4, 5, 6, +
                 Expanded(
                   child: Row(
                     children: [
                       _buildButton('4'),
                       _buildButton('5'),
                       _buildButton('6'),
-                      _buildButton('+', Colors.blue.shade400),
+                      _buildButton('+', Colors.blue),
                     ],
                   ),
                 ),
-                // 第四行：1, 2, 3, =
                 Expanded(
                   child: Row(
                     children: [
                       _buildButton('1'),
                       _buildButton('2'),
                       _buildButton('3'),
-                      _buildButton('=', Colors.green.shade400),
+                      _buildButton('=', Colors.green, 1, 2),
                     ],
                   ),
                 ),
-                // 第五行：0, .
                 Expanded(
                   child: Row(
                     children: [
-                      Expanded(flex: 2, child: _buildButton('0')),
+                      _buildButton('0', null, 2, 1),
                       _buildButton('.'),
-                      const SizedBox(width: 8),
+                      const Spacer(),
                     ],
                   ),
                 ),
@@ -282,18 +352,52 @@ class _CalculatorPageState extends State<CalculatorPage>
     );
   }
 
+  Widget _buildButton(
+    String text, [
+    Color? color,
+    double width = 1,
+    double height = 1,
+  ]) {
+    final buttonColor =
+        color ?? Theme.of(context).colorScheme.surfaceContainerHighest;
+    final textColor = color != null
+        ? Colors.white
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Expanded(
+      flex: (width * 100).round(),
+      child: Container(
+        height: height == 2 ? 120 : 60,
+        margin: const EdgeInsets.all(4),
+        child: ElevatedButton(
+          onPressed: () => _onButtonPressed(text),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: buttonColor,
+            foregroundColor: textColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildExchangeRateTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // 汇率换算界面
           Card(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // 输入金额
                   TextField(
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
@@ -316,11 +420,8 @@ class _CalculatorPageState extends State<CalculatorPage>
                     },
                   ),
                   const SizedBox(height: 24),
-
-                  // 货币选择行
                   Row(
                     children: [
-                      // 源货币
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +433,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              value: _fromCurrency,
+                              initialValue: _fromCurrency,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                               ),
@@ -361,8 +462,6 @@ class _CalculatorPageState extends State<CalculatorPage>
                         ),
                       ),
                       const SizedBox(width: 16),
-
-                      // 交换按钮
                       IconButton(
                         onPressed: _swapCurrencies,
                         icon: const Icon(Icons.swap_horiz),
@@ -374,8 +473,6 @@ class _CalculatorPageState extends State<CalculatorPage>
                         ),
                       ),
                       const SizedBox(width: 16),
-
-                      // 目标货币
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,7 +484,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
-                              value: _toCurrency,
+                              initialValue: _toCurrency,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                               ),
@@ -418,8 +515,6 @@ class _CalculatorPageState extends State<CalculatorPage>
                     ],
                   ),
                   const SizedBox(height: 32),
-
-                  // 换算结果
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -464,8 +559,6 @@ class _CalculatorPageState extends State<CalculatorPage>
             ),
           ),
           const SizedBox(height: 16),
-
-          // 常用汇率
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -490,7 +583,6 @@ class _CalculatorPageState extends State<CalculatorPage>
                           {'from': 'CNY', 'to': 'HKD'},
                           {'from': 'USD', 'to': 'JPY'},
                         ];
-
                         return Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -524,34 +616,6 @@ class _CalculatorPageState extends State<CalculatorPage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildButton(String text, [Color? color]) {
-    final buttonColor = color ?? Theme.of(context).colorScheme.surface;
-    final textColor = color != null
-        ? Colors.white
-        : Theme.of(context).colorScheme.onSurface;
-
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(4),
-        child: FilledButton(
-          onPressed: () => _onButtonPressed(text),
-          style: FilledButton.styleFrom(
-            backgroundColor: buttonColor,
-            foregroundColor: textColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(16),
-          ),
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-          ),
-        ),
       ),
     );
   }

@@ -28,26 +28,28 @@ class MaterialProductCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      elevation: isSelected ? 8 : 2,
+      elevation: isSelected ? 4 : 1,
       shadowColor: isSelected
-          ? companyColor.withOpacity(0.3)
+          ? companyColor.withValues(alpha: 0.2)
           : theme.shadowColor,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         side: isSelected
-            ? BorderSide(color: companyColor, width: 2)
+            ? BorderSide(color: companyColor, width: 1.5)
             : BorderSide.none,
       ),
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 100),
+          constraints: const BoxConstraints(minHeight: 80),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: isSelected ? companyColor.withOpacity(0.1) : theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            color: isSelected
+                ? companyColor.withValues(alpha: 0.05)
+                : theme.cardColor,
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -74,24 +76,17 @@ class MaterialProductCard extends StatelessWidget {
   /// 构建公司Logo
   Widget _buildCompanyLogo(Color companyColor) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
         color: companyColor,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: companyColor.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Center(
         child: Text(
           AppConfig.getCompanyLogo(product.company),
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -143,17 +138,16 @@ class MaterialProductCard extends StatelessWidget {
   /// 构建公司标签
   Widget _buildCompanyChip(ThemeData theme, Color companyColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: companyColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: companyColor.withOpacity(0.3), width: 1),
+        color: companyColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         product.company,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
           color: companyColor,
         ),
       ),
@@ -165,8 +159,8 @@ class MaterialProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant,
-        borderRadius: BorderRadius.circular(8),
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         product.category,
@@ -183,15 +177,14 @@ class MaterialProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green.withOpacity(0.3), width: 1),
+        color: Colors.green.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         '¥${product.price.toStringAsFixed(0)}',
         style: TextStyle(
           fontSize: 9,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
           color: Colors.green.shade700,
         ),
       ),
@@ -209,18 +202,18 @@ class MaterialProductCard extends StatelessWidget {
         IconButton(
           onPressed: onSelect,
           icon: Icon(
-            isSelected ? Icons.check_circle : Icons.add_circle_outline,
-            color: isSelected ? companyColor : theme.colorScheme.primary,
+            isSelected ? Icons.check_circle : Icons.circle_outlined,
+            color: isSelected ? companyColor : theme.colorScheme.outline,
             size: 24,
           ),
-          tooltip: isSelected ? '已选择' : '选择产品',
+          tooltip: isSelected ? '取消选择' : '选择产品',
         ),
 
         // 详情按钮
         IconButton(
           onPressed: onShowDetails,
           icon: Icon(
-            Icons.info_outline,
+            Icons.more_horiz,
             color: theme.colorScheme.onSurfaceVariant,
             size: 20,
           ),

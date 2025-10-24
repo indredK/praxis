@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/product_selection_screen.dart';
 import 'screens/product_comparison_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/calculator_page.dart';
 import 'screens/exchange_rate_page.dart';
 import 'services/settings_service.dart';
 import 'services/theme_manager.dart';
@@ -241,35 +241,76 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               elevation: 0,
             ),
           ),
-          child: BottomNavigationBar(
-            currentIndex: _showComparison ? 0 : _currentIndex,
-            onTap: (index) {
-              setState(() {
-                // 切换到其他页面，添加边界检查
-                if (index < _pages.length) {
-                  _currentIndex = index;
-                  _showComparison = false;
-                }
-              });
-            },
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.shopping_cart, size: 28),
-                label: '产品选择',
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.1),
+                      Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: BottomNavigationBar(
+                  currentIndex: _showComparison ? 0 : _currentIndex,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  onTap: (index) {
+                    setState(() {
+                      // 切换到其他页面，添加边界检查
+                      if (index < _pages.length) {
+                        _currentIndex = index;
+                        _showComparison = false;
+                      }
+                    });
+                  },
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.shopping_cart, size: 28),
+                      label: '产品选择',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.calculate, size: 28),
+                      label: _getLocalizedText(context, 'calculator'),
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.currency_exchange, size: 28),
+                      label: '汇率换算',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: const Icon(Icons.settings, size: 28),
+                      label: _getLocalizedText(context, 'settings'),
+                    ),
+                  ],
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.calculate, size: 28),
-                label: _getLocalizedText(context, 'calculator'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.currency_exchange, size: 28),
-                label: '汇率换算',
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.settings, size: 28),
-                label: _getLocalizedText(context, 'settings'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -301,14 +342,14 @@ class _CalculatorPageState extends State<CalculatorPage> {
       }
       if (digit == '.') {
         if (!_display.contains('.')) {
-          _display = _display + '.';
+          _display = '$_display.';
         }
         return;
       }
       if (_display == '0') {
         _display = digit;
       } else {
-        _display = _display + digit;
+        _display = '$_display$digit';
       }
     });
   }
