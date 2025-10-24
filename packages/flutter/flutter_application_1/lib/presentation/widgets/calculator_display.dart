@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_constants.dart';
 
 /// 计算器显示屏组件
 class CalculatorDisplay extends StatelessWidget {
@@ -10,21 +9,25 @@ class CalculatorDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppConstants.largePadding),
+      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark
-            ? theme.colorScheme.surfaceContainerHighest
-            : theme.colorScheme.surfaceContainer,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.2),
-            width: 1,
-          ),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: FittedBox(
         alignment: Alignment.bottomRight,
@@ -33,9 +36,10 @@ class CalculatorDisplay extends StatelessWidget {
           display,
           maxLines: 1,
           style: TextStyle(
-            fontSize: 64,
-            fontWeight: FontWeight.w600,
+            fontSize: 48,
+            fontWeight: FontWeight.w500,
             color: theme.colorScheme.onSurface,
+            letterSpacing: 1.2,
           ),
         ),
       ),
