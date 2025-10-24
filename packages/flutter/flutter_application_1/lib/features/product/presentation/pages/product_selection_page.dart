@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/state/app_state_manager.dart';
-import '../../models/product.dart' as models;
-import '../../services/data_service.dart';
-import '../../features/settings/data/services/settings_service.dart';
-import '../../services/global_data_cache.dart';
-import '../../services/product_selection_state_service.dart';
-import '../../widgets/advanced_filter_widget.dart';
-import '../../widgets/material_product_card.dart';
-import '../../models/product_filter_models.dart' as filter_models;
-import '../../models/advanced_filter_models.dart';
+import '../../../../core/state/app_state_manager.dart';
+import '../../domain/models/product.dart' as models;
+import '../../../../services/data_service.dart';
+import '../../../../features/settings/data/services/settings_service.dart';
+import '../../../../services/global_data_cache.dart';
+import '../../data/services/product_selection_state_service.dart';
+import '../widgets/advanced_filter_widget.dart';
+import '../widgets/material_product_card.dart';
+import '../../domain/models/product_filter_models.dart' as filter_models;
+import '../../domain/models/advanced_filter_models.dart';
 
 class ProductSelectionPage extends StatefulWidget {
   const ProductSelectionPage({super.key});

@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 import '../../core/constants/app_constants.dart';
 import 'api_datasource.dart';
 

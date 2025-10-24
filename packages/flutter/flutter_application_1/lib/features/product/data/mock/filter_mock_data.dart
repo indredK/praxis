@@ -1,4 +1,4 @@
-import '../models/advanced_filter_models.dart';
+import '../../domain/models/advanced_filter_models.dart';
 
 /// 筛选器模拟数据
 class FilterMockData {

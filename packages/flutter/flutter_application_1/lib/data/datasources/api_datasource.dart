@@ -1,4 +1,4 @@
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 
 /// API数据源接口
 /// 定义与远程API交互的方法

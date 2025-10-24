@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/advanced_filter_models.dart';
+import '../../domain/models/advanced_filter_models.dart';
 import 'filter_api_service.dart';
 
 /// 高级筛选器服务

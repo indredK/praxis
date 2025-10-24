@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart' as models;
+import '../../domain/models/product.dart' as models;
 
 /// 产品卡片列表组件
 class MaterialProductList extends StatelessWidget {

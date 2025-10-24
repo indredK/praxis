@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart';
+import '../../domain/models/product.dart';
 import 'product_api_service.dart';
 
 /// 产品数据服务

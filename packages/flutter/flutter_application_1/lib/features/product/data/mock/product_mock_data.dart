@@ -1,4 +1,4 @@
-import '../models/product.dart';
+import '../../domain/models/product.dart';
 
 /// 产品模拟数据
 class ProductMockData {
