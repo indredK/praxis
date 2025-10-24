@@ -35,10 +35,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   
-  # 图表库 - 最新版本
-  fl_chart: ^0.69.0
-  syncfusion_flutter_charts: ^31.2.2
-  
   # 网络请求
   http: ^1.2.2
   
@@ -50,10 +46,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   
-  # 最佳实践UI组件库 - 使用稳定版本
-  flutter_animate: ^4.5.0  # 强大的动画库
-  flutter_slidable: ^3.1.1  # 滑动操作卡片
-  flutter_screenutil: ^5.9.0  # 屏幕适配
+  # 状态管理和依赖注入
+  provider: ^6.1.2  # 状态管理
+  get_it: ^8.0.0  # 依赖注入
 
 dev_dependencies:
   flutter_test:

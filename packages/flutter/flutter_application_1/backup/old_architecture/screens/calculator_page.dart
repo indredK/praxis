@@ -298,10 +298,10 @@ class _CalculatorPageState extends State<CalculatorPage>
                 Expanded(
                   child: Row(
                     children: [
-                      _buildButton('C', Colors.red),
-                      _buildButton('⌫', Colors.orange),
-                      _buildButton('÷', Colors.blue),
-                      _buildButton('×', Colors.blue),
+                      _buildButton('C'),
+                      _buildButton('⌫'),
+                      _buildButton('÷'),
+                      _buildButton('×'),
                     ],
                   ),
                 ),
@@ -311,7 +311,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                       _buildButton('7'),
                       _buildButton('8'),
                       _buildButton('9'),
-                      _buildButton('-', Colors.blue),
+                      _buildButton('-'),
                     ],
                   ),
                 ),
@@ -321,7 +321,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                       _buildButton('4'),
                       _buildButton('5'),
                       _buildButton('6'),
-                      _buildButton('+', Colors.blue),
+                      _buildButton('+'),
                     ],
                   ),
                 ),
@@ -331,7 +331,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                       _buildButton('1'),
                       _buildButton('2'),
                       _buildButton('3'),
-                      _buildButton('=', Colors.green, 1, 2),
+                      _buildButton('=', null, 1, 2),
                     ],
                   ),
                 ),
@@ -358,11 +358,35 @@ class _CalculatorPageState extends State<CalculatorPage>
     double width = 1,
     double height = 1,
   ]) {
-    final buttonColor =
-        color ?? Theme.of(context).colorScheme.surfaceContainerHighest;
-    final textColor = color != null
-        ? Colors.white
-        : Theme.of(context).colorScheme.onSurfaceVariant;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // 根据按钮类型和主题选择合适的颜色
+    Color buttonColor;
+    Color textColor;
+
+    if (color != null) {
+      // 对于特殊按钮（运算符、清除等），使用主题适配的颜色
+      if (text == 'C') {
+        buttonColor = isDark ? Colors.red.shade700 : Colors.red.shade500;
+        textColor = Colors.white;
+      } else if (text == '=') {
+        buttonColor = isDark ? Colors.green.shade700 : Colors.green.shade500;
+        textColor = Colors.white;
+      } else if (['+', '-', '×', '÷'].contains(text)) {
+        buttonColor = isDark ? Colors.blue.shade700 : Colors.blue.shade500;
+        textColor = Colors.white;
+      } else {
+        buttonColor = color;
+        textColor = Colors.white;
+      }
+    } else {
+      // 数字按钮使用主题颜色
+      buttonColor = isDark
+          ? theme.colorScheme.surfaceContainerHighest
+          : theme.colorScheme.surfaceContainer;
+      textColor = theme.colorScheme.onSurface;
+    }
 
     return Expanded(
       flex: (width * 100).round(),
@@ -377,11 +401,15 @@ class _CalculatorPageState extends State<CalculatorPage>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            elevation: 2,
+            elevation: isDark ? 2 : 1,
           ),
           child: Text(
             text,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
       ),
