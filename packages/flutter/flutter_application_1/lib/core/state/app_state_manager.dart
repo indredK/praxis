@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../features/settings/data/services/settings_service.dart';
-import '../../services/language_manager.dart';
+import '../services/language_manager.dart';
 
 /// 应用全局状态管理器
 /// 统一管理应用的所有状态，包括主题、语言、产品选择等

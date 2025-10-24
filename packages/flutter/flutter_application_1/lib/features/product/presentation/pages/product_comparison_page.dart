@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/product.dart' as models;
-import '../../../../services/data_service.dart';
+import '../../data/services/data_service.dart';
 import '../../../../features/settings/data/services/settings_service.dart';
-import '../../../../services/global_data_cache.dart';
+import '../../data/services/global_data_cache.dart';
 import '../../../../config/app_config.dart';
 import '../widgets/advanced_charts.dart';
 
