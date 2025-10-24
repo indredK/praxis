@@ -40,6 +40,18 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
   }
 
   @override
+  void didUpdateWidget(AdvancedFilterWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当对比模式改变时，重新加载筛选器配置
+    if (oldWidget.comparisonMode != widget.comparisonMode) {
+      debugPrint(
+        '对比模式改变: ${oldWidget.comparisonMode} → ${widget.comparisonMode}',
+      );
+      _loadFilters();
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
