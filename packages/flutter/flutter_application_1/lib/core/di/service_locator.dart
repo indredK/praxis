@@ -10,7 +10,7 @@ import '../../data/datasources/local_datasource_impl.dart';
 import '../../data/services/cache_service.dart';
 import '../../data/services/cache_service_impl.dart';
 import '../../presentation/viewmodels/main_viewmodel.dart';
-import '../../presentation/viewmodels/calculator_viewmodel.dart';
+import '../../features/calculator/domain/viewmodels/calculator_viewmodel.dart';
 
 /// 服务定位器
 /// 使用GetIt进行依赖注入管理

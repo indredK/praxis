@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../services/exchange_rate_service.dart';
+import '../../data/services/exchange_rate_service.dart';
 
 class ExchangeRatePage extends StatefulWidget {
   const ExchangeRatePage({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/calculator_viewmodel.dart';
+import '../../domain/viewmodels/calculator_viewmodel.dart';
 import '../widgets/calculator_display.dart';
 import '../widgets/calculator_keypad.dart';
 

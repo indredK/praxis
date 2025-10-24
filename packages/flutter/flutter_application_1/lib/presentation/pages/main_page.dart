@@ -5,9 +5,9 @@ import '../viewmodels/main_viewmodel.dart';
 import '../widgets/bottom_navigation.dart';
 import 'product_selection_page.dart';
 import 'product_comparison_page.dart';
-import 'calculator_page.dart';
-import 'exchange_rate_page.dart';
-import 'settings_page.dart';
+import '../../features/calculator/presentation/pages/calculator_page.dart';
+import '../../features/exchange_rate/presentation/pages/exchange_rate_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 
 /// 主页面
 /// 包含底部导航和页面切换逻辑

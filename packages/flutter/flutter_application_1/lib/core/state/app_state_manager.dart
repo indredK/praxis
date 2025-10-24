@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../services/settings_service.dart';
+import '../../features/settings/data/services/settings_service.dart';
 import '../../services/language_manager.dart';
 
 /// 应用全局状态管理器
