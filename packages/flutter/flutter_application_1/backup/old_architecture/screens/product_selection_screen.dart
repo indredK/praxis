@@ -218,7 +218,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     children: [
                       // 筛选器标题和对比模式选择
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
