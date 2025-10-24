@@ -1,4 +1,4 @@
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 
 /// 本地数据源接口
 /// 定义与本地存储交互的方法

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 import 'local_datasource.dart';
 
 /// 本地数据源实现

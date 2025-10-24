@@ -1,4 +1,4 @@
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 
 /// 产品仓库抽象接口
 /// 定义产品相关的数据操作接口

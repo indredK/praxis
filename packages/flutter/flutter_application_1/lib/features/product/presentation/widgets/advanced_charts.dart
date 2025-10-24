@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart' as models;
+import '../../domain/models/product.dart' as models;
 
 /// 高级图表组件
 class AdvancedCharts {

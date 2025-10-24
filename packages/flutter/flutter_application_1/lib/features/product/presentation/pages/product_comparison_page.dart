@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/product.dart' as models;
-import '../../services/data_service.dart';
-import '../../features/settings/data/services/settings_service.dart';
-import '../../services/global_data_cache.dart';
-import '../../config/app_config.dart';
-import '../../widgets/advanced_charts.dart';
+import '../../domain/models/product.dart' as models;
+import '../../../../services/data_service.dart';
+import '../../../../features/settings/data/services/settings_service.dart';
+import '../../../../services/global_data_cache.dart';
+import '../../../../config/app_config.dart';
+import '../widgets/advanced_charts.dart';
 
 // 产品卡片配置常量
 class ProductCardConfig {

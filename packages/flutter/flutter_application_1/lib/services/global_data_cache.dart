@@ -1,4 +1,4 @@
-import '../models/product.dart';
+import '../features/product/domain/models/product.dart';
 
 /// 全局数据缓存服务
 class GlobalDataCache {

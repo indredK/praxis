@@ -1,4 +1,4 @@
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 
 /// 缓存服务接口
 abstract class CacheService {

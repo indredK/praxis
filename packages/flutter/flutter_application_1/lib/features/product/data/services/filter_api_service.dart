@@ -1,4 +1,4 @@
-import '../models/advanced_filter_models.dart';
+import '../../domain/models/advanced_filter_models.dart';
 import '../mock/filter_mock_data.dart';
 
 /// 筛选器API服务 - 模拟后端数据获取

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../core/state/app_state_manager.dart';
 import '../../domain/repositories/product_repository.dart';
-import '../../models/product.dart';
+import '../../features/product/domain/models/product.dart';
 
 /// 主页面ViewModel
 /// 管理主页面的业务逻辑和状态

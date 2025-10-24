@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import '../models/advanced_filter_models.dart';
-import '../services/advanced_filter_service.dart';
+import '../../domain/models/advanced_filter_models.dart';
+import '../../data/services/advanced_filter_service.dart';
 
 /// 高级筛选器组件 - 基于JSON配置
 class AdvancedFilterWidget extends StatefulWidget {

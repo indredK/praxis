@@ -1,4 +1,4 @@
-import '../models/product.dart';
+import '../../domain/models/product.dart';
 import '../mock/product_mock_data.dart';
 
 /// 产品API服务 - 模拟后端数据获取
