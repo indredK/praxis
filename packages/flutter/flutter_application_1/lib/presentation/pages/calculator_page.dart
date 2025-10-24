@@ -13,10 +13,33 @@ class CalculatorPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('计算器'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.surface.withValues(alpha: 0.8),
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
+        scrolledUnderElevation: 8,
         surfaceTintColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
+              ],
+            ),
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.3),
+                width: 1.0,
+              ),
+            ),
+          ),
+        ),
       ),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Consumer<CalculatorViewModel>(

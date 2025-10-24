@@ -78,8 +78,6 @@ class MyApp extends StatelessWidget {
             initialRoute: AppConstants.routeHome,
             routes: _buildRoutes(),
             onGenerateRoute: _generateRoute,
-
-            home: const MainPage(),
           );
         },
       ),

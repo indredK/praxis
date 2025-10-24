@@ -7,6 +7,8 @@ class Product {
   final double price;
   final DateTime releaseDate;
   final Map<String, dynamic> specs;
+  final String description;
+  final Map<String, String> specifications;
 
   Product({
     required this.id,
@@ -17,6 +19,8 @@ class Product {
     required this.price,
     required this.releaseDate,
     required this.specs,
+    required this.description,
+    required this.specifications,
   });
 
   // 从 JSON 创建 Product
@@ -30,6 +34,10 @@ class Product {
       price: (json['price'] as num).toDouble(),
       releaseDate: DateTime.parse(json['releaseDate'] as String),
       specs: Map<String, dynamic>.from(json['specs'] as Map),
+      description: json['description'] as String? ?? '',
+      specifications: Map<String, String>.from(
+        json['specifications'] as Map? ?? {},
+      ),
     );
   }
 
@@ -44,6 +52,8 @@ class Product {
       'price': price,
       'releaseDate': releaseDate.toIso8601String(),
       'specs': specs,
+      'description': description,
+      'specifications': specifications,
     };
   }
 }
