@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../models/filter_tree.dart';
 
 /// 基于Material Design的筛选器组件
@@ -140,51 +141,95 @@ class _MaterialFilterWidgetState extends State<MaterialFilterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: widget.config.width,
       decoration: BoxDecoration(
-        color: widget.config.backgroundColor ?? Theme.of(context).cardColor,
-        borderRadius: widget.config.borderRadius,
-        border: Border.all(color: Theme.of(context).dividerColor, width: 0.5),
-      ),
-      child: Column(
-        children: [
-          // 使用ExpansionTile实现可展开的分组
-          ..._currentTree.map((node) => _buildExpansionTile(node)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                // 使用ExpansionTile实现可展开的分组
+                ..._currentTree.map((node) => _buildExpansionTile(node)),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   /// 构建ExpansionTile
   Widget _buildExpansionTile(FilterTreeNode node) {
-    return ExpansionTile(
-      title: Text(
-        node.title,
-        style: TextStyle(
-          fontSize: widget.config.titleFontSize,
-          fontWeight: FontWeight.w600,
-          color: widget.config.titleColor ?? Theme.of(context).primaryColor,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
         ),
       ),
-      initiallyExpanded: node.isExpanded,
-      onExpansionChanged: (bool expanded) {
-        setState(() {
-          _currentTree = _updateNodeExpansion(_currentTree, node.id);
-        });
-      },
-      children: [
-        // 使用Wrap布局显示筛选器选项
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: node.children
-                .map((child) => _buildFilterChip(child))
-                .toList(),
+      child: ExpansionTile(
+        title: Text(
+          node.title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-      ],
+        initiallyExpanded: node.isExpanded,
+        onExpansionChanged: (bool expanded) {
+          setState(() {
+            _currentTree = _updateNodeExpansion(_currentTree, node.id);
+          });
+        },
+        // 去掉分割线
+        collapsedShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        children: [
+          // 使用Wrap布局显示筛选器选项
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Wrap(
+              spacing: 6.0,
+              runSpacing: 6.0,
+              children: node.children
+                  .map((child) => _buildFilterChip(child))
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -197,14 +242,13 @@ class _MaterialFilterWidgetState extends State<MaterialFilterWidget> {
       label: Text(
         node.title,
         style: TextStyle(
-          fontSize: widget.config.fontSize,
+          fontSize: 11,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           color: isDisabled
-              ? Theme.of(context).disabledColor
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)
               : (isSelected
-                    ? Colors.white
-                    : widget.config.textColor ??
-                          Theme.of(context).textTheme.bodyMedium?.color),
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSurface),
         ),
       ),
       selected: isSelected,
@@ -217,19 +261,17 @@ class _MaterialFilterWidgetState extends State<MaterialFilterWidget> {
               widget.onSelectionChanged?.call(node.id, node.value);
             },
       backgroundColor: _getChipBackgroundColor(isDisabled),
-      selectedColor:
-          widget.config.selectedColor ?? Theme.of(context).primaryColor,
-      checkmarkColor: Colors.white,
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+      checkmarkColor: Theme.of(context).colorScheme.onPrimary,
       side: BorderSide(
         color: isSelected
-            ? (widget.config.selectedColor ?? Theme.of(context).primaryColor)
-            : Theme.of(context).dividerColor,
+            ? Theme.of(context).primaryColor
+            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
         width: 1,
       ),
-      shape: RoundedRectangleBorder(borderRadius: widget.config.borderRadius),
-      elevation: isSelected ? 2 : 0,
-      shadowColor:
-          widget.config.selectedColor ?? Theme.of(context).primaryColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: isSelected ? 4 : 1,
+      shadowColor: Theme.of(context).primaryColor.withValues(alpha: 0.3),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
     );
@@ -238,9 +280,11 @@ class _MaterialFilterWidgetState extends State<MaterialFilterWidget> {
   /// 获取Chip背景色
   Color _getChipBackgroundColor(bool isDisabled) {
     if (isDisabled) {
-      return Theme.of(context).disabledColor.withOpacity(0.1);
+      return Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
     }
-    return Theme.of(context).cardColor;
+    return Theme.of(context).colorScheme.surface;
   }
 
   /// 判断节点是否应该被禁用

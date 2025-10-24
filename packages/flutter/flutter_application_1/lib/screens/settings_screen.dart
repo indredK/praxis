@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../config/app_config.dart';
 import '../services/settings_service.dart';
 import '../services/theme_manager.dart';
@@ -250,346 +251,441 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // 外观设置
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'appearanceSettings'),
-                  icon: Icons.palette,
-                  children: [
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'darkMode'),
-                      subtitle: _getLocalizedText(context, 'darkModeSubtitle'),
-                      value: _darkMode,
-                      onChanged: (value) async {
-                        setState(() {
-                          _darkMode = value;
-                        });
-                        await SettingsService.setDarkMode(value);
-                        // 通知主题管理器刷新主题
-                        ThemeManager().refreshTheme();
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildListTile(
-                      title: '主题颜色',
-                      subtitle: '选择应用主题色',
-                      trailing: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      onTap: () {
-                        _showColorPicker();
-                      },
-                    ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.1),
+                    Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.05),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-
-                // 显示设置
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'displaySettings'),
-                  icon: Icons.visibility,
-                  children: [
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'showPrices'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'showPricesSubtitle',
-                      ),
-                      value: _showPrices,
-                      onChanged: (value) async {
-                        setState(() {
-                          _showPrices = value;
-                        });
-                        await SettingsService.setShowPrices(value);
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'showSpecs'),
-                      subtitle: _getLocalizedText(context, 'showSpecsSubtitle'),
-                      value: _showSpecs,
-                      onChanged: (value) async {
-                        setState(() {
-                          _showSpecs = value;
-                        });
-                        await SettingsService.setShowSpecs(value);
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'showCharts'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'showChartsSubtitle',
-                      ),
-                      value: _showCharts,
-                      onChanged: (value) async {
-                        setState(() {
-                          _showCharts = value;
-                        });
-                        await SettingsService.setShowCharts(value);
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 对比设置
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'comparisonSettings'),
-                  icon: Icons.compare,
-                  children: [
-                    _buildListTile(
-                      title: _getLocalizedText(context, 'maxProducts'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'maxProductsSubtitle',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: _maxProducts > 2
-                                ? () async {
-                                    setState(() {
-                                      _maxProducts--;
-                                    });
-                                    await SettingsService.setMaxProducts(
-                                      _maxProducts,
-                                    );
-                                  }
-                                : null,
-                          ),
-                          Text(
-                            '$_maxProducts',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: _maxProducts < 10
-                                ? () async {
-                                    setState(() {
-                                      _maxProducts++;
-                                    });
-                                    await SettingsService.setMaxProducts(
-                                      _maxProducts,
-                                    );
-                                  }
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildDivider(),
-                    _buildListTile(
-                      title: '默认货币',
-                      subtitle: '价格显示货币单位',
-                      trailing: DropdownButton<String>(
-                        value: _defaultCurrency,
-                        dropdownColor: Theme.of(context).cardColor,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: 'USD',
-                            child: Text('USD (\$)'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'EUR',
-                            child: Text('EUR (€)'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'CNY',
-                            child: Text('CNY (¥)'),
-                          ),
-                          const DropdownMenuItem(
-                            value: 'JPY',
-                            child: Text('JPY (¥)'),
-                          ),
-                        ],
-                        onChanged: (value) async {
-                          setState(() {
-                            _defaultCurrency = value!;
-                          });
-                          await SettingsService.setDefaultCurrency(value!);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 通知设置
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'notificationSettings'),
-                  icon: Icons.notifications,
-                  children: [
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'notifications'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'notificationsSubtitle',
-                      ),
-                      value: _notifications,
-                      onChanged: (value) async {
-                        setState(() {
-                          _notifications = value;
-                        });
-                        await SettingsService.setNotifications(value);
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildSwitchTile(
-                      title: _getLocalizedText(context, 'autoRefresh'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'autoRefreshSubtitle',
-                      ),
-                      value: _autoRefresh,
-                      onChanged: (value) async {
-                        setState(() {
-                          _autoRefresh = value;
-                        });
-                        await SettingsService.setAutoRefresh(value);
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 语言设置
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'languageSettings'),
-                  icon: Icons.language,
-                  children: [
-                    _buildListTile(
-                      title: _getLocalizedText(context, 'appLanguage'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'appLanguageSubtitle',
-                      ),
-                      trailing: DropdownButton<String>(
-                        value: _defaultLanguage,
-                        dropdownColor: Theme.of(context).cardColor,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                        items: LanguageManager()
-                            .getAllLanguages()
-                            .where(
-                              (language) =>
-                                  language.containsKey('code') &&
-                                  language.containsKey('name'),
-                            )
-                            .map(
-                              (language) => DropdownMenuItem(
-                                value: language['code'],
-                                child: Text(language['name']!),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) async {
-                          if (value != null && value != _defaultLanguage) {
-                            await _showLanguageChangeDialog(value);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 关于
-                _buildSectionCard(
-                  title: _getLocalizedText(context, 'about'),
-                  icon: Icons.info,
-                  children: [
-                    _buildListTile(
-                      title: _getLocalizedText(context, 'appVersion'),
-                      subtitle: AppConfig.appVersion,
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        _showAboutDialog();
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildListTile(
-                      title: _getLocalizedText(context, 'privacyPolicy'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'privacyPolicySubtitle',
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        _showPrivacyPolicy();
-                      },
-                    ),
-                    _buildDivider(),
-                    _buildListTile(
-                      title: _getLocalizedText(context, 'userFeedback'),
-                      subtitle: _getLocalizedText(
-                        context,
-                        'userFeedbackSubtitle',
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        _showFeedbackDialog();
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // 重置设置按钮
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _resetSettings,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(_getLocalizedText(context, 'resetSettings')),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? Colors.orange.shade700
-                          : Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1,
                   ),
                 ),
-              ]),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AppBar(
+                title: Text(
+                  '设置',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
             ),
           ),
-        ],
+        ),
+      ),
+      body: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.1),
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.05),
+                ],
+              ),
+            ),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // 外观设置
+                      _buildSectionCard(
+                        title: _getLocalizedText(context, 'appearanceSettings'),
+                        icon: Icons.palette,
+                        children: [
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'darkMode'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'darkModeSubtitle',
+                            ),
+                            value: _darkMode,
+                            onChanged: (value) async {
+                              setState(() {
+                                _darkMode = value;
+                              });
+                              await SettingsService.setDarkMode(value);
+                              // 通知主题管理器刷新主题
+                              ThemeManager().refreshTheme();
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildListTile(
+                            title: '主题颜色',
+                            subtitle: '选择应用主题色',
+                            trailing: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            onTap: () {
+                              _showColorPicker();
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 显示设置
+                      _buildSectionCard(
+                        title: _getLocalizedText(context, 'displaySettings'),
+                        icon: Icons.visibility,
+                        children: [
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'showPrices'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'showPricesSubtitle',
+                            ),
+                            value: _showPrices,
+                            onChanged: (value) async {
+                              setState(() {
+                                _showPrices = value;
+                              });
+                              await SettingsService.setShowPrices(value);
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'showSpecs'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'showSpecsSubtitle',
+                            ),
+                            value: _showSpecs,
+                            onChanged: (value) async {
+                              setState(() {
+                                _showSpecs = value;
+                              });
+                              await SettingsService.setShowSpecs(value);
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'showCharts'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'showChartsSubtitle',
+                            ),
+                            value: _showCharts,
+                            onChanged: (value) async {
+                              setState(() {
+                                _showCharts = value;
+                              });
+                              await SettingsService.setShowCharts(value);
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 对比设置
+                      _buildSectionCard(
+                        title: _getLocalizedText(context, 'comparisonSettings'),
+                        icon: Icons.compare,
+                        children: [
+                          _buildListTile(
+                            title: _getLocalizedText(context, 'maxProducts'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'maxProductsSubtitle',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: _maxProducts > 2
+                                      ? () async {
+                                          setState(() {
+                                            _maxProducts--;
+                                          });
+                                          await SettingsService.setMaxProducts(
+                                            _maxProducts,
+                                          );
+                                        }
+                                      : null,
+                                ),
+                                Text(
+                                  '$_maxProducts',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: _maxProducts < 10
+                                      ? () async {
+                                          setState(() {
+                                            _maxProducts++;
+                                          });
+                                          await SettingsService.setMaxProducts(
+                                            _maxProducts,
+                                          );
+                                        }
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                          _buildDivider(),
+                          _buildListTile(
+                            title: '默认货币',
+                            subtitle: '价格显示货币单位',
+                            trailing: DropdownButton<String>(
+                              value: _defaultCurrency,
+                              dropdownColor: Theme.of(context).cardColor,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
+                              ),
+                              items: [
+                                const DropdownMenuItem(
+                                  value: 'USD',
+                                  child: Text('USD (\$)'),
+                                ),
+                                const DropdownMenuItem(
+                                  value: 'EUR',
+                                  child: Text('EUR (€)'),
+                                ),
+                                const DropdownMenuItem(
+                                  value: 'CNY',
+                                  child: Text('CNY (¥)'),
+                                ),
+                                const DropdownMenuItem(
+                                  value: 'JPY',
+                                  child: Text('JPY (¥)'),
+                                ),
+                              ],
+                              onChanged: (value) async {
+                                setState(() {
+                                  _defaultCurrency = value!;
+                                });
+                                await SettingsService.setDefaultCurrency(
+                                  value!,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 通知设置
+                      _buildSectionCard(
+                        title: _getLocalizedText(
+                          context,
+                          'notificationSettings',
+                        ),
+                        icon: Icons.notifications,
+                        children: [
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'notifications'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'notificationsSubtitle',
+                            ),
+                            value: _notifications,
+                            onChanged: (value) async {
+                              setState(() {
+                                _notifications = value;
+                              });
+                              await SettingsService.setNotifications(value);
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildSwitchTile(
+                            title: _getLocalizedText(context, 'autoRefresh'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'autoRefreshSubtitle',
+                            ),
+                            value: _autoRefresh,
+                            onChanged: (value) async {
+                              setState(() {
+                                _autoRefresh = value;
+                              });
+                              await SettingsService.setAutoRefresh(value);
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 语言设置
+                      _buildSectionCard(
+                        title: _getLocalizedText(context, 'languageSettings'),
+                        icon: Icons.language,
+                        children: [
+                          _buildListTile(
+                            title: _getLocalizedText(context, 'appLanguage'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'appLanguageSubtitle',
+                            ),
+                            trailing: DropdownButton<String>(
+                              value: _defaultLanguage,
+                              dropdownColor: Theme.of(context).cardColor,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
+                              ),
+                              items: LanguageManager()
+                                  .getAllLanguages()
+                                  .where(
+                                    (language) =>
+                                        language.containsKey('code') &&
+                                        language.containsKey('name'),
+                                  )
+                                  .map(
+                                    (language) => DropdownMenuItem(
+                                      value: language['code'],
+                                      child: Text(language['name']!),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) async {
+                                if (value != null &&
+                                    value != _defaultLanguage) {
+                                  await _showLanguageChangeDialog(value);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // 关于
+                      _buildSectionCard(
+                        title: _getLocalizedText(context, 'about'),
+                        icon: Icons.info,
+                        children: [
+                          _buildListTile(
+                            title: _getLocalizedText(context, 'appVersion'),
+                            subtitle: AppConfig.appVersion,
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                            onTap: () {
+                              _showAboutDialog();
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildListTile(
+                            title: _getLocalizedText(context, 'privacyPolicy'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'privacyPolicySubtitle',
+                            ),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                            onTap: () {
+                              _showPrivacyPolicy();
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildListTile(
+                            title: _getLocalizedText(context, 'userFeedback'),
+                            subtitle: _getLocalizedText(
+                              context,
+                              'userFeedbackSubtitle',
+                            ),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                            onTap: () {
+                              _showFeedbackDialog();
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // 重置设置按钮
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _resetSettings,
+                          icon: const Icon(Icons.refresh),
+                          label: Text(
+                            _getLocalizedText(context, 'resetSettings'),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.orange.shade700
+                                : Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -600,47 +696,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required List<Widget> children,
   }) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Theme.of(context).primaryColor.withValues(alpha: 0.2)
-                  : Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.2),
+              width: 1,
             ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(
+                  context,
+                ).colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 20,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Theme.of(context).primaryColor,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Theme.of(context).primaryColor,
+                      ? Theme.of(context).primaryColor.withValues(alpha: 0.2)
+                      : Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
                 ),
-              ],
-            ),
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Theme.of(context).primaryColor,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...children,
+            ],
           ),
-          ...children,
-        ],
+        ),
       ),
     );
   }
@@ -657,7 +777,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: Text(subtitle),
       value: value,
       onChanged: onChanged,
-      activeColor: Theme.of(context).primaryColor,
+      activeThumbColor: Theme.of(context).primaryColor,
     );
   }
 

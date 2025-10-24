@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../models/product.dart';
 import '../services/data_service.dart';
 import '../services/settings_service.dart';
@@ -277,7 +278,56 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     // 添加边界检查，防止空数据导致崩溃
     if (_selectedProducts.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('产品对比')),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.1),
+                      Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: AppBar(
+                  title: const Text('产品对比'),
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                ),
+              ),
+            ),
+          ),
+        ),
         body: const Center(
           child: Text('没有选择任何产品进行对比', style: TextStyle(fontSize: 16)),
         ),
@@ -300,69 +350,109 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('产品对比 (${displayProducts.length})'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (widget.onBackPressed != null) {
-              widget.onBackPressed!();
-            } else {
-              // 备用方案：使用Navigator.pop()
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48.0), // TabBar的标准高度
-          child: Container(
-            color: Theme.of(context).primaryColor,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final screenWidth = constraints.maxWidth;
-                final isNarrowScreen = screenWidth < 600;
-
-                return TabBar(
-                  controller: _tabController,
-                  isScrollable: isNarrowScreen, // 窄屏时启用滚动
-                  indicatorColor: Colors.white,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white70,
-                  tabAlignment: isNarrowScreen
-                      ? TabAlignment.start
-                      : TabAlignment.fill,
-                  tabs: [
-                    Tab(
-                      text: isNarrowScreen ? '规格' : '规格对比',
-                      icon: const Icon(Icons.table_chart, size: 16),
-                    ),
-                    Tab(
-                      text: isNarrowScreen ? '价格' : '价格对比',
-                      icon: const Icon(Icons.attach_money, size: 16),
-                    ),
-                    Tab(
-                      text: isNarrowScreen ? '性能' : '性能分析',
-                      icon: const Icon(Icons.radar, size: 16),
-                    ),
-                    Tab(
-                      text: isNarrowScreen ? '散点' : '散点图',
-                      icon: const Icon(Icons.scatter_plot, size: 16),
-                    ),
-                    Tab(
-                      text: isNarrowScreen ? '份额' : '份额图',
-                      icon: const Icon(Icons.pie_chart, size: 16),
-                    ),
-                    Tab(
-                      text: isNarrowScreen ? '趋势' : '趋势图',
-                      icon: const Icon(Icons.trending_up, size: 16),
-                    ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                    Theme.of(context).primaryColor.withValues(alpha: 0.05),
                   ],
-                );
-              },
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AppBar(
+                title: Text('产品对比 (${displayProducts.length})'),
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    if (widget.onBackPressed != null) {
+                      widget.onBackPressed!();
+                    } else {
+                      // 备用方案：使用Navigator.pop()
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(48.0), // TabBar的标准高度
+                  child: Container(
+                    color: Theme.of(context).primaryColor,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final screenWidth = constraints.maxWidth;
+                        final isNarrowScreen = screenWidth < 600;
+
+                        return TabBar(
+                          controller: _tabController,
+                          isScrollable: isNarrowScreen, // 窄屏时启用滚动
+                          indicatorColor: Colors.white,
+                          labelColor: Colors.white,
+                          unselectedLabelColor: Colors.white70,
+                          tabAlignment: isNarrowScreen
+                              ? TabAlignment.start
+                              : TabAlignment.fill,
+                          tabs: [
+                            Tab(
+                              text: isNarrowScreen ? '规格' : '规格对比',
+                              icon: const Icon(Icons.table_chart, size: 16),
+                            ),
+                            Tab(
+                              text: isNarrowScreen ? '价格' : '价格对比',
+                              icon: const Icon(Icons.attach_money, size: 16),
+                            ),
+                            Tab(
+                              text: isNarrowScreen ? '性能' : '性能分析',
+                              icon: const Icon(Icons.radar, size: 16),
+                            ),
+                            Tab(
+                              text: isNarrowScreen ? '散点' : '散点图',
+                              icon: const Icon(Icons.scatter_plot, size: 16),
+                            ),
+                            Tab(
+                              text: isNarrowScreen ? '份额' : '份额图',
+                              icon: const Icon(Icons.pie_chart, size: 16),
+                            ),
+                            Tab(
+                              text: isNarrowScreen ? '趋势' : '趋势图',
+                              icon: const Icon(Icons.trending_up, size: 16),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -961,159 +1051,170 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     return SizedBox(
       width: width,
       height: height,
-      child: Card(
-        elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isBaseline
-                  ? [
-                      Colors.green.withValues(alpha: 0.15),
-                      Colors.green.withValues(alpha: 0.08),
-                    ]
-                  : [
-                      _getCompanyColor(product.company).withValues(alpha: 0.1),
-                      _getCompanyColor(product.company).withValues(alpha: 0.05),
-                    ],
-            ),
-            border: isBaseline
-                ? Border.all(color: Colors.green, width: 3)
-                : Border.all(
-                    color: _getCompanyColor(
-                      product.company,
-                    ).withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // 使用最小尺寸，避免溢出
-              children: [
-                // Logo区域 - 始终显示
-                Container(
-                  height: 80.0, // 固定高度，避免溢出
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        _getCompanyColor(product.company),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isBaseline
+                    ? [
+                        Colors.green.withValues(alpha: 0.2),
+                        Colors.green.withValues(alpha: 0.1),
+                      ]
+                    : [
                         _getCompanyColor(
                           product.company,
-                        ).withValues(alpha: 0.7),
+                        ).withValues(alpha: 0.15),
+                        _getCompanyColor(
+                          product.company,
+                        ).withValues(alpha: 0.08),
+                      ],
+              ),
+              border: isBaseline
+                  ? Border.all(color: Colors.green, width: 3)
+                  : Border.all(
+                      color: _getCompanyColor(
+                        product.company,
+                      ).withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Logo区域 - 始终显示
+                  Container(
+                    height: 80.0,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          _getCompanyColor(product.company),
+                          _getCompanyColor(
+                            product.company,
+                          ).withValues(alpha: 0.7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getCompanyColor(
+                            product.company,
+                          ).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _getCompanyColor(
-                          product.company,
-                        ).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      product.company[0],
-                      style: TextStyle(
-                        color: Theme.of(context).cardColor,
-                        fontSize: 32.0, // 固定字体大小
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 产品名称 - 简化显示逻辑，避免动画导致的溢出
-                if (showName)
-                  SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      product.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.0,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                if (showName) const SizedBox(height: 8),
-
-                // 公司标签 - 简化显示逻辑，避免动画导致的溢出
-                if (showCompany)
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getCompanyColor(
-                          product.company,
-                        ).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    child: Center(
                       child: Text(
-                        product.company,
+                        product.company[0],
                         style: TextStyle(
-                          color: _getCompanyColor(product.company),
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 8),
-
-                // 价格 - 简化显示逻辑，避免动画导致的溢出
-                if (showPrice && SettingsService.showPrices)
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        SettingsService.formatPrice(product.price),
-                        style: const TextStyle(
+                          color: Theme.of(context).cardColor,
+                          fontSize: 32.0, // 固定字体大小
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                          fontSize: 14.0,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
-              ],
+
+                  const SizedBox(height: 12),
+
+                  // 产品名称 - 简化显示逻辑，避免动画导致的溢出
+                  if (showName)
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        product.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.0,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+
+                  if (showName) const SizedBox(height: 8),
+
+                  // 公司标签 - 简化显示逻辑，避免动画导致的溢出
+                  if (showCompany)
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getCompanyColor(
+                            product.company,
+                          ).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          product.company,
+                          style: TextStyle(
+                            color: _getCompanyColor(product.company),
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 8),
+
+                  // 价格 - 简化显示逻辑，避免动画导致的溢出
+                  if (showPrice && SettingsService.showPrices)
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          SettingsService.formatPrice(product.price),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontSize: 14.0,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -1259,7 +1360,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
     return DataTable(
       columnSpacing: 8,
       horizontalMargin: 8,
-      headingRowColor: MaterialStateProperty.all(
+      headingRowColor: WidgetStateProperty.all(
         Theme.of(context).primaryColor.withValues(alpha: 0.1),
       ),
       headingTextStyle: TextStyle(
@@ -1341,7 +1442,7 @@ class _ProductComparisonScreenState extends State<ProductComparisonScreen>
         final index = entry.key;
         final comparison = entry.value;
         return DataRow(
-          color: MaterialStateProperty.all(
+          color: WidgetStateProperty.all(
             index % 2 == 0
                 ? (Theme.of(context).brightness == Brightness.dark
                       ? const Color(0xFF1E1E1E)

@@ -49,12 +49,14 @@ class ThemeManager extends ChangeNotifier {
       // 明确指定字体族，避免字体警告
       fontFamily: platformFontFamily,
       appBarTheme: AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: null,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 1,
+        centerTitle: true,
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -80,13 +82,14 @@ class ThemeManager extends ChangeNotifier {
       // 明确指定字体族，避免字体警告
       fontFamily: platformFontFamily,
       appBarTheme: AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        foregroundColor: null,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 1,
+        centerTitle: true,
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
       cardTheme: CardThemeData(
-        color: const Color(0xFF1E1E1E),
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -114,14 +117,14 @@ class ThemeManager extends ChangeNotifier {
       ),
       // 开关主题
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor;
           }
           return Colors.grey;
         }),
-        trackColor: MaterialStateProperty.resolveWith<Color>((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
             return primaryColor.withValues(alpha: 0.5);
           }
           return Colors.grey.withValues(alpha: 0.3);
@@ -167,8 +170,6 @@ class ThemeManager extends ChangeNotifier {
         ),
         contentTextStyle: TextStyle(color: Colors.white70, fontSize: 16),
       ),
-      // 对话框背景
-      dialogBackgroundColor: const Color(0xFF1E1E1E),
     );
   }
 
