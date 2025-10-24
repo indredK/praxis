@@ -6,9 +6,10 @@ import '../../services/data_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/global_data_cache.dart';
 import '../../services/product_selection_state_service.dart';
-import '../../widgets/dynamic_filter_widget.dart';
+import '../../widgets/advanced_filter_widget.dart';
 import '../../widgets/material_product_card.dart';
 import '../../models/product_filter_models.dart' as filter_models;
+import '../../models/advanced_filter_models.dart';
 
 class ProductSelectionPage extends StatefulWidget {
   const ProductSelectionPage({super.key});
@@ -25,6 +26,9 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
   // 动态筛选器选择状态
   late filter_models.FilterSelectionState _filterSelection;
 
+  // 高级筛选器选择状态
+  late AdvancedFilterSelection _advancedFilterSelection;
+
   List<models.Product> _products = [];
   bool _isLoading = true;
 
@@ -36,6 +40,7 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
   void initState() {
     super.initState();
     _filterSelection = const filter_models.FilterSelectionState();
+    _advancedFilterSelection = const AdvancedFilterSelection();
     _loadProducts();
   }
 
@@ -289,24 +294,12 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8),
-                      child: DynamicFilterWidget(
+                      child: AdvancedFilterWidget(
                         comparisonMode: _stateService.comparisonMode,
-                        initialSelection: _filterSelection,
-                        onSelectionChanged: (nodeId, value) {
+                        initialSelection: _advancedFilterSelection,
+                        onSelectionChanged: (selection) {
                           setState(() {
-                            if (nodeId.startsWith('brand_')) {
-                              _filterSelection = _filterSelection.copyWith(
-                                selectedBrand: value,
-                              );
-                            } else if (nodeId.startsWith('category_')) {
-                              _filterSelection = _filterSelection.copyWith(
-                                selectedCategory: value,
-                              );
-                            } else if (nodeId.startsWith('product_line_')) {
-                              _filterSelection = _filterSelection.copyWith(
-                                selectedProductLine: value,
-                              );
-                            }
+                            _advancedFilterSelection = selection;
                           });
                         },
                       ),
