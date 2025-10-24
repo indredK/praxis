@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import '../models/advanced_filter_models.dart';
 import '../services/advanced_filter_service.dart';
 
@@ -29,6 +30,7 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
   final Map<String, bool> _expandedStates = {};
   // 滚动控制器
   final ScrollController _scrollController = ScrollController();
+  // 使用 flutter_sticky_header 后无需手动计算吸顶标题
 
   @override
   void initState() {
@@ -116,27 +118,140 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
             ),
           ],
         ),
-        child: Scrollbar(
-          controller: _scrollController,
-          thumbVisibility: true, // 始终显示滚动条
-          thickness: 6, // 滚动条厚度
-          radius: const Radius.circular(3), // 滚动条圆角
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.only(
-              top: 20,
-              bottom: 20,
-              left: 20,
-              right: 20, // 右侧留出空间给滚动条
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 动态生成筛选器
-                ..._enabledFilters.map(
-                  (filter) => _buildFilterSection(context, filter),
-                ),
-              ],
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12), // 裁剪圆角，保持视觉一致
+          child: ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: const [
+                  Colors.transparent, // 顶部透明
+                  Colors.white, // 中间完全显示
+                  Colors.white, // 中间完全显示
+                  Colors.transparent, // 底部透明
+                ],
+                stops: const [0.0, 0.05, 0.95, 1.0], // 渐变位置
+              ).createShader(bounds);
+            },
+            blendMode: BlendMode.dstIn, // 关键：使用 dstIn 模式实现淡入淡出
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true, // 始终显示滚动条
+              thickness: 6, // 滚动条厚度
+              radius: const Radius.circular(3), // 滚动条圆角
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // 使用 SliverStickyHeader 实现单标题吸顶
+                  ..._enabledFilters.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final filter = entry.value;
+                    final isExpanded = _expandedStates[filter.id] ?? true;
+                    const double headerHeight = 56.0;
+                    return SliverStickyHeader(
+                      overlapsContent: false,
+                      sticky: true,
+                      header: Container(
+                        height: headerHeight,
+                        padding: EdgeInsets.only(
+                          left: 20,
+                          right: 20,
+                          top: index == 0 ? 0 : 0,
+                        ),
+                        alignment: Alignment.centerLeft,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withValues(alpha: 0.15),
+                              width: 1,
+                            ),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.shadow.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _expandedStates[filter.id] = !isExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  filter.title,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                        letterSpacing: 0.2,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              AnimatedRotation(
+                                turns: isExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 22,
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      sliver: isExpanded
+                          ? SliverPadding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              sliver: SliverToBoxAdapter(
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: filter.children.map((option) {
+                                    final isSelected = _currentSelection
+                                        .getFilterSelection(filter.id)
+                                        .contains(option.value);
+                                    return _buildFilterChip(
+                                      context,
+                                      option,
+                                      isSelected,
+                                      filter.type == FilterType.multiSelect,
+                                      filter.id,
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            )
+                          : const SliverToBoxAdapter(child: SizedBox.shrink()),
+                    );
+                  }),
+                  // 底部间距
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
+                ],
+              ),
             ),
           ),
         ),
@@ -144,77 +259,9 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
     );
   }
 
-  Widget _buildFilterSection(BuildContext context, FilterNode filter) {
-    final isMultiSelect = filter.type == FilterType.multiSelect;
-    final currentSelections = _currentSelection.getFilterSelection(filter.id);
-    final isExpanded = _expandedStates[filter.id] ?? true;
+  // 采用 SliverStickyHeader 后无需额外的顶部单标题与普通标题构建函数
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 可点击的标题区域
-        InkWell(
-          onTap: () {
-            setState(() {
-              _expandedStates[filter.id] = !isExpanded;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  filter.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                // 展开/收起图标
-                AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 20,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // 可展开的内容区域
-        AnimatedCrossFade(
-          firstChild: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: filter.children.map((option) {
-              final isSelected = currentSelections.contains(option.value);
-              return _buildFilterChip(
-                context,
-                option,
-                isSelected,
-                isMultiSelect,
-                filter.id,
-              );
-            }).toList(),
-          ),
-          secondChild: const SizedBox.shrink(),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showFirst
-              : CrossFadeState.showSecond,
-          duration: const Duration(milliseconds: 200),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
+  // 内容渲染已集成到 SliverStickyHeader 的 sliver 中
 
   Widget _buildFilterChip(
     BuildContext context,

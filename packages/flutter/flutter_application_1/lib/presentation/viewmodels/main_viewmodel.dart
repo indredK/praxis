@@ -14,7 +14,8 @@ class MainViewModel extends ChangeNotifier {
     required ProductRepository productRepository,
   }) : _appStateManager = appStateManager,
        _productRepository = productRepository {
-    _initialize();
+    // 延迟到下一帧执行初始化，避免在构建期间调用 notifyListeners
+    Future.microtask(() => _initialize());
   }
 
   // 页面状态

@@ -49,6 +49,8 @@ dependencies:
   # 状态管理和依赖注入
   provider: ^6.1.2  # 状态管理
   get_it: ^8.0.0  # 依赖注入
+  # 吸顶分组列表（单标题吸顶的更平滑实现）
+  flutter_sticky_header: ^0.8.0
 
 dev_dependencies:
   flutter_test:
@@ -89,3 +91,5 @@ flutter:
   #   - family: CustomFont
   #     fonts:
   #       - asset: fonts/CustomFont-Regular.ttf
+
+dependency_overrides:
