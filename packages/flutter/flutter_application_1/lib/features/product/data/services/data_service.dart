@@ -1,4 +1,4 @@
-import '../features/product/domain/models/product.dart' as models;
+import '../../domain/models/product.dart' as models;
 
 /// 数据服务 - 提供产品数据访问
 class DataService {
