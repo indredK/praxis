@@ -72,6 +72,47 @@ class AppLocalizations {
   String get selectCompany => _getString('selectCompany');
   String get sameBrand => _getString('sameBrand');
   String get sameCategory => _getString('sameCategory');
+  String get blue => _getString('blue');
+  String get green => _getString('green');
+  String get purple => _getString('purple');
+  String get orange => _getString('orange');
+  String get red => _getString('red');
+  String get teal => _getString('teal');
+
+  // Settings specific
+  String get language => _getString('language');
+  String get currentLanguage => _getString('currentLanguage');
+  String get selectLanguage => _getString('selectLanguage');
+  String get chinese => _getString('chinese');
+  String get english => _getString('english');
+  String get japanese => _getString('japanese');
+  String get selectThemeColor => _getString('selectThemeColor');
+  String get aboutApp => _getString('aboutApp');
+  String get aboutDescription => _getString('aboutDescription');
+  String get features => _getString('features');
+  String get featureMultiDimension => _getString('featureMultiDimension');
+  String get featureSmartAnalysis => _getString('featureSmartAnalysis');
+  String get featureVisualization => _getString('featureVisualization');
+  String get featurePersonalization => _getString('featurePersonalization');
+
+  // Exchange Rate specific
+  String get exchangeRate => _getString('exchangeRate');
+  String get refreshRate => _getString('refreshRate');
+  String get rateInfo => _getString('rateInfo');
+  String get supportedCurrencies => _getString('supportedCurrencies');
+  String get lastUpdate => _getString('lastUpdate');
+  String get inputAmount => _getString('inputAmount');
+  String get inputAmountHint => _getString('inputAmountHint');
+  String get from => _getString('from');
+  String get to => _getString('to');
+  String get conversionResult => _getString('conversionResult');
+  String get copyResult => _getString('copyResult');
+  String get recalculate => _getString('recalculate');
+  String get copiedToClipboard => _getString('copiedToClipboard');
+  String get conversionFailed => _getString('conversionFailed');
+  String get commonRates => _getString('commonRates');
+  String get loadFailed => _getString('loadFailed');
+  String get swapCurrencies => _getString('swapCurrencies');
 
   // 带参数的字符串
   String maxProductsSubtitle(int count) =>
@@ -162,6 +203,45 @@ class AppLocalizations {
     'selectCompany': '选择公司',
     'sameBrand': '同品牌对比',
     'sameCategory': '同类别对比',
+    'blue': '蓝色',
+    'green': '绿色',
+    'purple': '紫色',
+    'orange': '橙色',
+    'red': '红色',
+    'teal': '青色',
+    // Settings
+    'language': '语言',
+    'currentLanguage': '当前语言',
+    'selectLanguage': '选择语言',
+    'chinese': '中文',
+    'english': 'English',
+    'japanese': '日本語',
+    'selectThemeColor': '选择主题颜色',
+    'aboutApp': '产品对比分析',
+    'aboutDescription': '一款强大的产品对比分析工具，帮助您做出明智的购买决策。',
+    'features': '功能特点：',
+    'featureMultiDimension': '• 多维度产品对比',
+    'featureSmartAnalysis': '• 智能数据分析',
+    'featureVisualization': '• 可视化图表展示',
+    'featurePersonalization': '• 个性化设置',
+    // Exchange Rate
+    'exchangeRate': '汇率换算',
+    'refreshRate': '刷新汇率',
+    'rateInfo': '汇率信息',
+    'supportedCurrencies': '支持货币',
+    'lastUpdate': '更新时间',
+    'inputAmount': '输入金额',
+    'inputAmountHint': '请输入要换算的金额',
+    'from': '从',
+    'to': '到',
+    'conversionResult': '换算结果',
+    'copyResult': '复制结果',
+    'recalculate': '重新换算',
+    'copiedToClipboard': '已复制到剪贴板',
+    'conversionFailed': '换算失败',
+    'commonRates': '常用汇率',
+    'loadFailed': '加载失败',
+    'swapCurrencies': '交换货币',
   };
 
   // 英文字符串
@@ -232,6 +312,46 @@ class AppLocalizations {
     'selectCompany': 'Select Company',
     'sameBrand': 'Same Brand Comparison',
     'sameCategory': 'Same Category Comparison',
+    'blue': 'Blue',
+    'green': 'Green',
+    'purple': 'Purple',
+    'orange': 'Orange',
+    'red': 'Red',
+    'teal': 'Teal',
+    // Settings
+    'language': 'Language',
+    'currentLanguage': 'Current Language',
+    'selectLanguage': 'Select Language',
+    'chinese': '中文',
+    'english': 'English',
+    'japanese': '日本語',
+    'selectThemeColor': 'Select Theme Color',
+    'aboutApp': 'Product Comparison Analysis',
+    'aboutDescription':
+        'A powerful product comparison tool to help you make informed purchasing decisions.',
+    'features': 'Features:',
+    'featureMultiDimension': '• Multi-dimensional product comparison',
+    'featureSmartAnalysis': '• Smart data analysis',
+    'featureVisualization': '• Visual chart display',
+    'featurePersonalization': '• Personalized settings',
+    // Exchange Rate
+    'exchangeRate': 'Exchange Rate',
+    'refreshRate': 'Refresh Rate',
+    'rateInfo': 'Rate Information',
+    'supportedCurrencies': 'Supported Currencies',
+    'lastUpdate': 'Last Update',
+    'inputAmount': 'Input Amount',
+    'inputAmountHint': 'Please enter the amount to convert',
+    'from': 'From',
+    'to': 'To',
+    'conversionResult': 'Conversion Result',
+    'copyResult': 'Copy Result',
+    'recalculate': 'Recalculate',
+    'copiedToClipboard': 'Copied to clipboard',
+    'conversionFailed': 'Conversion failed',
+    'commonRates': 'Common Rates',
+    'loadFailed': 'Load failed',
+    'swapCurrencies': 'Swap currencies',
   };
 
   // 日文字符串
@@ -297,6 +417,45 @@ class AppLocalizations {
     'selectCompany': '会社選択',
     'sameBrand': '同ブランド比較',
     'sameCategory': '同カテゴリ比較',
+    'blue': '青',
+    'green': '緑',
+    'purple': '紫',
+    'orange': 'オレンジ',
+    'red': '赤',
+    'teal': 'ティール',
+    // Settings
+    'language': '言語',
+    'currentLanguage': '現在の言語',
+    'selectLanguage': '言語選択',
+    'chinese': '中文',
+    'english': 'English',
+    'japanese': '日本語',
+    'selectThemeColor': 'テーマカラーを選択',
+    'aboutApp': '製品比較分析',
+    'aboutDescription': '賢明な購入決定を支援する強力な製品比較ツール。',
+    'features': '機能：',
+    'featureMultiDimension': '• 多次元製品比較',
+    'featureSmartAnalysis': '• スマートデータ分析',
+    'featureVisualization': '• ビジュアルチャート表示',
+    'featurePersonalization': '• パーソナライズ設定',
+    // Exchange Rate
+    'exchangeRate': '為替レート',
+    'refreshRate': 'レート更新',
+    'rateInfo': 'レート情報',
+    'supportedCurrencies': '対応通貨',
+    'lastUpdate': '最終更新',
+    'inputAmount': '金額入力',
+    'inputAmountHint': '換算する金額を入力してください',
+    'from': 'から',
+    'to': 'へ',
+    'conversionResult': '換算結果',
+    'copyResult': '結果をコピー',
+    'recalculate': '再計算',
+    'copiedToClipboard': 'クリップボードにコピーしました',
+    'conversionFailed': '換算失敗',
+    'commonRates': 'よく使う為替レート',
+    'loadFailed': '読み込み失敗',
+    'swapCurrencies': '通貨を入れ替え',
   };
 }
 

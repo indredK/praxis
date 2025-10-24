@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/state/app_state_manager.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// 设置页面
 class SettingsPage extends StatelessWidget {
@@ -8,9 +9,11 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置'),
+        title: Text(l10n.settings),
         backgroundColor: Theme.of(
           context,
         ).colorScheme.surface.withValues(alpha: 0.8),
@@ -48,8 +51,8 @@ class SettingsPage extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.dark_mode),
-                  title: const Text('深色模式'),
-                  subtitle: const Text('切换到深色主题'),
+                  title: Text(l10n.darkMode),
+                  subtitle: Text(l10n.darkModeSubtitle),
                   trailing: Switch(
                     value: appStateManager.isDarkMode,
                     onChanged: (value) => appStateManager.toggleDarkMode(),
@@ -63,12 +66,12 @@ class SettingsPage extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.language),
-                  title: const Text('语言'),
-                  subtitle: Text('当前语言: ${appStateManager.currentLanguage}'),
+                  title: Text(l10n.language),
+                  subtitle: Text('${l10n.currentLanguage}: ${appStateManager.currentLanguage}'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // 显示语言选择对话框
-                    _showLanguageDialog(context, appStateManager);
+                    _showLanguageDialog(context, appStateManager, l10n);
                   },
                 ),
               ),
@@ -79,8 +82,8 @@ class SettingsPage extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.palette),
-                  title: const Text('主题颜色'),
-                  subtitle: const Text('选择应用主题色'),
+                  title: Text(l10n.themeColor),
+                  subtitle: Text(l10n.themeColorSubtitle),
                   trailing: Container(
                     width: 24,
                     height: 24,
@@ -91,7 +94,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   onTap: () {
                     // 显示颜色选择对话框
-                    _showColorDialog(context, appStateManager);
+                    _showColorDialog(context, appStateManager, l10n);
                   },
                 ),
               ),
@@ -102,11 +105,11 @@ class SettingsPage extends StatelessWidget {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.info),
-                  title: const Text('关于'),
-                  subtitle: const Text('应用版本 1.0.0'),
+                  title: Text(l10n.about),
+                  subtitle: Text('${l10n.appVersion} 1.0.0'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    _showAboutDialog(context);
+                    _showAboutDialog(context, l10n);
                   },
                 ),
               ),
@@ -121,16 +124,17 @@ class SettingsPage extends StatelessWidget {
   void _showLanguageDialog(
     BuildContext context,
     AppStateManager appStateManager,
+    AppLocalizations l10n,
   ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('选择语言'),
+        title: Text(l10n.selectLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('中文'),
+              title: Text(l10n.chinese),
               leading: const Text('🇨🇳'),
               onTap: () {
                 appStateManager.changeLanguage('zh-CN');
@@ -138,7 +142,7 @@ class SettingsPage extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('English'),
+              title: Text(l10n.english),
               leading: const Text('🇺🇸'),
               onTap: () {
                 appStateManager.changeLanguage('en-US');
@@ -146,7 +150,7 @@ class SettingsPage extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('日本語'),
+              title: Text(l10n.japanese),
               leading: const Text('🇯🇵'),
               onTap: () {
                 appStateManager.changeLanguage('ja-JP');
@@ -160,21 +164,25 @@ class SettingsPage extends StatelessWidget {
   }
 
   /// 显示颜色选择对话框
-  void _showColorDialog(BuildContext context, AppStateManager appStateManager) {
+  void _showColorDialog(
+    BuildContext context,
+    AppStateManager appStateManager,
+    AppLocalizations l10n,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('选择主题颜色'),
+        title: Text(l10n.selectThemeColor),
         content: Wrap(
           spacing: 16,
           runSpacing: 16,
           children: [
-            _buildColorOption(context, Colors.blue, '蓝色', appStateManager),
-            _buildColorOption(context, Colors.green, '绿色', appStateManager),
-            _buildColorOption(context, Colors.purple, '紫色', appStateManager),
-            _buildColorOption(context, Colors.orange, '橙色', appStateManager),
-            _buildColorOption(context, Colors.red, '红色', appStateManager),
-            _buildColorOption(context, Colors.teal, '青色', appStateManager),
+            _buildColorOption(context, Colors.blue, l10n.blue, appStateManager),
+            _buildColorOption(context, Colors.green, l10n.green, appStateManager),
+            _buildColorOption(context, Colors.purple, l10n.purple, appStateManager),
+            _buildColorOption(context, Colors.orange, l10n.orange, appStateManager),
+            _buildColorOption(context, Colors.red, l10n.red, appStateManager),
+            _buildColorOption(context, Colors.teal, l10n.teal, appStateManager),
           ],
         ),
       ),
@@ -212,20 +220,20 @@ class SettingsPage extends StatelessWidget {
   }
 
   /// 显示关于对话框
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context, AppLocalizations l10n) {
     showAboutDialog(
       context: context,
-      applicationName: '产品对比分析',
+      applicationName: l10n.aboutApp,
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(Icons.compare, size: 48),
-      children: const [
-        Text('一款强大的产品对比分析工具，帮助您做出明智的购买决策。'),
-        SizedBox(height: 16),
-        Text('功能特点：'),
-        Text('• 多维度产品对比'),
-        Text('• 智能数据分析'),
-        Text('• 可视化图表展示'),
-        Text('• 个性化设置'),
+      children: [
+        Text(l10n.aboutDescription),
+        const SizedBox(height: 16),
+        Text(l10n.features),
+        Text(l10n.featureMultiDimension),
+        Text(l10n.featureSmartAnalysis),
+        Text(l10n.featureVisualization),
+        Text(l10n.featurePersonalization),
       ],
     );
   }
