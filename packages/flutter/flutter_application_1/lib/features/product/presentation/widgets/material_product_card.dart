@@ -179,7 +179,9 @@ class MaterialProductCard extends StatelessWidget {
                       '¥${product.price.toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.green.shade400
+                            : Theme.of(context).primaryColor,
                       ),
                     ),
                   ],
