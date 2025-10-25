@@ -12,7 +12,8 @@ class ApiConfig {
   static const Duration timeout = Duration(seconds: 10);
 
   // 是否启用Mock数据（开发时可切换）
-  static const bool useMockData = false; // 设为false使用真实后端
+  static const bool useMockData = false; // 设为false使用真实数据（可看到🔧标识）
+  // static const bool useMockData = true; // 设为true使用Mock数据（可看到🔧标识）
 
   // 完整URL
   static String get productsUrl => '$baseUrl$productsEndpoint';

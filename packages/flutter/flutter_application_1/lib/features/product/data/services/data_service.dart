@@ -1,48 +1,42 @@
 import '../../domain/models/product.dart' as models;
-import '../mock/product_mock_data.dart';
+import 'product_api_service.dart';
 
-/// 数据服务 - 提供产品数据访问
+/// 数据服务 - 提供产品数据访问（统一使用ProductApiService）
 class DataService {
+  static final _api = ProductApiService.instance;
+
   /// 获取所有产品
   static Future<List<models.Product>> getAllProducts() async {
-    return await ProductMockData.getProducts();
+    return await _api.getProducts(limit: 100);
   }
 
   /// 根据ID获取产品
   static Future<models.Product?> getProductById(String id) async {
-    return await ProductMockData.getProductById(id);
+    return await _api.getProductById(id);
   }
 
   /// 根据产品ID列表获取产品
   static Future<List<models.Product>> getProductsByIds(List<String> ids) async {
-    return await ProductMockData.getProductsByIds(ids);
+    return await _api.getProductsByIds(ids);
   }
 
   /// 搜索产品
   static Future<List<models.Product>> searchProducts(String query) async {
-    final allProducts = await ProductMockData.getProducts();
-    await ProductMockData.simulateNetworkDelay();
-
-    return allProducts.where((product) {
-      return product.name.toLowerCase().contains(query.toLowerCase()) ||
-          product.company.toLowerCase().contains(query.toLowerCase()) ||
-          product.category.toLowerCase().contains(query.toLowerCase()) ||
-          product.description.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+    return await _api.searchProducts(query, limit: 50);
   }
 
   /// 根据类别获取产品
   static Future<List<models.Product>> getProductsByCategory(
     String category,
   ) async {
-    return await ProductMockData.getProducts(categories: [category]);
+    return await _api.getProducts(categories: [category], limit: 50);
   }
 
   /// 根据公司获取产品
   static Future<List<models.Product>> getProductsByCompany(
     String company,
   ) async {
-    return await ProductMockData.getProducts(brands: [company]);
+    return await _api.getProducts(brands: [company], limit: 50);
   }
 
   /// 根据筛选条件获取产品
@@ -54,7 +48,7 @@ class DataService {
     List<String>? colors,
     List<String>? features,
   }) async {
-    return await ProductMockData.getProducts(
+    return await _api.getProducts(
       brands: brands,
       categories: categories,
       productLines: productLines,
@@ -69,7 +63,7 @@ class DataService {
   static Future<List<models.SpecComparison>> getProductComparison(
     List<String> productIds,
   ) async {
-    await ProductMockData.simulateNetworkDelay();
+    await Future.delayed(const Duration(milliseconds: 300));
 
     // 获取产品数据
     final products = await getProductsByIds(productIds);
