@@ -69,6 +69,27 @@ class HttpClient {
     }
   }
 
+  /// PATCH请求
+  Future<Map<String, dynamic>> patch(
+    String url, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await _client
+          .patch(
+            Uri.parse(url),
+            headers: _getHeaders(headers),
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(ApiConfig.timeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('网络请求失败: $e');
+    }
+  }
+
   /// DELETE请求
   Future<Map<String, dynamic>> delete(
     String url, {

@@ -12,6 +12,7 @@ class SettingsService {
   static const String _showSpecsKey = 'show_specs';
   static const String _showChartsKey = 'show_charts';
   static const String _themeColorKey = 'theme_color';
+  static const String _adminModeKey = 'admin_mode';
 
   static SharedPreferences? _prefs;
 
@@ -82,6 +83,12 @@ class SettingsService {
     await _prefs?.setString(_themeColorKey, value);
   }
 
+  // 管理员模式
+  static bool get adminMode => _prefs?.getBool(_adminModeKey) ?? false;
+  static Future<void> setAdminMode(bool value) async {
+    await _prefs?.setBool(_adminModeKey, value);
+  }
+
   // 获取主题颜色
   static Color getThemeColor() {
     final colorName = themeColor;
@@ -143,6 +150,7 @@ class SettingsService {
       'showSpecs': showSpecs,
       'showCharts': showCharts,
       'themeColor': themeColor,
+      'adminMode': adminMode,
     };
   }
 
@@ -158,5 +166,6 @@ class SettingsService {
     await setShowSpecs(settings['showSpecs'] ?? true);
     await setShowCharts(settings['showCharts'] ?? true);
     await setThemeColor(settings['themeColor'] ?? 'blue');
+    await setAdminMode(settings['adminMode'] ?? false);
   }
 }

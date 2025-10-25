@@ -3,10 +3,50 @@ import 'package:provider/provider.dart';
 import '../../../../core/state/app_state_manager.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../data/services/settings_service.dart';
 
 /// 设置页面
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _adminMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdminMode();
+  }
+
+  Future<void> _loadAdminMode() async {
+    final mode = SettingsService.adminMode;
+    if (mounted) {
+      setState(() {
+        _adminMode = mode;
+      });
+    }
+  }
+
+  Future<void> _toggleAdminMode(bool value) async {
+    await SettingsService.setAdminMode(value);
+    if (mounted) {
+      setState(() {
+        _adminMode = value;
+      });
+      // 显示提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(value ? '✅ 管理员模式已启用' : '❌ 管理员模式已关闭'),
+          backgroundColor: value ? Colors.green : Colors.grey,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +139,30 @@ class SettingsPage extends StatelessWidget {
                     // 显示颜色选择对话框
                     _showColorDialog(context, appStateManager, l10n);
                   },
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 管理员模式
+              Card(
+                color: _adminMode
+                    ? Colors.red.shade50
+                    : Theme.of(context).cardColor,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.admin_panel_settings,
+                    color: _adminMode ? Colors.red : null,
+                  ),
+                  title: const Text('🔐 管理员模式'),
+                  subtitle: Text(
+                    _adminMode ? '已启用 - 可编辑产品数据和配置' : '已关闭 - 仅查看模式',
+                  ),
+                  trailing: Switch(
+                    value: _adminMode,
+                    onChanged: _toggleAdminMode,
+                    activeColor: Colors.red,
+                  ),
                 ),
               ),
 

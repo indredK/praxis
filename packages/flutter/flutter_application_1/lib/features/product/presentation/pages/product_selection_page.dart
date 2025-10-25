@@ -10,6 +10,7 @@ import '../widgets/advanced_filter_widget.dart';
 import '../widgets/material_product_card.dart';
 import '../../domain/models/product_filter_models.dart' as filter_models;
 import '../../domain/models/advanced_filter_models.dart';
+import 'product_edit_page.dart';
 
 class ProductSelectionPage extends StatefulWidget {
   const ProductSelectionPage({super.key});
@@ -31,6 +32,7 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
 
   List<models.Product> _products = [];
   bool _isLoading = true;
+  bool _adminMode = false; // 管理员模式状态
 
   // 缓存过滤结果，避免重复计算
   List<models.Product>? _cachedFilteredProducts;
@@ -41,27 +43,47 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
     super.initState();
     _filterSelection = const filter_models.FilterSelectionState();
     _advancedFilterSelection = const AdvancedFilterSelection();
+    _loadAdminMode();
     _loadProducts();
   }
 
-  Future<void> _loadProducts() async {
+  /// 加载管理员模式状态
+  void _loadAdminMode() {
+    setState(() {
+      _adminMode = SettingsService.adminMode;
+    });
+  }
+
+  Future<void> _loadProducts({bool forceRefresh = false}) async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       List<models.Product> products;
+
+      // 如果强制刷新，清除所有缓存
+      if (forceRefresh) {
+        GlobalDataCache.clearCache();
+        _cachedFilteredProducts = null; // 清除过滤缓存
+        _lastFilterKey = null;
+      }
+
       final cachedProducts = GlobalDataCache.getProducts();
-      if (cachedProducts != null && cachedProducts.isNotEmpty) {
+      if (cachedProducts != null &&
+          cachedProducts.isNotEmpty &&
+          !forceRefresh) {
         products = cachedProducts;
-        setState(() {
-          _products = products;
-          _isLoading = false;
-        });
       } else {
         final dataServiceProducts = await DataService.getAllProducts();
         products = dataServiceProducts.cast<models.Product>();
-        setState(() {
-          _products = products;
-          _isLoading = false;
-        });
+        GlobalDataCache.cacheProducts(products);
       }
+
+      setState(() {
+        _products = products;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -260,6 +282,13 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
           ),
         ),
         actions: [
+          // 新建产品按钮（管理员可用）
+          if (_adminMode)
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: '新建产品',
+              onPressed: _createProduct,
+            ),
           if (_stateService.selectedCount > 0)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -373,6 +402,12 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
                           onProductDetails: (product) {
                             _showProductDetails(product);
                           },
+                          onProductEdit: _adminMode
+                              ? (product) {
+                                  _editProduct(product);
+                                }
+                              : null,
+                          showEditButton: _adminMode, // 仅管理员可见
                           isLoading: _isLoading,
                         ),
                 ),
@@ -643,6 +678,35 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
       },
       child: child,
     );
+  }
+
+  // 编辑产品
+  Future<void> _editProduct(models.Product product) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductEditPage(product: product),
+      ),
+    );
+
+    if (result != null && mounted) {
+      // 产品编辑成功，强制刷新列表（清除缓存）
+      _loadAdminMode(); // 重新加载管理员状态
+      await _loadProducts(forceRefresh: true);
+    }
+  }
+
+  // 创建新产品
+  Future<void> _createProduct() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProductEditPage()),
+    );
+
+    if (result != null && mounted) {
+      // 产品创建成功，强制刷新列表（清除缓存）
+      await _loadProducts(forceRefresh: true);
+    }
   }
 }
 

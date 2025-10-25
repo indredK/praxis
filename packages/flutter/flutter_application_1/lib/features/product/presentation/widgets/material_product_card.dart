@@ -9,6 +9,8 @@ class MaterialProductList extends StatelessWidget {
   final Function(models.Product) onProductLongPress;
   final Function(models.Product) onProductSelect;
   final Function(models.Product) onProductDetails;
+  final Function(models.Product)? onProductEdit; // 编辑回调（管理员模式）
+  final bool showEditButton; // 是否显示编辑按钮（管理员模式）
   final bool isLoading;
 
   const MaterialProductList({
@@ -19,6 +21,8 @@ class MaterialProductList extends StatelessWidget {
     required this.onProductLongPress,
     required this.onProductSelect,
     required this.onProductDetails,
+    this.onProductEdit,
+    this.showEditButton = false,
     this.isLoading = false,
   });
 
@@ -57,6 +61,10 @@ class MaterialProductList extends StatelessWidget {
             onLongPress: () => onProductLongPress(product),
             onSelect: () => onProductSelect(product),
             onDetails: () => onProductDetails(product),
+            onEdit: onProductEdit != null
+                ? () => onProductEdit!(product)
+                : null,
+            showEditButton: showEditButton,
           ),
         );
       },
@@ -72,6 +80,8 @@ class MaterialProductCard extends StatelessWidget {
   final VoidCallback onLongPress;
   final VoidCallback onSelect;
   final VoidCallback onDetails;
+  final VoidCallback? onEdit; // 编辑回调（管理员模式）
+  final bool showEditButton; // 是否显示编辑按钮
 
   const MaterialProductCard({
     super.key,
@@ -81,6 +91,8 @@ class MaterialProductCard extends StatelessWidget {
     required this.onLongPress,
     required this.onSelect,
     required this.onDetails,
+    this.onEdit,
+    this.showEditButton = false,
   });
 
   @override
@@ -190,6 +202,7 @@ class MaterialProductCard extends StatelessWidget {
 
               // 操作按钮
               Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // 选择按钮
                   IconButton(
@@ -203,6 +216,13 @@ class MaterialProductCard extends StatelessWidget {
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  // 编辑按钮（管理员模式）
+                  if (showEditButton && onEdit != null)
+                    IconButton(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit, color: Colors.orange),
+                      tooltip: '编辑产品',
+                    ),
                   // 详情按钮
                   IconButton(
                     onPressed: onDetails,
