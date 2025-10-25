@@ -58,36 +58,25 @@ class ComparisonDataTable extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                isDark ? colorScheme.surface : Colors.white,
-                isDark
-                    ? colorScheme.surface.withValues(alpha: 0.8)
-                    : colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.3,
-                      ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(16),
+            color: isDark ? colorScheme.surface : Colors.white,
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withValues(alpha: 0.5)
-                    : colorScheme.shadow.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: 2,
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : colorScheme.shadow.withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
               ),
             ],
             border: Border.all(
-              color: colorScheme.primary.withValues(alpha: 0.2),
+              color: colorScheme.outline.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             child: SizedBox(
               height: config.tableHeight,
               child: config.needsScrolling
@@ -151,13 +140,11 @@ class ComparisonDataTable extends StatelessWidget {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(
-          alpha: isDark ? 0.3 : 0.5,
-        ),
+        color: colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08),
         border: Border(
           bottom: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.3),
-            width: 2,
+            color: colorScheme.outline.withValues(alpha: 0.2),
+            width: 1,
           ),
         ),
       ),
@@ -224,16 +211,14 @@ class ComparisonDataTable extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isSpec
-            ? colorScheme.primaryContainer.withValues(alpha: isDark ? 0.4 : 0.6)
+            ? Colors.transparent
             : isBaseline
-            ? (isDark
-                  ? Colors.green.shade800.withValues(alpha: 0.3)
-                  : Colors.green.withValues(alpha: 0.2))
-            : companyColor?.withValues(alpha: isDark ? 0.2 : 0.1),
-        borderRadius: BorderRadius.circular(12),
+            ? colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.12)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
         border: isBaseline
             ? Border.all(
-                color: isDark ? Colors.green.shade400 : Colors.green,
+                color: colorScheme.primary.withValues(alpha: 0.4),
                 width: 2,
               )
             : null,
@@ -242,13 +227,10 @@ class ComparisonDataTable extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: isSpec ? config.headingFontSize : config.fontSize,
-            color: isSpec
-                ? colorScheme.onPrimaryContainer
-                : isBaseline
-                ? (isDark ? Colors.green.shade300 : Colors.green.shade700)
-                : companyColor,
+            fontWeight: FontWeight.w600,
+            fontSize: config.fontSize + 1,
+            color: colorScheme.onSurface,
+            letterSpacing: 0.2,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -271,10 +253,10 @@ class ComparisonDataTable extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: rowIndex % 2 == 0
-            ? (isDark ? colorScheme.surface : Colors.white)
-            : (isDark
-                  ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
-                  : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)),
+            ? Colors.transparent
+            : colorScheme.surfaceContainerHighest.withValues(
+                alpha: isDark ? 0.15 : 0.3,
+              ),
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -398,27 +380,25 @@ class ComparisonDataTable extends StatelessWidget {
         horizontal: config.cellPadding,
       ),
       decoration: BoxDecoration(
-        color: cellColor,
+        color: isBaseline
+            ? colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.1)
+            : cellColor,
         borderRadius: BorderRadius.circular(8),
         border: isBaseline
             ? Border.all(
-                color: isDark ? Colors.green.shade400 : Colors.green,
-                width: 1,
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                width: 2,
               )
-            : Border.all(
-                color: companyColor.withValues(alpha: isDark ? 0.3 : 0.2),
-                width: 1,
-              ),
+            : null,
       ),
       child: Center(
         child: Text(
           text,
           style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: config.fontSize * 0.9,
-            color: isBaseline
-                ? (isDark ? Colors.green.shade300 : Colors.green.shade700)
-                : companyColor,
+            fontWeight: isBaseline ? FontWeight.w600 : FontWeight.w500,
+            fontSize: config.fontSize,
+            color: colorScheme.onSurface.withValues(alpha: 0.9),
+            height: 1.4,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -430,12 +410,12 @@ class ComparisonDataTable extends StatelessWidget {
 
   /// 根据百分比获取颜色
   Color _getPercentageColor(String percentage, bool isDark) {
-    final alpha = isDark ? 0.2 : 0.1;
+    final alpha = isDark ? 0.12 : 0.08;
 
     if (percentage.startsWith('+')) {
       return Colors.red.withValues(alpha: alpha);
     } else if (percentage.startsWith('-')) {
-      return Colors.blue.withValues(alpha: alpha);
+      return Colors.green.withValues(alpha: alpha);
     } else {
       return Colors.grey.withValues(alpha: alpha);
     }

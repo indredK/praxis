@@ -79,23 +79,6 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
             });
           }
 
-          // 加载中状态
-          if (viewModel.isLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          // 边界检查
-          if (!viewModel.hasProducts) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('产品对比')),
-              body: const Center(
-                child: Text('没有选择任何产品进行对比', style: TextStyle(fontSize: 16)),
-              ),
-            );
-          }
-
           // 限制产品数量
           final displayProducts = viewModel.displayedProducts.take(10).toList();
           if (viewModel.displayedProducts.length > 10) {
@@ -110,7 +93,13 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
             });
           }
 
-          return _buildScaffold(context, viewModel, displayProducts);
+          return _buildScaffold(
+            context,
+            viewModel,
+            displayProducts,
+            isLoading: viewModel.isLoading,
+            hasProducts: viewModel.hasProducts,
+          );
         },
       ),
     );
@@ -119,8 +108,10 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
   Widget _buildScaffold(
     BuildContext context,
     ProductComparisonViewModel viewModel,
-    List<models.Product> displayProducts,
-  ) {
+    List<models.Product> displayProducts, {
+    required bool isLoading,
+    required bool hasProducts,
+  }) {
     return Scaffold(
       appBar: AppBar(
         title: Text('产品对比 (${displayProducts.length})'),
@@ -171,25 +162,27 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final screenWidth = constraints.maxWidth;
-                final isNarrowScreen = screenWidth < 600;
+                // 估算5个标签的最小宽度（每个约80px + padding）
+                final minRequiredWidth = 5 * 100.0;
+                final needsScrolling = screenWidth < minRequiredWidth;
 
                 return TabBar(
                   controller: _tabController,
-                  isScrollable: isNarrowScreen,
+                  isScrollable: needsScrolling,
+                  tabAlignment: needsScrolling
+                      ? TabAlignment.start
+                      : TabAlignment.fill,
                   indicatorColor: Theme.of(context).primaryColor,
                   labelColor: Theme.of(context).colorScheme.onSurface,
                   unselectedLabelColor: Theme.of(
                     context,
                   ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  tabAlignment: isNarrowScreen
-                      ? TabAlignment.start
-                      : TabAlignment.fill,
-                  tabs: [
-                    Tab(text: isNarrowScreen ? '规格' : '规格对比'),
-                    Tab(text: isNarrowScreen ? '性能' : '性能分析'),
-                    Tab(text: isNarrowScreen ? '性价比' : '性价比分析'),
-                    Tab(text: isNarrowScreen ? '趋势' : '价格趋势'),
-                    Tab(text: isNarrowScreen ? '市场' : '市场份额'),
+                  tabs: const [
+                    Tab(text: '规格对比'),
+                    Tab(text: '性能分析'),
+                    Tab(text: '性价比分析'),
+                    Tab(text: '价格趋势'),
+                    Tab(text: '市场份额'),
                   ],
                 );
               },
@@ -214,46 +207,54 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
     return Consumer<ProductComparisonViewModel>(
       builder: (context, viewModel, child) {
         final comparisons = viewModel.cachedComparisons ?? [];
+        final isLoading = viewModel.isLoading;
+        final hasProducts = viewModel.hasProducts;
+        // 使用实际选中的产品数量，而不是已加载的产品数量
+        final productCount = widget.productIds.length;
 
         return Stack(
           children: [
             // 主要内容区域
-            SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 产品概览卡片 - 使用新组件
-                  ProductOverviewCards(
-                    products: viewModel.displayedProducts,
-                    baselineIndex: viewModel.baselineIndex,
-                    onSetBaseline: (index) => viewModel.switchBaseline(index),
-                  ),
-                  const SizedBox(height: 24),
+            isLoading || !hasProducts
+                ? _buildComparisonSkeleton(productCount)
+                : SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 产品概览卡片 - 使用新组件
+                        ProductOverviewCards(
+                          products: viewModel.displayedProducts,
+                          baselineIndex: viewModel.baselineIndex,
+                          onSetBaseline: (index) =>
+                              viewModel.switchBaseline(index),
+                        ),
+                        const SizedBox(height: 24),
 
-                  // 规格对比标题
-                  _buildComparisonHeader(context),
-                  const SizedBox(height: 8),
+                        // 规格对比标题
+                        _buildComparisonHeader(context),
+                        const SizedBox(height: 8),
 
-                  // 智能对比提示
-                  if (_showSmartComparisonTip)
-                    _buildSmartComparisonTip(context),
-                  const SizedBox(height: 16),
+                        // 智能对比提示
+                        if (_showSmartComparisonTip)
+                          _buildSmartComparisonTip(context),
+                        const SizedBox(height: 16),
 
-                  // 规格对比表格 - 使用优化后的组件
-                  if (comparisons.isEmpty)
-                    const Center(child: Text('暂无对比数据'))
-                  else
-                    ComparisonDataTable(
-                      products: viewModel.displayedProducts,
-                      comparisons: comparisons,
-                      baselineIndex: viewModel.baselineIndex,
-                      onCalculatePercentage: viewModel.calculatePercentage,
+                        // 规格对比表格 - 使用优化后的组件
+                        if (comparisons.isEmpty)
+                          const Center(child: Text('暂无对比数据'))
+                        else
+                          ComparisonDataTable(
+                            products: viewModel.displayedProducts,
+                            comparisons: comparisons,
+                            baselineIndex: viewModel.baselineIndex,
+                            onCalculatePercentage:
+                                viewModel.calculatePercentage,
+                          ),
+                      ],
                     ),
-                ],
-              ),
-            ),
+                  ),
             // 吸顶的产品卡片 - 使用新组件
             StickyProductCards(
               products: viewModel.displayedProducts,
@@ -619,6 +620,338 @@ class _ProductComparisonPageState extends State<ProductComparisonPage>
           ),
         );
       },
+    );
+  }
+
+  /// 对比页面骨架屏
+  Widget _buildComparisonSkeleton(int productCount) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 产品卡片骨架 - 自适应布局
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              const cardSpacing = 16.0;
+              final totalSpacing = (productCount - 1) * cardSpacing;
+              final availableWidth = screenWidth;
+
+              final adaptiveCardWidth =
+                  (availableWidth - totalSpacing) / productCount;
+              const minCardWidth = 150.0;
+              const maxCardWidth = 300.0;
+              final cardWidth = adaptiveCardWidth.clamp(
+                minCardWidth,
+                maxCardWidth,
+              );
+
+              // 判断是否需要滚动
+              final totalWidth = (cardWidth * productCount) + totalSpacing;
+              final needsScrolling = totalWidth > availableWidth;
+
+              if (needsScrolling) {
+                // 需要滚动
+                return SizedBox(
+                  height: 160,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: productCount,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: cardWidth,
+                        margin: EdgeInsets.only(
+                          right: index < productCount - 1 ? cardSpacing : 0,
+                        ),
+                        child: _buildProductCardSkeleton(),
+                      );
+                    },
+                  ),
+                );
+              } else {
+                // 不需要滚动，自适应
+                return SizedBox(
+                  height: 160,
+                  child: Row(
+                    children: List.generate(productCount, (index) {
+                      return Expanded(
+                        child: Container(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: cardSpacing / 2,
+                          ),
+                          child: _buildProductCardSkeleton(),
+                        ),
+                      );
+                    }),
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // 规格对比标题骨架
+          _buildShimmer(
+            child: Container(
+              height: 28,
+              width: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 表格骨架 - 模拟真实表格结构
+          _buildTableSkeleton(productCount),
+        ],
+      ),
+    );
+  }
+
+  /// 产品卡片骨架
+  Widget _buildProductCardSkeleton() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? theme.colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // 头像骨架
+              _buildShimmer(
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 产品名和公司骨架
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildShimmer(
+                      child: Container(
+                        height: 16,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _buildShimmer(
+                      child: Container(
+                        height: 12,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 复选框骨架
+              _buildShimmer(
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // 价格骨架
+          _buildShimmer(
+            child: Container(
+              height: 18,
+              width: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 标签骨架
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildShimmer(
+                child: Container(
+                  height: 24,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              _buildShimmer(
+                child: Container(
+                  height: 24,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 表格骨架
+  Widget _buildTableSkeleton(int productCount) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? theme.colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // 表头骨架 - 根据产品数量生成列
+          Row(
+            children: [
+              // 规格列
+              _buildShimmer(
+                child: Container(
+                  width: 100,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              // 产品列
+              ...List.generate(productCount, (index) {
+                return [
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildShimmer(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ];
+              }).expand((e) => e).toList(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 表格行骨架 - 根据产品数量生成列
+          ...List.generate(5, (rowIndex) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  // 规格名称列
+                  _buildShimmer(
+                    child: Container(
+                      width: 100,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  // 产品值列
+                  ...List.generate(productCount, (colIndex) {
+                    return [
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildShimmer(
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ];
+                  }).expand((e) => e).toList(),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  /// 闪烁动画
+  Widget _buildShimmer({required Widget child}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1.0),
+      duration: const Duration(milliseconds: 1000),
+      builder: (context, value, _child) {
+        return Opacity(opacity: value, child: _child);
+      },
+      onEnd: () {
+        if (mounted) {
+          setState(() {});
+        }
+      },
+      child: child,
     );
   }
 }
