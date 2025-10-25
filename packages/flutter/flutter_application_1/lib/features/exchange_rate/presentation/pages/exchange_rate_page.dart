@@ -16,7 +16,6 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
   String _toCurrency = 'CNY';
   double _convertedAmount = 0.0;
   bool _isLoading = false;
-  String _lastUpdateTime = '';
 
   @override
   void initState() {
@@ -61,7 +60,6 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
       setState(() {
         _convertedAmount = converted;
         _isLoading = false;
-        _lastUpdateTime = DateTime.now().toString().substring(0, 19);
       });
     } catch (e) {
       setState(() {
@@ -100,7 +98,7 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.exchangeRate),
@@ -147,41 +145,21 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 汇率信息卡片
+            // 常用汇率卡片（置顶）
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.rateInfo,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Text(
-                      '${l10n.supportedCurrencies}: ${ExchangeRateService.supportedCurrencies.values.join('、')}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    if (_lastUpdateTime.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${l10n.lastUpdate}: $_lastUpdateTime',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      l10n.commonRates,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildCommonRates(),
                   ],
                 ),
               ),
@@ -387,27 +365,6 @@ class _ExchangeRatePageState extends State<ExchangeRatePage> {
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 常用汇率卡片
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.commonRates,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildCommonRates(),
                   ],
                 ),
               ),
