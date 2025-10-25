@@ -24,14 +24,49 @@ model User {
 
 // Product model
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id
+  name           String
+  company        String
+  category       String
+  imageUrl       String
+  price          Float
+  releaseDate    DateTime
+  description    String   @default("")
+  
+  // 核心筛选字段（可索引、可查询）
+  productLine    String?  // 旗舰/中端/入门
+  processor      String?  // A17 Pro, M3 Max, 骁龙8 Gen 3
+  ram            String?  // 8GB, 16GB, 36GB
+  storage        String?  // 256GB, 512GB, 1TB
+  screenSize     String?  // 6.7英寸, 13.6英寸
+  
+  // 完整数据（JSON，用于显示详情）
+  specs          Json     // colors, features, camera, battery等
+  specifications Json     // 所有详细参数
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  @@index([company])
+  @@index([category])
+  @@index([price])
+  @@index([productLine])
+  @@index([processor])
+  @@index([ram])
+  @@index([storage])
+  @@index([company, category])
+  @@index([price, productLine])
   @@map("products")
+}
+
+// Filter configuration model
+model FilterConfig {
+  id              String   @id @default(cuid())
+  filterTree      Json
+  comparisonModes Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("filter_configs")
 }
 

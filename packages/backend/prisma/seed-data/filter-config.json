@@ -1,0 +1,107 @@
+{
+  "filterTree": {
+    "id": "root",
+    "title": "产品筛选",
+    "type": "single_select",
+    "enabled": true,
+    "children": [
+      {
+        "id": "brand_filter",
+        "title": "品牌筛选",
+        "type": "multi_select",
+        "enabled": true,
+        "children": [
+          { "id": "apple", "title": "Apple", "value": "Apple", "icon": "🍎" },
+          { "id": "samsung", "title": "Samsung", "value": "Samsung", "icon": "📱" },
+          { "id": "dell", "title": "Dell", "value": "Dell", "icon": "💻" },
+          { "id": "hp", "title": "HP", "value": "HP", "icon": "🖥️" },
+          { "id": "lenovo", "title": "Lenovo", "value": "Lenovo", "icon": "💻" },
+          { "id": "asus", "title": "ASUS", "value": "ASUS", "icon": "🎮" },
+          { "id": "msi", "title": "MSI", "value": "MSI", "icon": "🎮" },
+          { "id": "acer", "title": "Acer", "value": "Acer", "icon": "💻" }
+        ]
+      },
+      {
+        "id": "category_filter",
+        "title": "类别筛选",
+        "type": "single_select",
+        "enabled": true,
+        "children": [
+          { "id": "phone", "title": "手机", "value": "手机", "icon": "📱" },
+          { "id": "laptop", "title": "笔记本", "value": "笔记本", "icon": "💻" },
+          { "id": "tablet", "title": "平板", "value": "平板", "icon": "📱" },
+          { "id": "smartwatch", "title": "智能手表", "value": "智能手表", "icon": "⌚" },
+          { "id": "headphone", "title": "耳机", "value": "耳机", "icon": "🎧" }
+        ]
+      },
+      {
+        "id": "product_line_filter",
+        "title": "产品线",
+        "type": "multi_select",
+        "enabled": true,
+        "children": [
+          { "id": "flagship", "title": "旗舰", "value": "旗舰", "icon": "⭐" },
+          { "id": "mid_range", "title": "中端", "value": "中端", "icon": "🔸" },
+          { "id": "entry_level", "title": "入门", "value": "入门", "icon": "🔹" },
+          { "id": "premium", "title": "高端", "value": "高端", "icon": "💎" }
+        ]
+      },
+      {
+        "id": "price_range_filter",
+        "title": "价格区间",
+        "type": "multi_select",
+        "enabled": true,
+        "children": [
+          { "id": "under_1000", "title": "1000元以下", "value": "1000元以下", "icon": "💰" },
+          { "id": "1000_3000", "title": "1000-3000元", "value": "1000-3000元", "icon": "💵" },
+          { "id": "3000_5000", "title": "3000-5000元", "value": "3000-5000元", "icon": "💴" },
+          { "id": "5000_8000", "title": "5000-8000元", "value": "5000-8000元", "icon": "💶" },
+          { "id": "8000_12000", "title": "8000-12000元", "value": "8000-12000元", "icon": "💷" },
+          { "id": "over_12000", "title": "12000元以上", "value": "12000元以上", "icon": "💎" }
+        ]
+      },
+      {
+        "id": "feature_filter",
+        "title": "特色功能",
+        "type": "multi_select",
+        "enabled": true,
+        "children": [
+          { "id": "waterproof", "title": "防水", "value": "防水", "icon": "💧" },
+          { "id": "wireless", "title": "无线", "value": "无线", "icon": "📶" },
+          { "id": "fast_charging", "title": "快充", "value": "快充", "icon": "⚡" },
+          { "id": "high_resolution", "title": "高分辨率", "value": "高分辨率", "icon": "📺" }
+        ]
+      }
+    ]
+  },
+  "comparisonModes": {
+    "same_brand": {
+      "title": "自家对比",
+      "enabledFilters": [
+        "category_filter",
+        "product_line_filter",
+        "price_range_filter",
+        "feature_filter"
+      ]
+    },
+    "same_category": {
+      "title": "同类对比",
+      "enabledFilters": [
+        "brand_filter",
+        "product_line_filter",
+        "price_range_filter",
+        "feature_filter"
+      ]
+    },
+    "price_comparison": {
+      "title": "价格对比",
+      "enabledFilters": [
+        "brand_filter",
+        "category_filter",
+        "product_line_filter",
+        "feature_filter"
+      ]
+    }
+  }
+}
+

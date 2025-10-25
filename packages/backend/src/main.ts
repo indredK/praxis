@@ -12,10 +12,14 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Enable CORS
+  // Enable CORS - 开发环境宽松策略，生产环境需要限制
   app.enableCors({
-    origin: configService.get('cors.origin'),
+    origin: true, // 开发环境允许所有origin
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Content-Length', 'Content-Type'],
+    maxAge: 3600,
   });
 
   // Global validation pipe
@@ -49,9 +53,10 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addTag('health', 'Health check endpoints')
+    .addTag('auth', 'Authentication')
     .addTag('users', 'User management')
     .addTag('products', 'Product management')
-    .addTag('auth', 'Authentication')
+    .addTag('filters', 'Product filter configuration')
     .addBearerAuth(
       {
         type: 'http',

@@ -58,6 +58,7 @@ class AppConstants {
   static const String routeCalculator = '/calculator';
   static const String routeExchangeRate = '/exchange-rate';
   static const String routeSettings = '/settings';
+  static const String routeApiTest = '/api-test'; // API测试页面
 
   // 存储键名
   static const String keyDarkMode = 'dark_mode';

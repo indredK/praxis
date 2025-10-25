@@ -1,0 +1,18 @@
+// 临时：批量导入产品的API端点
+// 在 ProductsController 添加：
+
+@Post('import/bulk')
+@ApiOperation({ summary: 'Bulk import products (temporary)' })
+async bulkImport(@Body() body: { products: CreateProductDto[] }) {
+  const results = [];
+  for (const productDto of body.products) {
+    try {
+      const product = await this.productsService.create(productDto);
+      results.push({ success: true, id: product.id });
+    } catch (error) {
+      results.push({ success: false, id: productDto.id, error: error.message });
+    }
+  }
+  return { total: body.products.length, results };
+}
+

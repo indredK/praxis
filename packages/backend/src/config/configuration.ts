@@ -17,7 +17,10 @@ export default () => ({
     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   },
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN?.split(',') || [
+      'http://localhost:3000',
+      'http://localhost:8080', // Flutter Web
+    ],
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',
