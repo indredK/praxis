@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { PrismaClientExceptionFilter } from './common/filters/prisma-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
@@ -28,7 +30,9 @@ async function bootstrap() {
     }),
   );
 
-  // Global exception filter
+  // Global exception filters
+  // Order matters: More specific filters should come first
+  app.useGlobalFilters(new PrismaClientExceptionFilter());
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // Global interceptors
@@ -37,10 +41,42 @@ async function bootstrap() {
   // Global prefix for all routes
   app.setGlobalPrefix('api/v1');
 
+  // Swagger API Documentation
+  const config = new DocumentBuilder()
+    .setTitle('Praxis Backend API')
+    .setDescription(
+      'Enterprise-grade NestJS backend service with authentication, validation, and more',
+    )
+    .setVersion('1.0')
+    .addTag('health', 'Health check endpoints')
+    .addTag('users', 'User management')
+    .addTag('products', 'Product management')
+    .addTag('auth', 'Authentication')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Praxis API Docs',
+    customfavIcon: 'https://nestjs.com/favicon.ico',
+    customCss: '.swagger-ui .topbar { display: none }',
+  });
+
   const port = configService.get('port', 3001);
   await app.listen(port);
 
   logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
+  logger.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
   logger.log(`📝 Environment: ${configService.get('nodeEnv')}`);
 }
 

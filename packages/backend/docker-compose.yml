@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: praxis-backend
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Override these in production with docker-compose.override.yml or .env
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/praxis
+      JWT_SECRET: ${JWT_SECRET:-your-production-secret-change-me}
+      JWT_EXPIRES_IN: 7d
+      RATE_LIMIT_TTL: 60
+      RATE_LIMIT_MAX: 100
+      CORS_ORIGIN: http://localhost:3000,http://localhost:5173
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - praxis-network
+    volumes:
+      # Mount .env for local development
+      - ./.env:/app/.env:ro
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:16-alpine
+    container_name: praxis-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: praxis
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - praxis-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis cache
+  redis:
+    image: redis:7-alpine
+    container_name: praxis-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - praxis-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+networks:
+  praxis-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+

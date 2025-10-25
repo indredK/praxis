@@ -4,47 +4,87 @@
 
 ## 🎯 特性
 
+### 核心功能
 - ✅ **TypeScript** - 完整的类型安全
 - ✅ **依赖注入** - NestJS 强大的 DI 系统
 - ✅ **模块化架构** - 按功能组织的清晰结构
 - ✅ **配置管理** - 环境变量验证和类型安全配置
+
+### 安全与认证
+- ✅ **JWT 认证** - 完整的 JWT + Passport.js 认证系统
+- ✅ **密码加密** - 使用 bcrypt 安全存储密码
+- ✅ **Rate Limiting** - 防止 API 滥用的限流保护
+- ✅ **CORS 支持** - 配置化的跨域资源共享
+
+### 开发体验
+- ✅ **Swagger API 文档** - 自动生成的交互式 API 文档
 - ✅ **全局错误处理** - 统一的异常过滤器
 - ✅ **请求日志** - 自动记录所有请求和响应时间
 - ✅ **数据验证** - 使用 class-validator 自动验证 DTO
-- ✅ **CORS 支持** - 配置化的跨域资源共享
-- ✅ **健康检查** - 应用程序监控端点
-- ✅ **分页支持** - 内置分页 DTO 和响应格式
 - ✅ **测试就绪** - Jest 测试配置和示例测试
 
-## 📁 项目结构
+### 生产就绪
+- ✅ **Docker 支持** - 完整的 Docker 和 docker-compose 配置
+- ✅ **健康检查** - 应用程序监控端点
+- ✅ **分页支持** - 内置分页 DTO 和响应格式
+- ✅ **Prisma 就绪** - 数据库 ORM 配置（需要 PostgreSQL）
+
+## 📁 项目结构（企业级最佳实践）
 
 ```
 src/
+├── prisma/               # 🗄️ 数据库层（全局）
+│   ├── prisma.service.ts # Prisma Client（单例）
+│   └── prisma.module.ts  # 全局数据库模块
+│
+├── auth/                  # 🔐 认证模块（JWT + Prisma）
+│   ├── dto/              # 登录/注册 DTO
+│   ├── guards/           # JWT 守卫
+│   ├── strategies/       # Passport JWT 策略
+│   ├── auth.controller.ts
+│   ├── auth.service.ts   # 使用 Prisma
+│   └── auth.module.ts
+│
 ├── common/                # 共享模块
 │   ├── decorators/        # 自定义装饰器
 │   ├── dto/              # 通用 DTO（分页等）
-│   ├── filters/          # 全局异常过滤器
+│   ├── filters/          # 异常过滤器
+│   │   ├── http-exception.filter.ts
+│   │   └── prisma-exception.filter.ts  # ⭐ Prisma 错误处理
 │   ├── guards/           # 守卫（认证/授权）
 │   └── interceptors/     # 拦截器（日志、转换）
-├── config/               # 配置模块
+│
+├── config/               # 配置管理
 │   ├── configuration.ts  # 配置工厂
 │   └── env.validation.ts # 环境变量验证
-├── health/               # 健康检查模块
-├── users/                # 用户模块（CRUD 示例）
-│   ├── dto/
-│   ├── entities/
+│
+├── health/               # 健康检查
+├── users/                # 👥 用户模块（Repository Pattern）
+│   ├── dto/              # Swagger + Validation
+│   ├── entities/         # 使用 Prisma 类型
 │   ├── users.controller.ts
-│   ├── users.service.ts
+│   ├── users.service.ts  # ⭐ 使用 Prisma（真实数据库）
 │   └── users.module.ts
-├── products/             # 产品模块（分页示例）
+│
+├── products/             # 🛍️ 产品模块（分页 + Prisma）
 │   ├── dto/
 │   ├── entities/
 │   ├── products.controller.ts
-│   ├── products.service.ts
+│   ├── products.service.ts  # ⭐ 使用 Prisma
 │   └── products.module.ts
-├── app.module.ts         # 根模块
-└── main.ts              # 应用入口
+│
+├── app.module.ts         # 根模块（Prisma + Rate Limiting）
+└── main.ts              # 应用入口（Swagger + Prisma 过滤器）
 ```
+
+**架构亮点**：
+- ✅ **Repository Pattern** - 数据访问层抽象
+- ✅ **Prisma ORM** - 类型安全的数据库操作
+- ✅ **全局模块** - PrismaService 单例
+- ✅ **异常过滤器** - 统一的 Prisma 错误处理
+- ✅ **真实数据库** - PostgreSQL 持久化存储
+
+详细架构说明请查看：**[ARCHITECTURE.md](./ARCHITECTURE.md)**
 
 ## 🚀 快速开始
 
@@ -76,9 +116,51 @@ pnpm dev
 
 服务器将在 `http://localhost:3001` 启动。
 
+### 4. 访问 API 文档
+
+启动服务器后，打开浏览器访问：
+
+**📚 Swagger UI**: http://localhost:3001/api/docs
+
+这里可以：
+- 查看所有 API 端点
+- 测试 API
+- 查看请求/响应格式
+- 测试 JWT 认证
+
 ## 📝 API 端点
 
 所有端点都有 `/api/v1` 前缀。
+
+### Authentication (认证)
+
+- `POST /api/v1/auth/register` - 注册新用户（返回 JWT）
+- `POST /api/v1/auth/login` - 用户登录（返回 JWT）
+- `GET /api/v1/auth/profile` - 获取当前用户信息（需要 JWT）
+
+**登录示例：**
+
+```bash
+curl -X POST http://localhost:3001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+
+# 响应:
+# {
+#   "user": { "id": "1", "name": "John", "email": "john@example.com" },
+#   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+# }
+```
+
+**使用 JWT 访问受保护端点：**
+
+```bash
+curl http://localhost:3001/api/v1/auth/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ### Health Check
 
@@ -236,16 +318,84 @@ export class UsersService {
 export class AppModule {}
 ```
 
-## 📦 下一步计划
+## 🐳 Docker 部署
 
-- [ ] **数据库集成** - Prisma 或 TypeORM
-- [ ] **认证系统** - JWT + Passport.js
+### 开发环境（使用 docker-compose）
+
+```bash
+# 启动所有服务（backend + PostgreSQL + Redis）
+docker-compose -f docker-compose.dev.yml up
+
+# 后台运行
+docker-compose -f docker-compose.dev.yml up -d
+
+# 停止
+docker-compose -f docker-compose.dev.yml down
+```
+
+### 生产环境
+
+```bash
+# 构建生产镜像
+docker build -t praxis-backend .
+
+# 运行生产容器
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f backend
+```
+
+### Docker 命令速查
+
+```bash
+# 查看运行中的容器
+docker ps
+
+# 进入容器
+docker exec -it praxis-backend sh
+
+# 查看数据库
+docker exec -it praxis-postgres psql -U postgres -d praxis
+
+# 查看 Redis
+docker exec -it praxis-redis redis-cli
+```
+
+## 📦 数据库集成（可选）
+
+### 使用 Prisma ORM
+
+如果你想使用真实数据库替代内存存储：
+
+1. **安装 PostgreSQL**（或使用 Docker）
+2. **按照步骤集成 Prisma**
+
+详细步骤请查看：**[PRISMA_SETUP.md](./PRISMA_SETUP.md)**
+
+```bash
+# 快速开始
+pnpm add prisma @prisma/client
+npx prisma generate
+npx prisma migrate dev
+```
+
+## 📦 功能路线图
+
+### ✅ 已完成
+- ✅ JWT 认证系统
+- ✅ Swagger API 文档
+- ✅ Rate Limiting
+- ✅ Docker 支持
+- ✅ Prisma 配置（需要安装 PostgreSQL）
+
+### 🚧 计划中
 - [ ] **授权** - RBAC (Role-Based Access Control)
-- [ ] **API 文档** - Swagger/OpenAPI
-- [ ] **限流** - Rate limiting
 - [ ] **缓存** - Redis 集成
 - [ ] **日志系统** - Pino 或 Winston
-- [ ] **Docker 支持** - Dockerfile 和 docker-compose
+- [ ] **WebSocket** - 实时通信
+- [ ] **文件上传** - Multer 集成
+- [ ] **邮件服务** - 发送验证邮件
 
 ## 🔐 安全最佳实践
 
