@@ -218,4 +218,22 @@ class DataService {
       items: [],
     );
   }
+
+  /// 创建产品
+  static Future<models.Product> createProduct(models.Product product) async {
+    return await _api.createProduct(product);
+  }
+
+  /// 更新产品
+  static Future<models.Product> updateProduct(
+    String productId,
+    models.Product product,
+  ) async {
+    return await _api.updateProduct(productId, product);
+  }
+
+  /// 删除产品
+  static Future<void> deleteProduct(String productId) async {
+    return await _api.deleteProduct(productId);
+  }
 }

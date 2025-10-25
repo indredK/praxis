@@ -2,6 +2,12 @@ import '../../domain/models/product.dart';
 
 /// 产品模拟数据
 class ProductMockData {
+  /// 自定义产品列表（用户创建/编辑的产品）
+  static final List<Product> _customProducts = [];
+
+  /// 已删除的产品ID列表（包括默认产品）
+  static final List<String> _deletedProductIds = [];
+
   /// 模拟网络延迟
   static Future<void> simulateNetworkDelay() async {
     await Future.delayed(const Duration(milliseconds: 800));
@@ -100,6 +106,21 @@ class ProductMockData {
 
   /// 获取所有产品（内部方法）
   static List<Product> _getAllProducts() {
+    // 获取所有自定义产品的ID
+    final customProductIds = _customProducts.map((p) => p.id).toSet();
+
+    // 从默认产品中过滤掉：1) 已被自定义产品覆盖的  2) 已删除的
+    final defaultProducts = _getDefaultProducts()
+        .where((p) => !customProductIds.contains(p.id))
+        .where((p) => !_deletedProductIds.contains(p.id))
+        .toList();
+
+    // 合并：自定义产品优先
+    return [..._customProducts, ...defaultProducts];
+  }
+
+  /// 获取默认产品列表（不包含自定义产品）
+  static List<Product> _getDefaultProducts() {
     return [
       // ========== Apple iPhone 系列 ==========
 
@@ -1770,5 +1791,111 @@ class ProductMockData {
         },
       ),
     ];
+  }
+
+  // ==================== 管理员功能：产品数据的增删改查 ====================
+
+  /// 创建新产品
+  static Future<void> createProduct(Product product) async {
+    await simulateNetworkDelay();
+
+    // 检查ID是否已存在
+    final allProducts = _getAllProducts();
+    if (allProducts.any((p) => p.id == product.id)) {
+      throw Exception('产品ID "${product.id}" 已存在，请使用其他ID');
+    }
+
+    _customProducts.add(product);
+  }
+
+  /// 更新产品（支持更新所有产品，包括默认产品）
+  static Future<void> updateProduct(
+    String productId,
+    Product updatedProduct,
+  ) async {
+    await simulateNetworkDelay();
+
+    // 先检查产品是否存在（在调用 _getAllProducts 之前）
+    final allDefaultProducts = _getDefaultProducts();
+    final existsInDefault = allDefaultProducts.any((p) => p.id == productId);
+    final existsInCustom = _customProducts.any((p) => p.id == productId);
+
+    if (!existsInDefault && !existsInCustom) {
+      throw Exception('产品 "$productId" 不存在');
+    }
+
+    // 从自定义列表中删除旧版本（如果存在）
+    _customProducts.removeWhere((p) => p.id == productId);
+
+    // 如果是默认产品的修改，标记默认版本为已删除（防止默认版本显示）
+    if (existsInDefault && !_deletedProductIds.contains(productId)) {
+      _deletedProductIds.add(productId);
+    }
+
+    // 添加更新后的版本到自定义列表
+    _customProducts.add(updatedProduct);
+  }
+
+  /// 删除产品（支持删除所有产品，包括默认产品）
+  static Future<void> deleteProduct(String productId) async {
+    await simulateNetworkDelay();
+
+    // 先验证产品是否存在
+    final allProducts = _getAllProducts();
+    if (!allProducts.any((p) => p.id == productId)) {
+      throw Exception('产品 "$productId" 不存在');
+    }
+
+    // 从自定义产品列表中删除（如果存在）
+    _customProducts.removeWhere((p) => p.id == productId);
+
+    // 标记产品为已删除（包括默认产品）
+    if (!_deletedProductIds.contains(productId)) {
+      _deletedProductIds.add(productId);
+    }
+  }
+
+  /// 获取产品详情（包括是否为自定义产品的标记）
+  static Future<Map<String, dynamic>> getProductInfo(String productId) async {
+    await simulateNetworkDelay();
+
+    final allProducts = _getAllProducts();
+    final product = allProducts.firstWhere(
+      (p) => p.id == productId,
+      orElse: () => throw Exception('产品 "$productId" 不存在'),
+    );
+
+    final isCustom = _customProducts.any((p) => p.id == productId);
+
+    return {
+      'product': product,
+      'isCustom': isCustom,
+      'canEdit': isCustom,
+      'canDelete': isCustom,
+    };
+  }
+
+  /// 获取所有自定义产品
+  static Future<List<Product>> getCustomProducts() async {
+    await simulateNetworkDelay();
+    return List.from(_customProducts);
+  }
+
+  /// 清空所有自定义产品（重置数据）
+  static Future<void> clearCustomProducts() async {
+    await simulateNetworkDelay();
+    _customProducts.clear();
+  }
+
+  /// 批量导入产品
+  static Future<void> importProducts(List<Product> products) async {
+    await simulateNetworkDelay();
+
+    for (final product in products) {
+      // 检查是否已存在
+      if (!_customProducts.any((p) => p.id == product.id)) {
+        _customProducts.add(product);
+      }
+    }
   }
 }

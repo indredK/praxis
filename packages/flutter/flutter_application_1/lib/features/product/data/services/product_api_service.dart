@@ -256,4 +256,67 @@ class ProductApiService {
       throw Exception('获取推荐产品失败: $e');
     }
   }
+
+  /// 创建产品
+  Future<Product> createProduct(Product product) async {
+    try {
+      if (ApiConfig.useMockData) {
+        await ProductMockData.createProduct(product);
+        return product;
+      }
+
+      print('📡 创建产品: ${product.id}');
+      final response = await _httpClient.post(
+        ApiConfig.productsUrl,
+        body: product.toJson(),
+      );
+      print('✅ 产品创建成功');
+
+      return Product.fromJson(response);
+    } catch (e) {
+      print('⚠️ 后端创建失败，使用Mock数据: $e');
+      await ProductMockData.createProduct(product);
+      return product;
+    }
+  }
+
+  /// 更新产品
+  Future<Product> updateProduct(String productId, Product product) async {
+    try {
+      if (ApiConfig.useMockData) {
+        await ProductMockData.updateProduct(productId, product);
+        return product;
+      }
+
+      print('📡 更新产品: $productId');
+      final response = await _httpClient.patch(
+        '${ApiConfig.productsUrl}/$productId',
+        body: product.toJson(),
+      );
+      print('✅ 产品更新成功');
+
+      return Product.fromJson(response);
+    } catch (e) {
+      print('⚠️ 后端更新失败，使用Mock数据: $e');
+      await ProductMockData.updateProduct(productId, product);
+      return product;
+    }
+  }
+
+  /// 删除产品
+  Future<void> deleteProduct(String productId) async {
+    try {
+      if (ApiConfig.useMockData) {
+        await ProductMockData.deleteProduct(productId);
+        return;
+      }
+
+      print('📡 删除产品: $productId');
+      await _httpClient.delete('${ApiConfig.productsUrl}/$productId');
+      print('✅ 产品删除成功');
+    } catch (e) {
+      print('⚠️ 后端删除失败，使用Mock数据: $e');
+      await ProductMockData.deleteProduct(productId);
+    }
+  }
 }
