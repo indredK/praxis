@@ -1,0 +1,438 @@
+[
+  {
+    "id": "iphone_15_pro_max",
+    "name": "iPhone 15 Pro Max",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+15+Pro+Max",
+    "price": 9999,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "iPhone 15 Pro Max，搭载3纳米A17 Pro芯片，钛金属设计"
+  },
+  {
+    "id": "iphone_15_pro",
+    "name": "iPhone 15 Pro",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+15+Pro",
+    "price": 7999,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "iPhone 15 Pro，搭载3纳米A17 Pro芯片，钛金属设计"
+  },
+  {
+    "id": "iphone_15_plus",
+    "name": "iPhone 15 Plus",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+15+Plus",
+    "price": 6999,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "iPhone 15 Plus，大屏标准版，搭载A16 Bionic芯片"
+  },
+  {
+    "id": "iphone_15",
+    "name": "iPhone 15",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+15",
+    "price": 5999,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "iPhone 15 标准版，性能与价格的完美平衡"
+  },
+  {
+    "id": "iphone_14_pro_max",
+    "name": "iPhone 14 Pro Max",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+14+Pro+Max",
+    "price": 8999,
+    "releaseDate": "new Date('2022-09-16')",
+    "description": "iPhone 14 Pro Max，首款配备动态岛设计"
+  },
+  {
+    "id": "iphone_14_pro",
+    "name": "iPhone 14 Pro",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+14+Pro",
+    "price": 7999,
+    "releaseDate": "new Date('2022-09-16')",
+    "description": "iPhone 14 Pro，首款配备动态岛和48MP主摄"
+  },
+  {
+    "id": "iphone_14_plus",
+    "name": "iPhone 14 Plus",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+14+Plus",
+    "price": 6999,
+    "releaseDate": "new Date('2022-10-07')",
+    "description": "iPhone 14 Plus，大屏标准版"
+  },
+  {
+    "id": "iphone_14",
+    "name": "iPhone 14",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+14",
+    "price": 5999,
+    "releaseDate": "new Date('2022-09-16')",
+    "description": "iPhone 14 标准版"
+  },
+  {
+    "id": "iphone_13_pro_max",
+    "name": "iPhone 13 Pro Max",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+13+Pro+Max",
+    "price": 8999,
+    "releaseDate": "new Date('2021-09-24')",
+    "description": "iPhone 13 Pro Max，配备ProMotion自适应刷新率"
+  },
+  {
+    "id": "iphone_13_pro",
+    "name": "iPhone 13 Pro",
+    "company": "Apple",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPhone+13+Pro",
+    "price": 7999,
+    "releaseDate": "new Date('2021-09-24')",
+    "description": "iPhone 13 Pro，配备ProMotion自适应刷新率"
+  },
+  {
+    "id": "macbook_pro_16_m3_max",
+    "name": "MacBook Pro 16\" (M3 Max)",
+    "company": "Apple",
+    "category": "笔记本",
+    "price": 25999,
+    "releaseDate": "new Date('2023-11-07')",
+    "description": "MacBook Pro 16英寸，搭载M3 Max芯片，专业创作旗舰"
+  },
+  {
+    "id": "macbook_pro_16_m3_pro",
+    "name": "MacBook Pro 16\" (M3 Pro)",
+    "company": "Apple",
+    "category": "笔记本",
+    "price": 19999,
+    "releaseDate": "new Date('2023-11-07')",
+    "description": "MacBook Pro 16英寸，搭载M3 Pro芯片"
+  },
+  {
+    "id": "macbook_pro_14_m3_max",
+    "name": "MacBook Pro 14\" (M3 Max)",
+    "company": "Apple",
+    "category": "笔记本",
+    "price": 21999,
+    "releaseDate": "new Date('2023-11-07')",
+    "description": "MacBook Pro 14英寸，搭载M3 Max芯片"
+  },
+  {
+    "id": "macbook_pro_14_m3_pro",
+    "name": "MacBook Pro 14\" (M3 Pro)",
+    "company": "Apple",
+    "category": "笔记本",
+    "price": 15999,
+    "releaseDate": "new Date('2023-11-07')",
+    "description": "MacBook Pro 14英寸，搭载M3 Pro芯片"
+  },
+  {
+    "id": "macbook_pro_14_m3",
+    "name": "MacBook Pro 14\" (M3)",
+    "company": "Apple",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MacBook+Pro+14+M3",
+    "price": 12999,
+    "releaseDate": "new Date('2023-11-07')",
+    "description": "MacBook Pro 14英寸，搭载M3芯片"
+  },
+  {
+    "id": "macbook_air_15_m3",
+    "name": "MacBook Air 15\" (M3)",
+    "company": "Apple",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MacBook+Air+15+M3",
+    "price": 10499,
+    "releaseDate": "new Date('2024-03-04')",
+    "description": "MacBook Air 15英寸，搭载M3芯片，超薄设计"
+  },
+  {
+    "id": "macbook_air_13_m3",
+    "name": "MacBook Air 13\" (M3)",
+    "company": "Apple",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MacBook+Air+13+M3",
+    "price": 8999,
+    "releaseDate": "new Date('2024-03-04')",
+    "description": "MacBook Air 13英寸，搭载M3芯片，轻薄便携"
+  },
+  {
+    "id": "macbook_air_15_m2",
+    "name": "MacBook Air 15\" (M2)",
+    "company": "Apple",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MacBook+Air+15+M2",
+    "price": 9999,
+    "releaseDate": "new Date('2023-06-13')",
+    "description": "MacBook Air 15英寸，搭载M2芯片"
+  },
+  {
+    "id": "macbook_air_13_m2",
+    "name": "MacBook Air 13\" (M2)",
+    "company": "Apple",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MacBook+Air+13+M2",
+    "price": 8999,
+    "releaseDate": "new Date('2022-07-15')",
+    "description": "MacBook Air 13英寸，搭载M2芯片，全新设计"
+  },
+  {
+    "id": "ipad_pro_13_m4",
+    "name": "iPad Pro 13\" (M4)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+Pro+13+M4",
+    "price": 10999,
+    "releaseDate": "new Date('2024-05-07')",
+    "description": "iPad Pro 13英寸，搭载M4芯片，超薄OLED显示屏"
+  },
+  {
+    "id": "ipad_pro_11_m4",
+    "name": "iPad Pro 11\" (M4)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+Pro+11+M4",
+    "price": 8999,
+    "releaseDate": "new Date('2024-05-07')",
+    "description": "iPad Pro 11英寸，搭载M4芯片，超薄OLED显示屏"
+  },
+  {
+    "id": "ipad_air_13_m2",
+    "name": "iPad Air 13\" (M2)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+Air+13+M2",
+    "price": 6499,
+    "releaseDate": "new Date('2024-05-07')",
+    "description": "iPad Air 13英寸，首次推出大屏Air，搭载M2芯片"
+  },
+  {
+    "id": "ipad_air_11_m2",
+    "name": "iPad Air 11\" (M2)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+Air+11+M2",
+    "price": 4799,
+    "releaseDate": "new Date('2024-05-07')",
+    "description": "iPad Air 11英寸，搭载M2芯片，性价比之选"
+  },
+  {
+    "id": "ipad_10th",
+    "name": "iPad (第10代)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+10",
+    "price": 3499,
+    "releaseDate": "new Date('2022-10-26')",
+    "description": "iPad 第10代，全新彩色设计，日常使用的理想选择"
+  },
+  {
+    "id": "ipad_mini_6",
+    "name": "iPad mini (第6代)",
+    "company": "Apple",
+    "category": "平板电脑",
+    "imageUrl": "https://via.placeholder.com/300x300?text=iPad+mini+6",
+    "price": 3999,
+    "releaseDate": "new Date('2021-09-24')",
+    "description": "iPad mini 第6代，小巧便携，搭载A15 Bionic芯片"
+  },
+  {
+    "id": "apple_watch_series_9_45mm",
+    "name": "Apple Watch Series 9 (45mm)",
+    "company": "Apple",
+    "category": "智能手表",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Watch+Series+9",
+    "price": 3199,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "Apple Watch Series 9，搭载S9芯片，支持双指互点手势"
+  },
+  {
+    "id": "apple_watch_series_9_41mm",
+    "name": "Apple Watch Series 9 (41mm)",
+    "company": "Apple",
+    "category": "智能手表",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Watch+Series+9",
+    "price": 2999,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "Apple Watch Series 9 小尺寸版本"
+  },
+  {
+    "id": "apple_watch_ultra_2",
+    "name": "Apple Watch Ultra 2",
+    "company": "Apple",
+    "category": "智能手表",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Watch+Ultra+2",
+    "price": 6499,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "Apple Watch Ultra 2，极限运动专用，搭载钛金属表壳"
+  },
+  {
+    "id": "apple_watch_se_2_44mm",
+    "name": "Apple Watch SE (第2代) 44mm",
+    "company": "Apple",
+    "category": "智能手表",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Watch+SE+2",
+    "price": 1999,
+    "releaseDate": "new Date('2022-09-16')",
+    "description": "Apple Watch SE 第2代，经济实惠的入门之选"
+  },
+  {
+    "id": "apple_watch_se_2_40mm",
+    "name": "Apple Watch SE (第2代) 40mm",
+    "company": "Apple",
+    "category": "智能手表",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Watch+SE+2",
+    "price": 1799,
+    "releaseDate": "new Date('2022-09-16')",
+    "description": "Apple Watch SE 第2代 小尺寸版本"
+  },
+  {
+    "id": "airpods_pro_2_usbc",
+    "name": "AirPods Pro (第2代 USB-C)",
+    "company": "Apple",
+    "category": "耳机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=AirPods+Pro+2",
+    "price": 1899,
+    "releaseDate": "new Date('2023-09-22')",
+    "description": "AirPods Pro 第2代 USB-C版，搭载H2芯片，主动降噪"
+  },
+  {
+    "id": "airpods_pro_2",
+    "name": "AirPods Pro (第2代)",
+    "company": "Apple",
+    "category": "耳机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=AirPods+Pro+2",
+    "price": 1899,
+    "releaseDate": "new Date('2022-09-23')",
+    "description": "AirPods Pro 第2代，搭载H2芯片，主动降噪提升2倍"
+  },
+  {
+    "id": "airpods_3",
+    "name": "AirPods (第3代)",
+    "company": "Apple",
+    "category": "耳机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=AirPods+3",
+    "price": 1399,
+    "releaseDate": "new Date('2021-10-26')",
+    "description": "AirPods 第3代，全新设计，支持空间音频"
+  },
+  {
+    "id": "airpods_max",
+    "name": "AirPods Max",
+    "company": "Apple",
+    "category": "耳机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=AirPods+Max",
+    "price": 4399,
+    "releaseDate": "new Date('2020-12-15')",
+    "description": "AirPods Max，头戴式耳机，主动降噪，高保真音质"
+  },
+  {
+    "id": "galaxy_s24_ultra",
+    "name": "Galaxy S24 Ultra",
+    "company": "Samsung",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Galaxy+S24+Ultra",
+    "price": 9999,
+    "releaseDate": "new Date('2024-01-17')",
+    "description": "Samsung 最强旗舰手机"
+  },
+  {
+    "id": "galaxy_s24",
+    "name": "Galaxy S24",
+    "company": "Samsung",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Galaxy+S24",
+    "price": 5999,
+    "releaseDate": "new Date('2024-01-17')",
+    "description": "Galaxy S24 标准版"
+  },
+  {
+    "id": "mate_60_pro",
+    "name": "Mate 60 Pro",
+    "company": "Huawei",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Mate+60+Pro",
+    "price": 6999,
+    "releaseDate": "new Date('2023-08-29')",
+    "description": "华为旗舰手机，支持5G"
+  },
+  {
+    "id": "matebook_x_pro",
+    "name": "MateBook X Pro",
+    "company": "Huawei",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=MateBook+X+Pro",
+    "price": 8999,
+    "releaseDate": "new Date('2023-09-25')",
+    "description": "华为高端商务笔记本"
+  },
+  {
+    "id": "xiaomi_14_ultra",
+    "name": "Xiaomi 14 Ultra",
+    "company": "Xiaomi",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Xiaomi+14+Ultra",
+    "price": 5999,
+    "releaseDate": "new Date('2024-02-22')",
+    "description": "小米超大杯旗舰"
+  },
+  {
+    "id": "redmi_note_13_pro",
+    "name": "Redmi Note 13 Pro",
+    "company": "Xiaomi",
+    "category": "手机",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Redmi+Note+13+Pro",
+    "price": 1799,
+    "releaseDate": "new Date('2023-09-21')",
+    "description": "Redmi 性价比中端机"
+  },
+  {
+    "id": "xps_13",
+    "name": "XPS 13",
+    "company": "Dell",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Dell+XPS+13",
+    "price": 9999,
+    "releaseDate": "new Date('2023-10-03')",
+    "description": "Dell XPS 系列高端超极本"
+  },
+  {
+    "id": "g15_gaming",
+    "name": "G15 Gaming",
+    "company": "Dell",
+    "category": "游戏本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=Dell+G15",
+    "price": 6999,
+    "releaseDate": "new Date('2023-08-15')",
+    "description": "Dell 游戏本，RTX 4060 显卡"
+  },
+  {
+    "id": "pavilion_15",
+    "name": "Pavilion 15",
+    "company": "HP",
+    "category": "笔记本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=HP+Pavilion+15",
+    "price": 4999,
+    "releaseDate": "new Date('2023-07-12')",
+    "description": "HP Pavilion 系列日常办公本"
+  },
+  {
+    "id": "omen_16",
+    "name": "OMEN 16",
+    "company": "HP",
+    "category": "游戏本",
+    "imageUrl": "https://via.placeholder.com/300x300?text=HP+OMEN+16",
+    "price": 8999,
+    "releaseDate": "new Date('2023-09-08')",
+    "description": "HP OMEN 游戏本，RTX 4070 显卡"
+  }
+]

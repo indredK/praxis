@@ -11,6 +11,7 @@ import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/exchange_rate/presentation/pages/exchange_rate_page.dart';
 import 'features/product/presentation/pages/product_comparison_page.dart';
 import 'features/product/presentation/pages/product_selection_page.dart';
+import 'features/product/presentation/pages/api_test_page.dart';
 import 'presentation/viewmodels/main_viewmodel.dart';
 import 'features/calculator/domain/viewmodels/calculator_viewmodel.dart';
 import 'l10n/app_localizations.dart';
@@ -141,6 +142,7 @@ class MyApp extends StatelessWidget {
       AppConstants.routeCalculator: (context) => const CalculatorPage(),
       AppConstants.routeExchangeRate: (context) => const ExchangeRatePage(),
       AppConstants.routeSettings: (context) => const SettingsPage(),
+      AppConstants.routeApiTest: (context) => const ApiTestPage(), // API测试
     };
   }
 

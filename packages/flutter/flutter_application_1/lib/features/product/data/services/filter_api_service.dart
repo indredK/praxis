@@ -1,26 +1,39 @@
 import '../../domain/models/advanced_filter_models.dart';
 import '../mock/filter_mock_data.dart';
+import '../../../../config/api_config.dart';
+import '../../../../core/services/http_client.dart';
 
-/// 筛选器API服务 - 模拟后端数据获取
+/// 筛选器API服务 - 支持真实后端和Mock数据
 class FilterApiService {
   static FilterApiService? _instance;
   static FilterApiService get instance => _instance ??= FilterApiService._();
 
   FilterApiService._();
 
+  // 延迟获取HttpClient实例，避免在Web环境初始化问题
+  HttpClient get _httpClient => HttpClient.instance;
+
   /// 获取筛选器配置
   Future<FilterTreeConfig> getFilterConfig() async {
     try {
-      // 模拟网络延迟
-      await FilterMockData.simulateNetworkDelay();
+      // 如果启用Mock数据，使用本地数据
+      if (ApiConfig.useMockData) {
+        await FilterMockData.simulateNetworkDelay();
+        return FilterMockData.getFilterConfig();
+      }
 
-      // 模拟偶尔的网络错误（用于测试错误处理）
-      // await FilterMockData.simulateNetworkError();
+      // 调用真实后端API
+      print('📡 正在请求后端API: ${ApiConfig.filtersUrl}');
+      final response = await _httpClient.get(ApiConfig.filtersUrl);
+      print('✅ 后端响应成功');
 
-      // 返回模拟数据
+      // 后端返回格式: { filterTree: {...}, comparisonModes: {...} }
+      return FilterTreeConfig.fromJson(response);
+    } catch (e, stackTrace) {
+      // 失败时fallback到Mock数据
+      print('⚠️ 后端请求失败，使用Mock数据: $e');
+      print('堆栈: $stackTrace');
       return FilterMockData.getFilterConfig();
-    } catch (e) {
-      throw Exception('获取筛选器配置失败: $e');
     }
   }
 

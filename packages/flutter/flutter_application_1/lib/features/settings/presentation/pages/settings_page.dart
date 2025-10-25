@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/state/app_state_manager.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// 设置页面
@@ -10,7 +11,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.settings),
@@ -67,7 +68,9 @@ class SettingsPage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.language),
                   title: Text(l10n.language),
-                  subtitle: Text('${l10n.currentLanguage}: ${appStateManager.currentLanguage}'),
+                  subtitle: Text(
+                    '${l10n.currentLanguage}: ${appStateManager.currentLanguage}',
+                  ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // 显示语言选择对话框
@@ -95,6 +98,22 @@ class SettingsPage extends StatelessWidget {
                   onTap: () {
                     // 显示颜色选择对话框
                     _showColorDialog(context, appStateManager, l10n);
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 开发者选项
+              Card(
+                color: Colors.amber.shade50,
+                child: ListTile(
+                  leading: const Icon(Icons.code, color: Colors.orange),
+                  title: const Text('🧪 API测试'),
+                  subtitle: const Text('测试后端接口连接'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, AppConstants.routeApiTest);
                   },
                 ),
               ),
@@ -178,9 +197,24 @@ class SettingsPage extends StatelessWidget {
           runSpacing: 16,
           children: [
             _buildColorOption(context, Colors.blue, l10n.blue, appStateManager),
-            _buildColorOption(context, Colors.green, l10n.green, appStateManager),
-            _buildColorOption(context, Colors.purple, l10n.purple, appStateManager),
-            _buildColorOption(context, Colors.orange, l10n.orange, appStateManager),
+            _buildColorOption(
+              context,
+              Colors.green,
+              l10n.green,
+              appStateManager,
+            ),
+            _buildColorOption(
+              context,
+              Colors.purple,
+              l10n.purple,
+              appStateManager,
+            ),
+            _buildColorOption(
+              context,
+              Colors.orange,
+              l10n.orange,
+              appStateManager,
+            ),
             _buildColorOption(context, Colors.red, l10n.red, appStateManager),
             _buildColorOption(context, Colors.teal, l10n.teal, appStateManager),
           ],

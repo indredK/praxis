@@ -11,6 +11,7 @@ import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { AuthModule } from './auth/auth.module';
+import { FiltersModule } from './filters/filters.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     UsersModule,
     ProductsModule,
+    FiltersModule,
   ],
   controllers: [AppController],
   providers: [

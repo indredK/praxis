@@ -18,8 +18,12 @@ export class ProductsService {
    * Create a new product
    */
   async create(createProductDto: CreateProductDto): Promise<Product> {
+    const { id, ...data } = createProductDto;
     return this.prisma.product.create({
-      data: createProductDto,
+      data: {
+        id: id || `product_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        ...data,
+      },
     });
   }
 
