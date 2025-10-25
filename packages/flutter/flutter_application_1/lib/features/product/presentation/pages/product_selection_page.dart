@@ -74,6 +74,155 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
     }
   }
 
+  // 构建筛选器内容
+  Widget _buildFilterContent() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 根据可用宽度调整布局
+        final isNarrow = constraints.maxWidth < 400;
+
+        return Column(
+          children: [
+            // 筛选器标题和对比模式选择
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.shadow.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: SegmentedButton<String>(
+                          segments: [
+                            ButtonSegment<String>(
+                              value: 'same_brand',
+                              label: Text(isNarrow ? '自家' : '自家对比'),
+                              icon: const Icon(Icons.business, size: 18),
+                            ),
+                            ButtonSegment<String>(
+                              value: 'same_category',
+                              label: Text(isNarrow ? '同类' : '同类对比'),
+                              icon: const Icon(Icons.category, size: 18),
+                            ),
+                          ],
+                          selected: {_stateService.comparisonMode},
+                          onSelectionChanged: (Set<String> selection) {
+                            if (selection.isNotEmpty) {
+                              setState(() {
+                                _stateService.setComparisonMode(
+                                  selection.first,
+                                );
+                              });
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                                WidgetStateProperty.resolveWith<Color?>((
+                                  Set<MaterialState> states,
+                                ) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return Theme.of(context).primaryColor;
+                                  }
+                                  return Colors.transparent;
+                                }),
+                            foregroundColor:
+                                WidgetStateProperty.resolveWith<Color?>((
+                                  Set<MaterialState> states,
+                                ) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return Colors.white;
+                                  }
+                                  return Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface;
+                                }),
+                            side: WidgetStateProperty.resolveWith<BorderSide?>((
+                              Set<MaterialState> states,
+                            ) {
+                              return BorderSide.none;
+                            }),
+                            shape:
+                                WidgetStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                            padding:
+                                WidgetStateProperty.all<EdgeInsetsGeometry>(
+                                  EdgeInsets.symmetric(
+                                    horizontal: isNarrow ? 8 : 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // 筛选器内容
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: AdvancedFilterWidget(
+                  comparisonMode: _stateService.comparisonMode,
+                  initialSelection: _advancedFilterSelection,
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      _advancedFilterSelection = selection;
+                    });
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredProducts = _isLoading
@@ -139,243 +288,114 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
           const SizedBox(width: 16),
         ],
       ),
-      body: Row(
-        children: [
-          // 左侧筛选器 - 使用Card包装
-          SizedBox(
-            width: 320, // 增加宽度以容纳固定宽度的筛选器
-            child: Card(
-              margin: const EdgeInsets.all(12),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  // 筛选器标题和对比模式选择
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withValues(alpha: 0.2),
-                          width: 1,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // 响应式布局：宽屏显示筛选器，窄屏隐藏
+          final showFilter = constraints.maxWidth >= 800;
+
+          return Row(
+            children: [
+              // 左侧筛选器 - 宽屏显示
+              if (showFilter)
+                SizedBox(
+                  width: 320,
+                  child: Card(
+                    margin: const EdgeInsets.all(12),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: _buildFilterContent(),
+                  ),
+                ),
+              // 右侧产品列表 - 使用Card包装
+              Expanded(
+                child: Card(
+                  margin: const EdgeInsets.all(12),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: _isLoading
+                      ? _buildSkeletonScreen()
+                      : MaterialProductList(
+                          products: filteredProducts,
+                          selectedProductIds: _stateService.selectedProductIds,
+                          onProductTap: (product) {
+                            setState(() {
+                              if (_stateService.isProductSelected(product.id)) {
+                                // 如果已选中，则取消选择
+                                _stateService.removeProductId(product.id);
+                              } else {
+                                // 如果未选中，则添加选择
+                                if (_stateService.selectedCount <
+                                    SettingsService.maxProducts) {
+                                  _stateService.addProductId(product.id);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                }
+                              }
+                            });
+                          },
+                          onProductLongPress: (product) {
+                            _showProductDetails(product);
+                          },
+                          onProductSelect: (product) {
+                            setState(() {
+                              if (_stateService.isProductSelected(product.id)) {
+                                // 如果已选中，则取消选择
+                                _stateService.removeProductId(product.id);
+                              } else {
+                                // 如果未选中，则添加选择
+                                if (_stateService.selectedCount <
+                                    SettingsService.maxProducts) {
+                                  _stateService.addProductId(product.id);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                }
+                              }
+                            });
+                          },
+                          onProductDetails: (product) {
+                            _showProductDetails(product);
+                          },
+                          isLoading: _isLoading,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.shadow.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 300, // 增加宽度避免文字换行
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.outline.withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.shadow.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: SegmentedButton<String>(
-                                  segments: const [
-                                    ButtonSegment<String>(
-                                      value: 'same_brand',
-                                      label: Text('自家对比'),
-                                      icon: Icon(Icons.business, size: 18),
-                                    ),
-                                    ButtonSegment<String>(
-                                      value: 'same_category',
-                                      label: Text('同类对比'),
-                                      icon: Icon(Icons.category, size: 18),
-                                    ),
-                                  ],
-                                  selected: {_stateService.comparisonMode},
-                                  onSelectionChanged: (Set<String> selection) {
-                                    if (selection.isNotEmpty) {
-                                      setState(() {
-                                        _stateService.setComparisonMode(
-                                          selection.first,
-                                        );
-                                      });
-                                    }
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor:
-                                        WidgetStateProperty.resolveWith<Color?>(
-                                          (Set<MaterialState> states) {
-                                            if (states.contains(
-                                              MaterialState.selected,
-                                            )) {
-                                              return Theme.of(
-                                                context,
-                                              ).primaryColor;
-                                            }
-                                            return Colors.transparent;
-                                          },
-                                        ),
-                                    foregroundColor:
-                                        WidgetStateProperty.resolveWith<Color?>(
-                                          (Set<MaterialState> states) {
-                                            if (states.contains(
-                                              MaterialState.selected,
-                                            )) {
-                                              return Colors.white;
-                                            }
-                                            return Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface;
-                                          },
-                                        ),
-                                    side:
-                                        WidgetStateProperty.resolveWith<
-                                          BorderSide?
-                                        >((Set<MaterialState> states) {
-                                          return BorderSide.none;
-                                        }),
-                                    shape:
-                                        WidgetStateProperty.all<
-                                          RoundedRectangleBorder
-                                        >(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                    padding:
-                                        WidgetStateProperty.all<
-                                          EdgeInsetsGeometry
-                                        >(
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // 筛选器内容
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: AdvancedFilterWidget(
-                        comparisonMode: _stateService.comparisonMode,
-                        initialSelection: _advancedFilterSelection,
-                        onSelectionChanged: (selection) {
-                          setState(() {
-                            _advancedFilterSelection = selection;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          // 右侧产品列表 - 使用Card包装
-          Expanded(
-            child: Card(
-              margin: const EdgeInsets.all(12),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: _isLoading
-                  ? _buildSkeletonScreen()
-                  : MaterialProductList(
-                      products: filteredProducts,
-                      selectedProductIds: _stateService.selectedProductIds,
-                      onProductTap: (product) {
-                        setState(() {
-                          if (_stateService.isProductSelected(product.id)) {
-                            // 如果已选中，则取消选择
-                            _stateService.removeProductId(product.id);
-                          } else {
-                            // 如果未选中，则添加选择
-                            if (_stateService.selectedCount <
-                                SettingsService.maxProducts) {
-                              _stateService.addProductId(product.id);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
-                                  ),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            }
-                          }
-                        });
-                      },
-                      onProductLongPress: (product) {
-                        _showProductDetails(product);
-                      },
-                      onProductSelect: (product) {
-                        setState(() {
-                          if (_stateService.isProductSelected(product.id)) {
-                            // 如果已选中，则取消选择
-                            _stateService.removeProductId(product.id);
-                          } else {
-                            // 如果未选中，则添加选择
-                            if (_stateService.selectedCount <
-                                SettingsService.maxProducts) {
-                              _stateService.addProductId(product.id);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
-                                  ),
-                                  backgroundColor: Colors.orange,
-                                ),
-                              );
-                            }
-                          }
-                        });
-                      },
-                      onProductDetails: (product) {
-                        _showProductDetails(product);
-                      },
-                      isLoading: _isLoading,
-                    ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
+      ),
+      // 窄屏时显示筛选器浮动按钮
+      floatingActionButton: LayoutBuilder(
+        builder: (context, constraints) {
+          final showFilterButton = constraints.maxWidth < 800;
+
+          if (!showFilterButton) return const SizedBox.shrink();
+
+          return FloatingActionButton.extended(
+            onPressed: _showFilterDrawer,
+            icon: const Icon(Icons.filter_list),
+            label: const Text('筛选'),
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
+          );
+        },
       ),
     );
   }
@@ -441,6 +461,67 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
     showDialog(
       context: context,
       builder: (context) => ProductDetailsDialog(product: product),
+    );
+  }
+
+  // 显示筛选器抽屉
+  void _showFilterDrawer() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // 拖动指示器
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // 标题栏
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '筛选器',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // 筛选器内容
+              Expanded(child: _buildFilterContent()),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
