@@ -92,7 +92,7 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return _buildFilterSkeleton();
     }
 
     if (_errorMessage != null) {
@@ -338,6 +338,67 @@ class _AdvancedFilterWidgetState extends State<AdvancedFilterWidget> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
+    );
+  }
+
+  /// 筛选器骨架屏
+  Widget _buildFilterSkeleton() {
+    return ListView.builder(
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildShimmer(
+                child: Container(
+                  height: 16,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(4, (i) {
+                  return _buildShimmer(
+                    child: Container(
+                      height: 32,
+                      width: 60 + (i * 10.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 闪烁动画
+  Widget _buildShimmer({required Widget child}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1.0),
+      duration: const Duration(milliseconds: 1000),
+      builder: (context, value, _child) {
+        return Opacity(opacity: value, child: _child);
+      },
+      onEnd: () {
+        if (mounted && _isLoading) {
+          setState(() {});
+        }
+      },
+      child: child,
     );
   }
 }

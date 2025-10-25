@@ -46,23 +46,22 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
 
   Future<void> _loadProducts() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
       List<models.Product> products;
       final cachedProducts = GlobalDataCache.getProducts();
       if (cachedProducts != null && cachedProducts.isNotEmpty) {
         products = cachedProducts;
+        setState(() {
+          _products = products;
+          _isLoading = false;
+        });
       } else {
         final dataServiceProducts = await DataService.getAllProducts();
         products = dataServiceProducts.cast<models.Product>();
+        setState(() {
+          _products = products;
+          _isLoading = false;
+        });
       }
-
-      setState(() {
-        _products = products;
-        _isLoading = false;
-      });
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -77,11 +76,9 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final filteredProducts = _getFilteredProducts();
+    final filteredProducts = _isLoading
+        ? <models.Product>[]
+        : _getFilteredProducts();
 
     return Scaffold(
       appBar: AppBar(
@@ -317,63 +314,65 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: MaterialProductList(
-                products: filteredProducts,
-                selectedProductIds: _stateService.selectedProductIds,
-                onProductTap: (product) {
-                  setState(() {
-                    if (_stateService.isProductSelected(product.id)) {
-                      // 如果已选中，则取消选择
-                      _stateService.removeProductId(product.id);
-                    } else {
-                      // 如果未选中，则添加选择
-                      if (_stateService.selectedCount <
-                          SettingsService.maxProducts) {
-                        _stateService.addProductId(product.id);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '最多只能选择${SettingsService.maxProducts}个产品进行对比',
-                            ),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                      }
-                    }
-                  });
-                },
-                onProductLongPress: (product) {
-                  _showProductDetails(product);
-                },
-                onProductSelect: (product) {
-                  setState(() {
-                    if (_stateService.isProductSelected(product.id)) {
-                      // 如果已选中，则取消选择
-                      _stateService.removeProductId(product.id);
-                    } else {
-                      // 如果未选中，则添加选择
-                      if (_stateService.selectedCount <
-                          SettingsService.maxProducts) {
-                        _stateService.addProductId(product.id);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '最多只能选择${SettingsService.maxProducts}个产品进行对比',
-                            ),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                      }
-                    }
-                  });
-                },
-                onProductDetails: (product) {
-                  _showProductDetails(product);
-                },
-                isLoading: _isLoading,
-              ),
+              child: _isLoading
+                  ? _buildSkeletonScreen()
+                  : MaterialProductList(
+                      products: filteredProducts,
+                      selectedProductIds: _stateService.selectedProductIds,
+                      onProductTap: (product) {
+                        setState(() {
+                          if (_stateService.isProductSelected(product.id)) {
+                            // 如果已选中，则取消选择
+                            _stateService.removeProductId(product.id);
+                          } else {
+                            // 如果未选中，则添加选择
+                            if (_stateService.selectedCount <
+                                SettingsService.maxProducts) {
+                              _stateService.addProductId(product.id);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          }
+                        });
+                      },
+                      onProductLongPress: (product) {
+                        _showProductDetails(product);
+                      },
+                      onProductSelect: (product) {
+                        setState(() {
+                          if (_stateService.isProductSelected(product.id)) {
+                            // 如果已选中，则取消选择
+                            _stateService.removeProductId(product.id);
+                          } else {
+                            // 如果未选中，则添加选择
+                            if (_stateService.selectedCount <
+                                SettingsService.maxProducts) {
+                              _stateService.addProductId(product.id);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '最多只能选择${SettingsService.maxProducts}个产品进行对比',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          }
+                        });
+                      },
+                      onProductDetails: (product) {
+                        _showProductDetails(product);
+                      },
+                      isLoading: _isLoading,
+                    ),
             ),
           ),
         ],
@@ -430,10 +429,8 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
       listen: false,
     );
 
-    // 设置选中的产品ID
-    for (final productId in _stateService.selectedProductIds) {
-      appStateManager.addSelectedProduct(productId);
-    }
+    // 直接设置选中的产品ID列表，这样会清除旧的选择并使用新的选择
+    appStateManager.setSelectedProducts(_stateService.selectedProductIds);
 
     // 显示对比页面
     appStateManager.showComparisonPage();
@@ -444,6 +441,126 @@ class _ProductSelectionPageState extends State<ProductSelectionPage> {
     showDialog(
       context: context,
       builder: (context) => ProductDetailsDialog(product: product),
+    );
+  }
+
+  /// 骨架屏
+  Widget _buildSkeletonScreen() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return _buildSkeletonCard();
+      },
+    );
+  }
+
+  /// 骨架卡片
+  Widget _buildSkeletonCard() {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildShimmer(
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildShimmer(
+                    child: Container(
+                      height: 20,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildShimmer(
+                    child: Container(
+                      height: 16,
+                      width: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildShimmer(
+                        child: Container(
+                          height: 14,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildShimmer(
+                        child: Container(
+                          height: 14,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            _buildShimmer(
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 闪烁动画
+  Widget _buildShimmer({required Widget child}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1.0),
+      duration: const Duration(milliseconds: 1000),
+      builder: (context, value, _child) {
+        return Opacity(opacity: value, child: _child);
+      },
+      onEnd: () {
+        if (mounted && _isLoading) {
+          setState(() {});
+        }
+      },
+      child: child,
     );
   }
 }
