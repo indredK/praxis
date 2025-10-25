@@ -1,58 +1,52 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
+import { Product } from '@prisma/client';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 /**
- * Products service with pagination support
+ * Products Service
+ * Best Practice: Uses Prisma with pagination support
+ * Repository Pattern: Encapsulates all product data access
  */
 @Injectable()
 export class ProductsService {
-  private products: Product[] = [
-    new Product({
-      id: '1',
-      name: 'Sample Product 1',
-      description: 'This is a sample product',
-      price: 99.99,
-      stock: 100,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }),
-    new Product({
-      id: '2',
-      name: 'Sample Product 2',
-      description: 'Another sample product',
-      price: 149.99,
-      stock: 50,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }),
-  ];
-  private currentId = 3;
+  constructor(private prisma: PrismaService) {}
 
-  create(createProductDto: CreateProductDto): Product {
-    const product = new Product({
-      id: String(this.currentId++),
-      ...createProductDto,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  /**
+   * Create a new product
+   */
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    return this.prisma.product.create({
+      data: createProductDto,
     });
-
-    this.products.push(product);
-    return product;
   }
 
-  findAll(paginationDto: PaginationDto): PaginatedResponse<Product> {
+  /**
+   * Get all products with pagination
+   * Best Practice: Efficient pagination using skip/take
+   */
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<Product>> {
     const { page = 1, limit = 10 } = paginationDto;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
+    const skip = (page - 1) * limit;
 
-    const paginatedProducts = this.products.slice(startIndex, endIndex);
-    const total = this.products.length;
+    // Execute count and findMany in parallel for better performance
+    const [total, products] = await Promise.all([
+      this.prisma.product.count(),
+      this.prisma.product.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+    ]);
 
     return {
-      data: paginatedProducts,
+      data: products,
       meta: {
         total,
         page,
@@ -62,36 +56,47 @@ export class ProductsService {
     };
   }
 
-  findOne(id: string): Product {
-    const product = this.products.find((p) => p.id === id);
+  /**
+   * Get product by ID
+   */
+  async findOne(id: string): Promise<Product> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
+
     return product;
   }
 
-  update(id: string, updateProductDto: UpdateProductDto): Product {
-    const productIndex = this.products.findIndex((p) => p.id === id);
-    if (productIndex === -1) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
+  /**
+   * Update product
+   */
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    // Check if product exists
+    await this.findOne(id);
 
-    const updatedProduct = {
-      ...this.products[productIndex],
-      ...updateProductDto,
-      updatedAt: new Date(),
-    };
-
-    this.products[productIndex] = updatedProduct;
-    return updatedProduct;
+    return this.prisma.product.update({
+      where: { id },
+      data: updateProductDto,
+    });
   }
 
-  remove(id: string): void {
-    const productIndex = this.products.findIndex((p) => p.id === id);
-    if (productIndex === -1) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    this.products.splice(productIndex, 1);
+  /**
+   * Delete product
+   */
+  async remove(id: string): Promise<void> {
+    // Check if product exists
+    await this.findOne(id);
+
+    await this.prisma.product.delete({
+      where: { id },
+    });
   }
 }
 
