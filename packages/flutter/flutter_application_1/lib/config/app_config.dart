@@ -21,18 +21,20 @@ class AppConfig {
   // 产品类别 - 前端固定
   static const List<String> productCategories = [
     '手机',
-    '笔记本电脑',
+    '笔记本',
     '平板电脑',
     '智能手表',
     '耳机',
     '汽车',
     '家电',
     '游戏设备',
+    '游戏本',
   ];
 
   // 产品类别logo配置 - 前端固定
   static const Map<String, String> categoryLogos = {
     '手机': '📱',
+    '笔记本': '💻',
     '笔记本电脑': '💻',
     '平板电脑': '📱',
     '智能手表': '⌚',
@@ -40,21 +42,29 @@ class AppConfig {
     '汽车': '🚗',
     '家电': '🏠',
     '游戏设备': '🎮',
+    '游戏本': '🎮',
   };
 
   // 规格参数配置 - 前端固定，定义所有可能的参数类型
   static const Map<String, SpecConfig> specConfigs = {
     // 手机相关参数
-    '手机屏幕尺寸': SpecConfig(unit: '英寸', type: SpecType.number, category: '手机'),
-    '手机分辨率': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
-    '手机处理器': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
-    '手机内存': SpecConfig(unit: 'GB', type: SpecType.number, category: '手机'),
-    '手机存储': SpecConfig(unit: 'GB', type: SpecType.number, category: '手机'),
-    '手机摄像头': SpecConfig(unit: 'MP', type: SpecType.text, category: '手机'),
-    '手机电池容量': SpecConfig(unit: 'mAh', type: SpecType.number, category: '手机'),
-    '手机重量': SpecConfig(unit: 'g', type: SpecType.number, category: '手机'),
-    '手机防水等级': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
-    '手机操作系统': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '屏幕尺寸': SpecConfig(unit: '英寸', type: SpecType.text, category: '手机'),
+    '分辨率': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '处理器': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '内存': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '存储': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '主摄像头': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '超广角': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '长焦': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '前置摄像头': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '电池容量': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '重量': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '厚度': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '防水等级': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '操作系统': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '屏幕刷新率': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '峰值亮度': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
+    '充电功率': SpecConfig(unit: '', type: SpecType.text, category: '手机'),
 
     // 汽车相关参数
     '续航里程': SpecConfig(unit: 'km', type: SpecType.number, category: '汽车'),
@@ -67,17 +77,33 @@ class AppConfig {
     '自动驾驶': SpecConfig(unit: '', type: SpecType.text, category: '汽车'),
     '车身长度': SpecConfig(unit: 'mm', type: SpecType.number, category: '汽车'),
 
-    // 笔记本电脑相关参数
-    '笔记本屏幕尺寸': SpecConfig(unit: '英寸', type: SpecType.number, category: '笔记本电脑'),
-    '笔记本分辨率': SpecConfig(unit: '', type: SpecType.text, category: '笔记本电脑'),
-    '笔记本处理器': SpecConfig(unit: '', type: SpecType.text, category: '笔记本电脑'),
-    '笔记本内存': SpecConfig(unit: 'GB', type: SpecType.number, category: '笔记本电脑'),
-    '笔记本存储': SpecConfig(unit: 'GB', type: SpecType.number, category: '笔记本电脑'),
-    '显卡': SpecConfig(unit: '', type: SpecType.text, category: '笔记本电脑'),
-    '电池续航': SpecConfig(unit: '小时', type: SpecType.number, category: '笔记本电脑'),
-    '笔记本重量': SpecConfig(unit: 'kg', type: SpecType.number, category: '笔记本电脑'),
-    '接口': SpecConfig(unit: '', type: SpecType.text, category: '笔记本电脑'),
-    '笔记本操作系统': SpecConfig(unit: '', type: SpecType.text, category: '笔记本电脑'),
+    // 笔记本电脑相关参数 (支持"笔记本"和"笔记本电脑"两种类别)
+    '显卡': SpecConfig(unit: '', type: SpecType.text, category: '笔记本'),
+    '电池续航': SpecConfig(unit: '', type: SpecType.text, category: '笔记本'),
+    '接口': SpecConfig(unit: '', type: SpecType.text, category: '笔记本'),
+    '音频': SpecConfig(unit: '', type: SpecType.text, category: '笔记本'),
+    '摄像头': SpecConfig(unit: '', type: SpecType.text, category: '笔记本'),
+
+    // 平板电脑相关参数
+    '显示技术': SpecConfig(unit: '', type: SpecType.text, category: '平板电脑'),
+
+    // 智能手表相关参数
+    '传感器': SpecConfig(unit: '', type: SpecType.text, category: '智能手表'),
+    '连接': SpecConfig(unit: '', type: SpecType.text, category: '智能手表'),
+
+    // 耳机相关参数
+    '芯片': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '降噪': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '通透模式': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '空间音频': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '自适应音频': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '续航时间': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '充电盒续航': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '充电接口': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '充电盒重量': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '特殊功能': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '驱动单元': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
+    '材质': SpecConfig(unit: '', type: SpecType.text, category: '耳机'),
   };
 
   // 图表配置
