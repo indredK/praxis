@@ -3,40 +3,35 @@ import { MockRule } from "../../type.js";
 
 export interface Channel {
     id: string;
-    // 列表/弹窗字段统一
-    channelName: string;                   // 通道名称（展示/编辑/必填）
-    linkType: 'Serial' | 'TCP';            // 链路类型（展示/编辑/必选）
-    serialPortType?: 'RS232' | 'RS485';    // 串口类型（仅Serial时可选）
-    channelType: 'write' | 'read';         // 通道类型（展示/编辑/必选）
-    serverId: string;                      // Modbus从站设备地址（必填）
-    ipAddress?: string;                    // 仅TCP时必填，仅允许IPv4
-    port?: number;                         // 仅TCP时必填，1-65535
-    instructionType:
-    | 'readCoil'
-    | 'readDiscreteInput'
-    | 'readHoldingRegister'
-    | 'readInputRegister'
-    | 'writeSingleCoil'
-    | 'writeSingleHoldingRegister'
-    | 'writeMultipleCoils'
-    | 'writeMultipleHoldingRegister';     // 指令类型（展示/编辑/必选）
-    modbusFunctionCode?: number;           // 功能码（展示/自动维护）
-    dataType:
+    channel_name: string;                  // 通道名称（展示/编辑/必填）
+    link_type: number;                     // 链路类型（展示/编辑/必选）：0=Serial, 1=TCP
+    server_id: string;                     // Modbus从站设备地址（必填）
+    ip_address: string;                    // IP地址
+    port: number;                          // 端口，1-65535
+    command_type:
+    | 'read_coils'
+    | 'read_discrete_inputs'
+    | 'read_holding_registers'
+    | 'read_input_registers'
+    | 'write_single_coil'
+    | 'write_single_register'
+    | 'write_multiple_coils'
+    | 'write_multiple_registers';          // 指令类型（展示/编辑/必选）
+    data_type:
     | 'INT16'
     | 'INT32'
     | 'INT64'
     | 'Float32'
     | 'Float64'
     | 'ASCII'
-    | 'HEX';                             // 数据类型（展示/编辑/必选）
-    signed?: boolean;                      // 有符号/无符号（编辑/规则配置）
-    byteOrder?: string;                    // 字节顺序（编辑/规则配置）
-    registerAddress: number;               // 寄存器地址（编辑/展示，0~65535）
-    registerValue?: string;                // 寄存器值（写指令类型时必填，单个/多个空格分隔）
-    registerCount?: number;                // 寄存器数目（读指令类型时必填，1~125）
-    decimal?: number;                      // 小数位（读INT类型时可配置，0~9）
-    editable?: boolean;                    // 是否可编辑（列表操作使用）
-    isApplied?: boolean;                   // 是否应用（列表操作使用）
+    | 'HEX';                               // 数据类型（展示/编辑/必选）
+    signed: boolean;                       // 有符号/无符号（编辑/规则配置）
+    byte_order: string;                    // 字节顺序（编辑/规则配置）
+    register_address: number;              // 寄存器地址（编辑/展示，0~65535）
+    register_value: string;                // 寄存器值
+    register_count: number;                // 寄存器数目（1~125）
+    decimal_places: number;                // 小数位（0~9）
+    isApplied: boolean;                    // 是否应用（列表操作使用）
 }
 
 // 系统级参数（校验限制等）
@@ -50,58 +45,65 @@ export type ChannelList = Channel[];
 
 
 export function generateRandomChannels(count: number): ChannelList {
-    const linkTypes: Array<'Serial' | 'TCP'> = ['Serial', 'TCP'];
-    const serialPortTypes: Array<'RS232' | 'RS485'> = ['RS232', 'RS485'];
-    const channelTypes: Array<'write' | 'read'> = ['write', 'read'];
-    const instructionTypes = [
-        'readCoil',
-        'readDiscreteInput',
-        'readHoldingRegister',
-        'readInputRegister',
-        'writeSingleCoil',
-        'writeSingleHoldingRegister',
-        'writeMultipleCoils',
-        'writeMultipleHoldingRegister'
+    const linkTypes = [0, 1]; // 0=Serial, 1=TCP
+    const commandTypes = [
+        'read_coils',
+        'read_discrete_inputs',
+        'read_holding_registers',
+        'read_input_registers',
+        'write_single_coil',
+        'write_single_register',
+        'write_multiple_coils',
+        'write_multiple_registers'
     ] as const;
     const dataTypes = ['INT16', 'INT32', 'INT64', 'Float32', 'Float64', 'ASCII', 'HEX'] as const;
-    const byteOrders = ['AB', 'BA', 'AB,CD', 'CD,AB', 'BA,DC', 'DC,BA'];
+    
+    // 字节顺序选项（根据数据类型）
+    const byteOrderOptions = {
+        INT16: ['AB', 'BA'],
+        INT32: ['AB,CD', 'CD,AB', 'BA,DC', 'DC,BA'],
+        INT64: ['AB,CD,EF,GH', 'GH,EF,CD,AB', 'BA,DC,FE,HG', 'HG,FE,DC,BA'],
+        Float32: ['AB,CD', 'CD,AB', 'BA,DC', 'DC,BA'],
+        Float64: ['AB,CD,EF,GH', 'GH,EF,CD,AB', 'BA,DC,FE,HG', 'HG,FE,DC,BA'],
+        ASCII: ['ASCII'],
+        HEX: ['HEX'],
+    };
 
     const random = <T>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
     const randomInt = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
     const randomIP = (): string => `192.168.${randomInt(1, 255)}.${randomInt(1, 254)}`;
+    
+    // 根据数据类型获取对应的字节顺序
+    const getByteOrder = (dataType: typeof dataTypes[number]): string => {
+        return random(byteOrderOptions[dataType]);
+    };
 
     return Array.from({ length: count }, (_, idx) => {
-        const linkType = random(linkTypes);
-        const channelType = random(channelTypes);
-        const instructionType = random(instructionTypes);
-        const dataType = random(dataTypes);
-        const isWriteInstruction = instructionType.includes('write');
-        const isCoilInstruction = instructionType.includes('Coil') || instructionType.includes('coil');
+        const link_type = random(linkTypes);
+        const command_type = random(commandTypes);
+        const data_type = random(dataTypes);
+        const isWriteCommand = command_type.includes('write');
 
         return {
             id: String(idx + 1),
-            channelName: `通道_${String(idx + 1).padStart(3, '0')}`,
-            linkType,
-            serialPortType: linkType === 'Serial' ? random(serialPortTypes) : undefined,
-            channelType,
-            serverId: String(randomInt(1, 247)),
-            ipAddress: linkType === 'TCP' ? randomIP() : undefined,
-            port: linkType === 'TCP' ? randomInt(1024, 65535) : undefined,
-            instructionType,
-            modbusFunctionCode: randomInt(1, 16),
-            dataType,
-            signed: !isCoilInstruction ? Math.random() > 0.5 : undefined,
-            byteOrder: !isCoilInstruction ? random(byteOrders) : undefined,
-            registerAddress: randomInt(0, 65535),
-            registerValue: isWriteInstruction ?
-                (instructionType.includes('Multiple') ?
+            channel_name: `Channel_${String(idx + 1).padStart(3, '0')}`,
+            link_type,
+            server_id: `Server_${String(randomInt(1, 247)).padStart(2, '0')}`,
+            ip_address: randomIP(),
+            port: randomInt(1, 65535),
+            command_type,
+            data_type,
+            signed: Math.random() > 0.5,
+            byte_order: getByteOrder(data_type),
+            register_address: randomInt(0, 65535),
+            register_value: isWriteCommand ?
+                (command_type.includes('multiple') ?
                     Array.from({ length: randomInt(1, 5) }, () => randomInt(0, 65535)).join(' ') :
                     String(randomInt(0, 65535))
-                ) : undefined,
-            registerCount: !isWriteInstruction ? randomInt(1, 125) : undefined,
-            decimal: dataType.includes('INT') ? randomInt(0, 9) : undefined,
-            editable: Math.random() > 0.1, // 90%可编辑
-            isApplied: Math.random() > 0.5, // 50%应用
+                ) : String(randomInt(0, 65535)),
+            register_count: randomInt(1, 125),
+            decimal_places: randomInt(0, 9),
+            isApplied: Math.random() > 0.5,
         };
     });
 }
@@ -118,10 +120,10 @@ export const mockData: MockRule[] = [
         requestMatch: {
             id: 47,
             execute: 1,
-            core: "yruo_firewall_iorules",
+            core: "yruo_modbus_channelsettings",
             function: "get",
             values: [
-                { base: "yruo_firewall_channelSettings" }
+                { base: "yruo_modbus_channelsettings" }
             ],
         },
         // 使用合并后的modifier功能支持翻页
@@ -146,11 +148,11 @@ export const mockData: MockRule[] = [
                 return {
                     "get": [
                         {
-                            "type": "yruo_firewall_channelSettings",
+                            "type": "yruo_modbus_channelsettings",
                             "index": 1,
                             "value": {
-                                "server_count": allChannels.length,
-                                "server": paginatedChannels
+                                "total": allChannels.length,
+                                "channelsettings": paginatedChannels
                             }
                         }
                     ]
