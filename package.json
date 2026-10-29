@@ -72,5 +72,19 @@
     "yaml": "^2.8.1"
   },
   "packageManager": "pnpm@10.15.1",
-  "license": "ISC"
+  "license": "ISC",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@nestjs/core",
+      "unrs-resolver",
+      "@prisma/engines",
+      "bcrypt",
+      "prisma",
+      "@prisma/client"
+    ],
+    "ignoredBuiltDependencies": [
+      "@scarf/scarf"
+    ]
+  }
 }
