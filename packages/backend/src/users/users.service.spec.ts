@@ -1,15 +1,41 @@
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+const makeUser = (overrides: Record<string, unknown> = {}) => ({
+  id: 'user-1',
+  name: 'John Doe',
+  email: 'john@example.com',
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  ...overrides,
+});
+
+const asyncMock = () =>
+  jest.fn<(...args: unknown[]) => Promise<unknown>>();
+
+const makePrismaMock = () => ({
+  user: {
+    create: asyncMock(),
+    findMany: asyncMock(),
+    findUnique: asyncMock(),
+    update: asyncMock(),
+    delete: asyncMock(),
+  },
+});
+
 describe('UsersService', () => {
   let service: UsersService;
+  let prisma: ReturnType<typeof makePrismaMock>;
 
   beforeEach(async () => {
+    prisma = makePrismaMock();
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService],
+      providers: [UsersService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -20,117 +46,108 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
-    it('should create a new user', () => {
-      const createUserDto: CreateUserDto = {
+    it('returns the selected public fields', async () => {
+      const input: CreateUserDto = {
         name: 'John Doe',
         email: 'john@example.com',
         password: 'password123',
       };
+      const user = makeUser();
+      prisma.user.create.mockResolvedValue(user);
 
-      const user = service.create(createUserDto);
+      const result = await service.create(input);
 
-      expect(user).toBeDefined();
-      expect(user.name).toBe(createUserDto.name);
-      expect(user.email).toBe(createUserDto.email);
-      expect(user.password).toBeUndefined(); // Password should be sanitized
+      expect(result).toEqual(user);
+      expect(result).not.toHaveProperty('password');
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: input }),
+      );
     });
 
-    it('should throw ConflictException if email already exists', () => {
-      const createUserDto: CreateUserDto = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+    it('propagates Prisma create errors for the exception filter', async () => {
+      const error = new Error('database error');
+      prisma.user.create.mockRejectedValue(error);
 
-      service.create(createUserDto);
-
-      expect(() => service.create(createUserDto)).toThrow(ConflictException);
+      await expect(
+        service.create({
+          name: 'John Doe',
+          email: 'john@example.com',
+          password: 'password123',
+        }),
+      ).rejects.toBe(error);
     });
   });
 
   describe('findAll', () => {
-    it('should return an array of users', () => {
-      const createUserDto: CreateUserDto = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+    it('returns users from Prisma', async () => {
+      const users = [makeUser()];
+      prisma.user.findMany.mockResolvedValue(users);
 
-      service.create(createUserDto);
-      const users = service.findAll();
-
-      expect(users).toBeInstanceOf(Array);
-      expect(users.length).toBeGreaterThan(0);
+      await expect(service.findAll()).resolves.toEqual(users);
     });
   });
 
   describe('findOne', () => {
-    it('should return a user by id', () => {
-      const createUserDto: CreateUserDto = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+    it('returns a user by id', async () => {
+      const user = makeUser();
+      prisma.user.findUnique.mockResolvedValue(user);
 
-      const createdUser = service.create(createUserDto);
-      const foundUser = service.findOne(createdUser.id);
-
-      expect(foundUser).toBeDefined();
-      expect(foundUser.id).toBe(createdUser.id);
+      await expect(service.findOne(user.id)).resolves.toEqual(user);
     });
 
-    it('should throw NotFoundException if user not found', () => {
-      expect(() => service.findOne('999')).toThrow(NotFoundException);
-    });
-  });
+    it('throws when the user is missing', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
 
-  describe('update', () => {
-    it('should update a user', () => {
-      const createUserDto: CreateUserDto = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
-
-      const createdUser = service.create(createUserDto);
-      const updateUserDto: UpdateUserDto = {
-        name: 'Jane Doe',
-      };
-
-      const updatedUser = service.update(createdUser.id, updateUserDto);
-
-      expect(updatedUser.name).toBe(updateUserDto.name);
-      expect(updatedUser.email).toBe(createdUser.email);
-    });
-
-    it('should throw NotFoundException if user not found', () => {
-      const updateUserDto: UpdateUserDto = {
-        name: 'Jane Doe',
-      };
-
-      expect(() => service.update('999', updateUserDto)).toThrow(
+      await expect(service.findOne('missing')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
   });
 
-  describe('remove', () => {
-    it('should remove a user', () => {
-      const createUserDto: CreateUserDto = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      };
+  describe('update', () => {
+    it('updates an existing user', async () => {
+      const existing = makeUser();
+      const updated = makeUser({ name: 'Jane Doe' });
+      const input: UpdateUserDto = { name: 'Jane Doe' };
+      prisma.user.findUnique.mockResolvedValue(existing);
+      prisma.user.update.mockResolvedValue(updated);
 
-      const createdUser = service.create(createUserDto);
-      service.remove(createdUser.id);
-
-      expect(() => service.findOne(createdUser.id)).toThrow(NotFoundException);
+      await expect(service.update(existing.id, input)).resolves.toEqual(updated);
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: existing.id }, data: input }),
+      );
     });
 
-    it('should throw NotFoundException if user not found', () => {
-      expect(() => service.remove('999')).toThrow(NotFoundException);
+    it('throws before updating when the user is missing', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.update('missing', { name: 'Jane Doe' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('remove', () => {
+    it('deletes an existing user', async () => {
+      const user = makeUser();
+      prisma.user.findUnique.mockResolvedValue(user);
+      prisma.user.delete.mockResolvedValue(undefined);
+
+      await service.remove(user.id);
+
+      expect(prisma.user.delete).toHaveBeenCalledWith({
+        where: { id: user.id },
+      });
+    });
+
+    it('throws before deleting when the user is missing', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.remove('missing')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(prisma.user.delete).not.toHaveBeenCalled();
     });
   });
 });
-

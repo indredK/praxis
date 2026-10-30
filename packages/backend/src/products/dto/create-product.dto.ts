@@ -18,31 +18,31 @@ export class CreateProductDto {
   @ApiProperty({ example: 'iPhone 15 Pro Max' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'Apple' })
   @IsString()
   @IsNotEmpty()
-  company: string;
+  company!: string;
 
   @ApiProperty({ example: '手机' })
   @IsString()
   @IsNotEmpty()
-  category: string;
+  category!: string;
 
   @ApiProperty({ example: 'https://via.placeholder.com/300x300' })
   @IsString()
   @IsNotEmpty()
-  imageUrl: string;
+  imageUrl!: string;
 
   @ApiProperty({ example: 9999 })
   @IsNumber()
   @Min(0)
-  price: number;
+  price!: number;
 
   @ApiProperty({ example: '2023-09-22T00:00:00.000Z' })
   @IsDateString()
-  releaseDate: string;
+  releaseDate!: string;
 
   @ApiPropertyOptional({ example: 'iPhone 15 Pro Max，搭载3纳米A17 Pro芯片' })
   @IsString()
@@ -84,7 +84,7 @@ export class CreateProductDto {
     },
   })
   @IsObject()
-  specs: Record<string, any>;
+  specs!: Record<string, any>;
 
   @ApiProperty({
     example: {
@@ -94,5 +94,5 @@ export class CreateProductDto {
     },
   })
   @IsObject()
-  specifications: Record<string, string>;
+  specifications!: Record<string, string>;
 }

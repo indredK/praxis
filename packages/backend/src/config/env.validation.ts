@@ -13,31 +13,31 @@ enum Environment {
  */
 class EnvironmentVariables {
   @IsEnum(Environment)
-  NODE_ENV: Environment;
+  NODE_ENV!: Environment;
 
   @IsNumber()
-  PORT: number;
+  PORT!: number;
 
   @IsString()
-  DATABASE_URL: string;
+  DATABASE_URL!: string;
 
   @IsString()
-  JWT_SECRET: string;
+  JWT_SECRET!: string;
 
   @IsString()
-  JWT_EXPIRES_IN: string;
+  JWT_EXPIRES_IN!: string;
 
   @IsNumber()
-  RATE_LIMIT_TTL: number;
+  RATE_LIMIT_TTL!: number;
 
   @IsNumber()
-  RATE_LIMIT_MAX: number;
+  RATE_LIMIT_MAX!: number;
 
   @IsString()
-  CORS_ORIGIN: string;
+  CORS_ORIGIN!: string;
 
   @IsString()
-  LOG_LEVEL: string;
+  LOG_LEVEL!: string;
 }
 
 /**
