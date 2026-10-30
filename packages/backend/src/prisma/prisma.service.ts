@@ -4,7 +4,8 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../generated/prisma/client';
+import { createPrismaAdapter } from '../../prisma/adapter';
 
 /**
  * Prisma Service
@@ -20,6 +21,7 @@ export class PrismaService
 
   constructor() {
     super({
+      adapter: createPrismaAdapter(),
       log: [
         { emit: 'event', level: 'query' },
         { emit: 'stdout', level: 'info' },
