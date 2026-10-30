@@ -12,7 +12,7 @@ export class FilterConfigDto {
   })
   @IsObject()
   @IsNotEmpty()
-  filterTree: Record<string, any>;
+  filterTree!: Record<string, any>;
 
   @ApiProperty({
     description: 'Comparison modes configuration',
@@ -25,6 +25,6 @@ export class FilterConfigDto {
   })
   @IsObject()
   @IsNotEmpty()
-  comparisonModes: Record<string, any>;
+  comparisonModes!: Record<string, any>;
 }
 

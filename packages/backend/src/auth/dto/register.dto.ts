@@ -10,7 +10,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(2)
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: 'User email address',
@@ -18,7 +18,7 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'User password',
@@ -28,6 +28,6 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 }
 
