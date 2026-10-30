@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma/client';
+import { createPrismaAdapter } from './adapter';
 import * as filterConfigData from './seed-data/filter-config.json';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 // Apple products data
 const appleProducts = [

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from '@prisma/client';
+import type { Product } from '../../generated/prisma/client';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 /**

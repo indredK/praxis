@@ -33,7 +33,7 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   
   # 网络请求
   http: ^1.2.2
@@ -48,7 +48,7 @@ dependencies:
   
   # 状态管理和依赖注入
   provider: ^6.1.2  # 状态管理
-  get_it: ^8.0.0  # 依赖注入
+  get_it: ^9.3.0  # 依赖注入
   # 吸顶分组列表（单标题吸顶的更平滑实现）
   flutter_sticky_header: ^0.8.0
 
@@ -61,7 +61,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
