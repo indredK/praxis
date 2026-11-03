@@ -40,6 +40,12 @@ const ChannelModal: React.FC<ChannelModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [testResults, setTestResults] = useState<string>("");
+  // 打开弹窗时清空上次的测试结果（在渲染期间调整 state，避免 effect 内同步 setState）
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+    if (visible) setTestResults("");
+  }
   const [isTesting, setIsTesting] = useState(false);
 
   // 监听表单字段变化
@@ -85,7 +91,6 @@ const ChannelModal: React.FC<ChannelModalProps> = ({
         // 新增时重置表单，不设置任何默认值
         form.resetFields();
       }
-      setTestResults("");
     }
   }, [visible, initialValues, form]);
 

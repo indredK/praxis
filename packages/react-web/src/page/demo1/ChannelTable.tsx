@@ -148,6 +148,8 @@ const ChannelTable: React.FC = () => {
 
     // 组件挂载时获取数据
     useEffect(() => {
+        // 挂载时的数据加载是 effect 的合法用途；该规则会把 fetchChannels 内同步的 setLoading 误判进来
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchChannels();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

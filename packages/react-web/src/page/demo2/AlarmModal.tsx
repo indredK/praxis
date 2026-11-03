@@ -47,28 +47,6 @@ const AlarmModal: React.FC<AlarmModalProps> = ({
   // 监听告警方式变化
   const alarmMethod = Form.useWatch('alarmMethod', form);
 
-  useEffect(() => {
-    if (visible) {
-      if (initialValues) {
-        form.setFieldsValue(initialValues);
-      } else {
-        form.resetFields();
-        // 设置默认值
-        form.setFieldsValue({
-          condition: "小于(<)",
-          minThreshold: 0,
-          alarmMethod: ["短信", "邮箱"],
-          continuousAlarm: false,
-          normalAlarmContent: "提示:$YEAR/$MON/$DAY $TIME,从通道$NAME的地址$ADDRESS 读取到正常数据$VALUE。(异常范围是$CONDITION)",
-          abnormalAlarmContent: "提示:$YEAR/$MON/$DAY $TIME,从通道$NAME的地址$ADDRESS 读取到异常数据$VALUE。(异常范围是$CONDITION)",
-        });
-      }
-      // 加载群组数据
-      loadPhoneGroups();
-      loadEmailGroups();
-    }
-  }, [visible, initialValues, form]);
-
   // 加载电话群组
   const loadPhoneGroups = async () => {
     setPhoneGroupLoading(true);
@@ -96,6 +74,29 @@ const AlarmModal: React.FC<AlarmModalProps> = ({
       setEmailGroupLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (visible) {
+      if (initialValues) {
+        form.setFieldsValue(initialValues);
+      } else {
+        form.resetFields();
+        // 设置默认值
+        form.setFieldsValue({
+          condition: "小于(<)",
+          minThreshold: 0,
+          alarmMethod: ["短信", "邮箱"],
+          continuousAlarm: false,
+          normalAlarmContent: "提示:$YEAR/$MON/$DAY $TIME,从通道$NAME的地址$ADDRESS 读取到正常数据$VALUE。(异常范围是$CONDITION)",
+          abnormalAlarmContent: "提示:$YEAR/$MON/$DAY $TIME,从通道$NAME的地址$ADDRESS 读取到异常数据$VALUE。(异常范围是$CONDITION)",
+        });
+      }
+      // 加载群组数据（打开弹窗时的数据加载是 effect 的合法用途；规则会把 loader 内同步的 setLoading 误判进来）
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadPhoneGroups();
+      loadEmailGroups();
+    }
+  }, [visible, initialValues, form]);
 
   // 搜索电话群组
   const handlePhoneGroupSearch = async (value: string) => {
