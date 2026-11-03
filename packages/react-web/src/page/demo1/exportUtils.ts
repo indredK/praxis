@@ -123,7 +123,7 @@ export const exportChannelsToExcel = (channels: Channel[]): void => {
         // return fileName;
     } catch (error) {
         console.error('导出Excel失败:', error);
-        throw new Error('导出失败，请重试');
+        throw new Error('导出失败，请重试', { cause: error });
     }
 };
 
@@ -201,6 +201,6 @@ export const exportTemplateToExcel = (): void => {
 
     } catch (error) {
         console.error('导出模板失败:', error);
-        throw new Error('导出模板失败，请重试');
+        throw new Error('导出模板失败，请重试', { cause: error });
     }
 };

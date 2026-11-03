@@ -12,9 +12,19 @@ export default tseslint.config([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
+      reactHooks.configs.flat['recommended-latest'],
     ],
+    // eslint-plugin-react-refresh@0.5.x has no flat config; register it here
+    // with the same rule options as its legacy `configs.vite` preset.
+    plugins: {
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      'react-refresh/only-export-components': [
+        'error',
+        { allowConstantExport: true, allowCompoundComponents: true },
+      ],
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
