@@ -21,7 +21,9 @@ export class ProductsService {
     const { id, ...data } = createProductDto;
     return this.prisma.product.create({
       data: {
-        id: id || `product_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        id:
+          id ||
+          `product_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         ...data,
       },
     });
@@ -103,4 +105,3 @@ export class ProductsService {
     });
   }
 }
-

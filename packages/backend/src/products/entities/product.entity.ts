@@ -14,4 +14,3 @@ export class Product {
     Object.assign(this, partial);
   }
 }
-

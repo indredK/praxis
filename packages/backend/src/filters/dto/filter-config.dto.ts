@@ -27,4 +27,3 @@ export class FilterConfigDto {
   @IsNotEmpty()
   comparisonModes!: Record<string, any>;
 }
-

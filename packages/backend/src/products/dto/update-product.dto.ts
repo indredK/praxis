@@ -100,4 +100,3 @@ export class UpdateProductDto {
   @Min(0)
   stock?: number;
 }
-

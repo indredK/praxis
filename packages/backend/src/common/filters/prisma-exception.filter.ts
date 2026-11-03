@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, HttpStatus, Logger } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Prisma } from '../../../generated/prisma/client';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 /**
  * Prisma Exception Filter
@@ -15,7 +15,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request = ctx.getRequest<Request>();
 
     const errorResponse = this.handlePrismaError(exception);
 
@@ -54,14 +54,20 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
           error: 'Not Found',
         };
 
-      case 'P2002':
+      case 'P2002': {
         // Unique constraint violation
-        const target = exception.meta?.target as string[];
+        const target: unknown = exception.meta?.target;
+        const fields = Array.isArray(target)
+          ? (target as unknown[]).filter(
+              (field): field is string => typeof field === 'string',
+            )
+          : [];
         return {
           status: HttpStatus.CONFLICT,
-          message: `${target?.[0] || 'Field'} already exists`,
+          message: `${fields[0] || 'Field'} already exists`,
           error: 'Conflict',
         };
+      }
 
       case 'P2003':
         return {
@@ -86,4 +92,3 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     }
   }
 }
-

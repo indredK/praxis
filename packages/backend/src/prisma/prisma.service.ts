@@ -55,14 +55,24 @@ export class PrismaService
       (key) => key[0] !== '_' && key !== 'constructor',
     );
 
-    return Promise.all(
-      models.map((modelKey) => {
-        const model = this[modelKey as keyof typeof this];
-        if (typeof model === 'object' && model && 'deleteMany' in model) {
-          return (model as any).deleteMany();
-        }
-      }),
-    );
+    const deletions = models.flatMap((modelKey) => {
+      const model: unknown = this[modelKey as keyof typeof this];
+      return isDeletable(model) ? [model.deleteMany()] : [];
+    });
+    return Promise.all(deletions);
   }
 }
 
+/** Prisma model delegates expose deleteMany(); anything else is skipped. */
+interface Deletable {
+  deleteMany: () => Promise<unknown>;
+}
+
+function isDeletable(value: unknown): value is Deletable {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'deleteMany' in value &&
+    typeof value.deleteMany === 'function'
+  );
+}

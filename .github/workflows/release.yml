@@ -43,6 +43,11 @@ jobs:
           cache: "pnpm"
       - name: Install Dependencies
         run: pnpm install
+      - name: Generate Prisma Client
+        # generated/ is gitignored; lint/typecheck need its types. Generation does not connect to the DB.
+        run: pnpm --filter @praxis/backend run prisma:generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       - name: Run Checks (Lint, Types, Tests, Build)
         run: |
           pnpm lint

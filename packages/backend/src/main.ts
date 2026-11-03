@@ -77,7 +77,7 @@ async function bootstrap() {
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
-  const port = configService.get('port', 3001);
+  const port = configService.get<number>('port', 3001);
   await app.listen(port);
 
   logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
@@ -85,4 +85,10 @@ async function bootstrap() {
   logger.log(`📝 Environment: ${configService.get('nodeEnv')}`);
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  new Logger('Bootstrap').error(
+    'Failed to start application',
+    error instanceof Error ? error.stack : String(error),
+  );
+  process.exit(1);
+});

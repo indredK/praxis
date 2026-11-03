@@ -15,8 +15,7 @@ const makeUser = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const asyncMock = () =>
-  jest.fn<(...args: unknown[]) => Promise<unknown>>();
+const asyncMock = () => jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
 const makePrismaMock = () => ({
   user: {
@@ -112,7 +111,9 @@ describe('UsersService', () => {
       prisma.user.findUnique.mockResolvedValue(existing);
       prisma.user.update.mockResolvedValue(updated);
 
-      await expect(service.update(existing.id, input)).resolves.toEqual(updated);
+      await expect(service.update(existing.id, input)).resolves.toEqual(
+        updated,
+      );
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: existing.id }, data: input }),
       );

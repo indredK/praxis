@@ -16,7 +16,7 @@ export class FiltersService {
 
   async createOrUpdateFilterConfig(dto: FilterConfigDto) {
     const existing = await this.prisma.filterConfig.findFirst();
-    
+
     if (existing) {
       return this.prisma.filterConfig.update({
         where: { id: existing.id },
@@ -35,4 +35,3 @@ export class FiltersService {
     });
   }
 }
-

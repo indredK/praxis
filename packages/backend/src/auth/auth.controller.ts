@@ -20,6 +20,11 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
+/** Request shape after JwtStrategy.validate() has attached the user. */
+interface AuthenticatedRequest {
+  user: { userId: string; email: string };
+}
+
 /**
  * Authentication Controller
  * Handles user registration, login, and profile access
@@ -84,8 +89,11 @@ export class AuthController {
     status: 200,
     description: 'User profile retrieved',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing token' })
-  async getProfile(@Request() req: any) {
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  getProfile(@Request() req: AuthenticatedRequest) {
     // req.user is set by the JwtStrategy
     return {
       userId: req.user.userId,
@@ -93,4 +101,3 @@ export class AuthController {
     };
   }
 }
-

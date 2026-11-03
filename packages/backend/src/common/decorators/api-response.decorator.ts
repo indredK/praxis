@@ -1,18 +1,20 @@
-import { applyDecorators } from '@nestjs/common';
+import { applyDecorators, Type } from '@nestjs/common';
+import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
 
 /**
  * Custom decorator for API documentation
- * This can be extended with Swagger decorators when needed
+ * Thin wrapper over the Swagger @ApiResponse decorator
  */
 export function ApiResponse(options: {
   description?: string;
-  type?: any;
+  type?: Type<unknown>;
   status?: number;
 }) {
   return applyDecorators(
-    // Add Swagger decorators here when @nestjs/swagger is installed
-    // @ApiOperation({ summary: options.description })
-    // @ApiResponse({ status: options.status, type: options.type })
+    SwaggerApiResponse({
+      status: options.status,
+      description: options.description,
+      type: options.type,
+    }),
   );
 }
-
