@@ -22,4 +22,3 @@ export class FiltersController {
     return this.filtersService.createOrUpdateFilterConfig(dto);
   }
 }
-

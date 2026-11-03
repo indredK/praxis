@@ -8,4 +8,3 @@ import { UsersController } from './users.controller';
   exports: [UsersService], // Export for use in other modules (e.g., auth)
 })
 export class UsersModule {}
-

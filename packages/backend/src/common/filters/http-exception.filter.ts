@@ -8,6 +8,16 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+/** Shape of the body NestJS puts on HttpException responses (e.g. ValidationPipe). */
+interface HttpErrorBody {
+  message?: string | string[];
+  error?: string;
+}
+
+function isHttpErrorBody(value: unknown): value is HttpErrorBody {
+  return typeof value === 'object' && value !== null;
+}
+
 /**
  * Global exception filter
  * Catches all HTTP exceptions and formats them consistently
@@ -22,6 +32,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
+    const body: HttpErrorBody = isHttpErrorBody(exceptionResponse)
+      ? exceptionResponse
+      : {};
 
     const errorResponse = {
       statusCode: status,
@@ -31,11 +44,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message:
         typeof exceptionResponse === 'string'
           ? exceptionResponse
-          : (exceptionResponse as any).message || 'Internal server error',
-      error:
-        typeof exceptionResponse === 'object'
-          ? (exceptionResponse as any).error
-          : undefined,
+          : body.message || 'Internal server error',
+      error: typeof exceptionResponse === 'object' ? body.error : undefined,
     };
 
     // Log error for debugging
@@ -87,4 +97,3 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(errorResponse);
   }
 }
-

@@ -25,4 +25,3 @@ export class HealthController {
     return { message: 'pong', timestamp: new Date().toISOString() };
   }
 }
-

@@ -8,4 +8,3 @@ import { FiltersService } from './filters.service';
   exports: [FiltersService],
 })
 export class FiltersModule {}
-

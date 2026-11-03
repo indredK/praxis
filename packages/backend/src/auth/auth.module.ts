@@ -16,7 +16,12 @@ import { UsersModule } from '../users/users.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.secret') || 'default-secret-key',
         signOptions: {
-          expiresIn: (configService.get<string>('jwt.expiresIn') || '7d') as `${number}ms` | `${number}s` | `${number}m` | `${number}h` | `${number}d`,
+          expiresIn: (configService.get<string>('jwt.expiresIn') || '7d') as
+            | `${number}ms`
+            | `${number}s`
+            | `${number}m`
+            | `${number}h`
+            | `${number}d`,
         },
       }),
       inject: [ConfigService],
@@ -27,4 +32,3 @@ import { UsersModule } from '../users/users.module';
   exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}
-

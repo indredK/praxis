@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import type { Request } from 'express';
 
 /**
  * Logging interceptor
@@ -16,9 +17,10 @@ import { tap } from 'rxjs/operators';
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(LoggingInterceptor.name);
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const { method, url, body } = request;
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const { method, url } = request;
+    const body: unknown = request.body;
     const userAgent = request.get('user-agent') || '';
     const startTime = Date.now();
 
@@ -30,20 +32,19 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: (data) => {
+        next: () => {
           const responseTime = Date.now() - startTime;
-          this.logger.log(
-            `📤 ${method} ${url} - ${responseTime}ms - Success`,
-          );
+          this.logger.log(`📤 ${method} ${url} - ${responseTime}ms - Success`);
         },
-        error: (error) => {
+        error: (error: unknown) => {
           const responseTime = Date.now() - startTime;
+          const message =
+            error instanceof Error ? error.message : String(error);
           this.logger.error(
-            `❌ ${method} ${url} - ${responseTime}ms - Error: ${error.message}`,
+            `❌ ${method} ${url} - ${responseTime}ms - Error: ${message}`,
           );
         },
       }),
     );
   }
 }
-
