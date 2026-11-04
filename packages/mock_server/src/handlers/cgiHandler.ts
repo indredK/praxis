@@ -113,7 +113,9 @@ export function createCgiHandler({ registry, proxyTarget }: CgiHandlerDependenci
     if (matchedRule?.modifier) {
       console.log("[CGI Handler] 命中修改器规则:", matchedRule.requestMatch);
       
-      // 检查修改器函数的参数数量来判断模式
+      // 检查修改器函数的参数数量来判断模式：
+      // 声明了 3 个参数（含 payload）视为“直接生成”模式；
+      // 否则视为“修改真实响应”模式（允许省略未使用的 req 参数，即 0/1/2 个参数）。
       const modifierParamCount = matchedRule.modifier.length;
       
       if (modifierParamCount === 3) {
@@ -138,7 +140,7 @@ export function createCgiHandler({ registry, proxyTarget }: CgiHandlerDependenci
           res.status(500).json({ error: "Modifier data generation failed" });
           return;
         }
-      } else if (modifierParamCount === 2) {
+      } else {
         // 旧模式：modifier(realDeviceResponse, req) - 修改真实设备响应
         console.log("[CGI Handler] 使用旧模式修改器，代理到真实设备");
         const startTime = Date.now();
@@ -155,10 +157,6 @@ export function createCgiHandler({ registry, proxyTarget }: CgiHandlerDependenci
             },
           },
         })(req, res, next);
-      } else {
-        console.error("[CGI Handler] 修改器函数参数数量不正确:", modifierParamCount);
-        res.status(500).json({ error: "Invalid modifier function signature" });
-        return;
       }
     }
 

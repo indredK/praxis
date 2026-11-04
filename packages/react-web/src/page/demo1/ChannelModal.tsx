@@ -11,7 +11,7 @@ import {
   Divider
 } from "antd";
 import { PlayCircleOutlined } from "@ant-design/icons";
-import type { Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
+import type { Channel } from "./types";
 import {
   linkTypeOptions,
   instructionTypeOptions,
