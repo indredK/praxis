@@ -25,45 +25,8 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import ChannelModal from "./ChannelModal";
 import ImportModal from "./ImportModal";
+import type { Channel } from "./types";
 import { exportChannelsToExcel } from "./exportUtils";
-
-// 定义Channel接口
-interface Channel {
-    id: string;
-    channelName: string;
-    linkType: 'Serial' | 'TCP';
-    serialPortType?: 'RS232' | 'RS485';
-    channelType: 'write' | 'read';
-    serverId: string;
-    ipAddress?: string;
-    port?: number;
-    instructionType:
-    | 'readCoil'
-    | 'readDiscreteInput'
-    | 'readHoldingRegister'
-    | 'readInputRegister'
-    | 'writeSingleCoil'
-    | 'writeSingleHoldingRegister'
-    | 'writeMultipleCoils'
-    | 'writeMultipleHoldingRegister';
-    modbusFunctionCode?: number;
-    dataType:
-    | 'INT16'
-    | 'INT32'
-    | 'INT64'
-    | 'Float32'
-    | 'Float64'
-    | 'ASCII'
-    | 'HEX';
-    signed?: boolean;
-    byteOrder?: string;
-    registerAddress: number;
-    registerValue?: string;
-    registerCount?: number;
-    decimal?: number;
-    editable?: boolean;
-    isApplied?: boolean;
-}
 
 const { Title } = Typography;
 

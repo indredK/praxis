@@ -1,4 +1,4 @@
-import { MockRule } from "../../type.js";
+import type { MockRule } from "../../type.js";
 
 
 export interface Channel {
@@ -127,7 +127,7 @@ export const mockData: MockRule[] = [
             ],
         },
         // 使用合并后的modifier功能支持翻页
-        modifier: (realDeviceResponse, req, payload) => {
+        modifier: (realDeviceResponse, _req, payload) => {
             // 新模式：直接生成mock数据（realDeviceResponse为null）
             if (realDeviceResponse === null) {
                 // 从请求体中提取翻页参数

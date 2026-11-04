@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Tabs } from "antd";
 import Demo1 from "./page/demo1";
 import Demo2 from "./page/demo2";

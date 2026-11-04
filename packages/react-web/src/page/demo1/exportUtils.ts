@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { type Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
+import type { Channel } from "./types";
 
 // 设备型号配置
 const DEVICE_MODEL = 'UR35';

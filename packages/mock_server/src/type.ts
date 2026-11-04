@@ -1,4 +1,4 @@
-import { Request } from "express";
+import type { Request } from "express";
 
 export interface MockRule {
   name?: string; // 规则名称，便于识别

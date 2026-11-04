@@ -14,7 +14,7 @@ import {
     UploadOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
-import { type Channel } from "../../../../mock_server/src/mock_registries/3.0.11/channelSettings.js";
+import type { Channel } from "./types";
 import { exportTemplateToExcel } from './exportUtils.js';
 import { IMPORT_CONFIG } from './importConfig.js';
 
@@ -319,7 +319,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 registerAddress: row.registerAddress,
                 registerValue: row.registerValue,
                 registerCount: row.registerCount,
-                isSigned: row.isSigned === 'true',
+                signed: row.isSigned === 'true',
                 decimal: row.decimal ? parseInt(row.decimal) : undefined,
                 isApplied: false,
                 channelType: row.channelType,
